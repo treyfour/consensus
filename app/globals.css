@@ -1,26 +1,125 @@
 @import "tailwindcss";
+@import "./cdl-tokens.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/* ---------------------------------------------------------------
+   CDL → Tailwind
+   Utility names mirror Consensus's own class names (their live DOM
+   uses `bg-bg-base`, `w-(--sidebar-width)`), so markup here reads
+   the way theirs does. `inline` keeps utilities pointing at the
+   custom properties, so the light/dark switch keeps working.
+   --------------------------------------------------------------- */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* surface + text */
+  --color-bg-base: var(--cdl-bg-base);
+  --color-bg-mist: var(--cdl-bg-mist);
+  --color-bg-faint: var(--cdl-bg-faint);
+  --color-bg-subtle: var(--cdl-bg-subtle);
+  --color-bg-heavy: var(--cdl-bg-heavy);
+
+  --color-fg-base: var(--cdl-fg-base);
+  --color-fg-muted: var(--cdl-fg-muted);
+  --color-fg-inverse: var(--cdl-fg-inverse);
+
+  --color-border-base: var(--cdl-border-base);
+  --color-border-emphasis: var(--cdl-border-emphasis);
+
+  /* accent */
+  --color-accent-bg: var(--cdl-accent-bg-base);
+  --color-accent-bg-emphasis: var(--cdl-accent-bg-emphasis);
+  --color-accent-bg-muted: var(--cdl-accent-bg-muted);
+  --color-accent-bg-subtle: var(--cdl-accent-bg-subtle);
+  --color-accent-fg: var(--cdl-accent-fg-base);
+  --color-accent-on-accent: var(--cdl-accent-fg-on-accent);
+  --color-accent-border: var(--cdl-accent-border-base);
+  --color-accent-border-muted: var(--cdl-accent-border-muted);
+  --color-accent-border-subtle: var(--cdl-accent-border-subtle);
+
+  /* form controls */
+  --color-action-bg: var(--cdl-action-bg-default);
+  --color-action-border: var(--cdl-action-border-default);
+  --color-action-border-hover: var(--cdl-action-border-hover);
+  --color-action-border-error: var(--cdl-action-border-error);
+  --color-action-fg: var(--cdl-action-fg-default);
+  --color-action-placeholder: var(--cdl-action-fg-placeholder);
+
+  /* status */
+  --color-positive: var(--cdl-positive-fg-base);
+  --color-positive-bg: var(--cdl-positive-bg-base);
+  --color-alert: var(--cdl-alert-fg-base);
+  --color-alert-bg: var(--cdl-alert-bg-base);
+  --color-warning: var(--cdl-warning-fg-base);
+
+  /* graph ramp — used by the Citation Graph states */
+  --color-graph-purple: var(--cdl-graph-purple);
+  --color-graph-blue: var(--cdl-graph-blue);
+  --color-graph-teal: var(--cdl-graph-teal);
+  --color-graph-magenta: var(--cdl-graph-magenta);
+  --color-graph-lavender: var(--cdl-graph-lavender);
+
+  /* type */
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-reddit-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --text-xx-sm: var(--cdl-text-size-xx-sm);
+  --text-xx-sm--line-height: var(--cdl-text-line-height-xx-sm);
+  --text-x-sm: var(--cdl-text-size-x-sm);
+  --text-x-sm--line-height: var(--cdl-text-line-height-x-sm);
+  --text-sm: var(--cdl-text-size-sm);
+  --text-sm--line-height: var(--cdl-text-line-height-sm);
+  --text-base: var(--cdl-text-size-base);
+  --text-base--line-height: var(--cdl-text-line-height-base);
+  --text-lg: var(--cdl-text-size-lg);
+  --text-lg--line-height: var(--cdl-text-line-height-lg);
+
+  --text-h-xx-sm: var(--cdl-heading-size-xx-sm);
+  --text-h-xx-sm--line-height: var(--cdl-heading-line-height-xx-sm);
+  --text-h-x-sm: var(--cdl-heading-size-x-sm);
+  --text-h-x-sm--line-height: var(--cdl-heading-line-height-x-sm);
+  --text-h-sm: var(--cdl-heading-size-sm);
+  --text-h-sm--line-height: var(--cdl-heading-line-height-sm);
+  --text-h-base: var(--cdl-heading-size-base);
+  --text-h-base--line-height: var(--cdl-heading-line-height-base);
+
+  --font-weight-regular: var(--cdl-font-weight-regular);
+  --font-weight-medium: var(--cdl-font-weight-medium);
+  --font-weight-bold: var(--cdl-font-weight-bold);
+
+  /* radius */
+  --radius-x-sm: var(--cdl-radius-x-sm);
+  --radius-sm: var(--cdl-radius-sm);
+  --radius-md: var(--cdl-radius-md);
+  --radius-lg: var(--cdl-radius-lg);
+  --radius-circle: var(--cdl-radius-circle);
+
+  /* spacing */
+  --spacing-xxx-sm: var(--cdl-spacing-xxx-sm);
+  --spacing-xx-sm: var(--cdl-spacing-xx-sm);
+  --spacing-x-sm: var(--cdl-spacing-x-sm);
+  --spacing-sm: var(--cdl-spacing-sm);
+  --spacing-md: var(--cdl-spacing-md);
+  --spacing-lg: var(--cdl-spacing-lg);
+  --spacing-x-lg: var(--cdl-spacing-x-lg);
+  --spacing-xx-lg: var(--cdl-spacing-xx-lg);
+  --spacing-xxx-lg: var(--cdl-spacing-xxx-lg);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Layout constants observed in the live product */
+:root {
+  --sidebar-width: 13rem;
+  --panel-width: 25rem;
+  --thread-max-width: 46rem;
+}
+
+html {
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--cdl-bg-base);
+  color: var(--cdl-fg-base);
+  font-family: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
 }
