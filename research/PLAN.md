@@ -28,10 +28,18 @@ all-cited-papers, extraction matrix, composer source attach, Citation Graph, col
 chat-with-collection. Establishes that the obvious answers are already shipped, and buys
 credibility for everything after it.
 
-**3b · The behavioural evidence.** Real account, real history:
-- Nine threads. Query counts **2, 1, 2, 1, 1, 1, 1, 1, 1** — threads don't grow, they die
-- One topic fragmented across **four** threads
-- The orphan: a question asked *about the Citation Graph* filed as an unrelated top-level thread
+**3b · Where the surfaces stop talking.** Structural findings, readable off the interface —
+*not* behavioural claims (see the retraction in `AUDIT.md` §3; the account audited was
+exploratory usage, so its thread lengths prove nothing about real researchers):
+- References are **per-query**, with an "All cited papers" union that carries no origin,
+  rank, or recurrence for any paper in it
+- Asking from the **Citation Graph** creates a top-level thread in History with no link back
+  to the graph, the node, or the originating thread — context flows forward, never recorded
+- **Saving to My Library** drops key takeaway, supporting quotes, study type, funnel position
+  and originating question, leaving exactly the fields Zotero already holds
+
+Take the brief's premise at face value: papers get buried as threads grow. These are the
+mechanisms by which burial happens.
 
 **3c · Four pain points**, each tied to a quote from the supplied feedback sample:
 
@@ -45,9 +53,13 @@ credibility for everything after it.
 Supporting evidence for the curation half: *"give me less but better papers"* — there is
 currently no mechanism to say "not this one."
 
-**3d · The reframe.** The brief asks how the thread should evolve past linear. The evidence
-asks a sharper question: **why does research restart every time the user changes surface?**
-→ *Consensus remembers papers. It doesn't remember research.*
+**3d · The reframe.** The brief asks how the thread should evolve past linear. The product's
+structure asks a sharper question: **why does research restart every time the user changes
+surface?** → *Consensus remembers papers. It doesn't remember research.*
+
+This holds whichever way thread length goes — a long thread needs provenance and recurrence
+so papers stop being buried, a short one needs continuity so the next question inherits the
+last one's work — so the concept does not depend on any claim about how long threads run.
 
 ### 4 · Who this is for
 Grad student journey, stages 0–7, with the seam marked at 3→4. Where Consensus is strong,

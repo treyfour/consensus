@@ -44,23 +44,31 @@ the product that already exists.
 
 ---
 
-## 3. The behavioural evidence (from real account usage)
+## 3. RETRACTED — the "threads die young" claim
 
-Nine threads in History. Query counts: **2, 1, 2, 1, 1, 1, 1, 1, 1.**
+**Do not use this in the presentation.** An earlier version of this audit read the
+account's History as user behaviour: nine threads with query counts 2, 1, 2, 1, 1, 1, 1,
+1, 1, plus one topic spread across four threads, and concluded that threads die at one
+query and work fragments sideways.
 
-- **Threads don't grow.** The brief's premise is that threads become unwieldy as they
-  lengthen. The observed failure is the opposite: threads die at one or two queries.
-- **Topics fragment across threads.** Gut-microbiome/Parkinson's research is spread over
-  four separate threads: "Gut Microbiota Parkinsons Disease", "Gut Microbiome Parkinsons
-  Disease", "Research Synthesis Diagram Creation", and "how come l morais doesn't directly
-  connect?"
-- **The orphan-question artifact.** The user viewed the Citation Graph, saw the
-  disconnected node `L. Morais, 2020`, and asked why. That question became its own
-  top-level thread titled *"how come l morais doesn't directly connect?"* — a title that
-  is meaningless out of context and unreachable from the graph that prompted it.
+That account was **exploratory usage** — deliberately opening new threads to see what the
+product did — not research. The counts are an artifact of testing. The conclusion does not
+follow, and the contrarian reading of the brief's premise that rested on it is withdrawn.
 
-This is the strongest single piece of evidence available: a real, unprompted user
-action that the product's information architecture silently discards.
+What this costs: the most striking-looking slide in the deck. What it does not cost: the
+argument. Nothing in §1, §2, or §4 depended on it — those are product facts, readable off
+the interface regardless of who is driving.
+
+**Take the brief's premise at face value instead.** Consensus says valuable papers get
+buried as a thread grows, and they have the usage data. The gaps in §2 are the mechanisms
+by which burial happens: a paper with no origin, no note, no memory between questions, and
+nothing left of it once saved.
+
+**One structural observation does survive**, because it is a property of the product rather
+than of anyone's behaviour: asking a question from the Citation Graph creates a *top-level
+thread in History* with no link back to the graph, the node, or the originating thread.
+Context flows forward and is never recorded. Cite it as an architecture finding, not as
+evidence of user pain.
 
 ---
 
@@ -68,7 +76,7 @@ action that the product's information architecture silently discards.
 
 The brief asks: *how should the thread evolve beyond a linear conversation?*
 
-The evidence supports a sharper question:
+The product's structure supports a sharper question:
 
 > **Why does research restart every time the user changes surface?**
 
@@ -78,6 +86,11 @@ Each surface — thread, references, graph, library — is individually well-des
 individually amnesiac. The opportunity is a connective layer, not a new capability.
 That also makes it a *prioritization* argument rather than a *feature* argument, which
 is what the brief says it is grading.
+
+Note this holds whichever way thread length goes: a long thread needs provenance and
+recurrence to stop papers being buried, and a short one needs continuity so the next
+question inherits the last one's work. The object model serves both, so the concept does
+not rest on the retracted claim.
 
 ---
 
