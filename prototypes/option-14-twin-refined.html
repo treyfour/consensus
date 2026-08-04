@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>N · Twin, refined</title>
+<style>
+:root{
+--accent:#068ef1;--accent-emph:#006fce;--accent-muted:#dfeeff;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
+--bg:#fff;--mist:#fafafa;--faint:#f4f4f5;--subtle:#e4e4e7;
+--fg:#18181b;--muted:#71717b;--bd:#e4e4e7;--bd-emph:#d4d4d8;
+--pos:#148d74;--warn:#a65f00;--paper:#fffcf0;--paper-bd:#ece0bd;
+--r-xs:.25rem;--r-sm:.5rem;--r-md:.75rem;--r-lg:1rem;
+--s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;
+--t-2xs:.69rem;--t-xs:.81rem;--t-sm:.94rem;--t-base:1rem;--t-lg:1.13rem;--h-sm:1.38rem;
+--sans:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+--mono:"Reddit Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(--t-base);-webkit-font-smoothing:antialiased}
+.proto{background:var(--fg);color:#fff;padding:var(--s-xs) var(--s-md);display:flex;gap:var(--s-md);align-items:baseline;font-size:var(--t-xs)}
+.proto b{font-size:var(--t-sm)}.proto span{color:#a1a1aa}
+
+/* Notes sits between the thread and References */
+.app{display:grid;grid-template-columns:3.25rem 1fr 0 0;height:calc(100vh - 33px);position:relative;overflow:hidden}
+.app.notes-on{grid-template-columns:3.25rem 1fr 20rem 0}
+.app.refs-on{grid-template-columns:3.25rem 1fr 0 20rem}
+.app.notes-on.refs-on{grid-template-columns:3.25rem 1fr 20rem 20rem}
+.app>*{min-height:0}
+
+.rail{border-right:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;
+  gap:var(--s-xs);padding:var(--s-sm) 0;background:var(--mist)}
+.rail button{width:2.1rem;height:2.1rem;border-radius:var(--r-sm);border:0;background:transparent;
+  cursor:pointer;font-size:var(--t-base);line-height:1;color:var(--muted)}
+.rail button:hover{background:var(--faint);color:var(--fg)}
+.rail .sep{width:1.5rem;height:1px;background:var(--bd);margin:var(--s-2xs) 0}
+
+.mid{display:flex;flex-direction:column;min-height:0}
+.thread-hd{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-xs) var(--s-md);
+  border-bottom:1px solid var(--bd);background:var(--bg);position:relative;z-index:40}
+.thread-hd .t{font-size:var(--t-sm);font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tgl{font-family:inherit;font-size:var(--t-xs);border:1px solid var(--bd);background:var(--bg);color:var(--fg);
+  border-radius:var(--r-sm);padding:var(--s-2xs) var(--s-sm);cursor:pointer;white-space:nowrap;
+  display:flex;gap:var(--s-2xs);align-items:center;
+  transition:transform .16s ease,background .16s ease,border-color .16s ease,box-shadow .16s ease}
+.tgl:hover{border-color:var(--bd-emph);background:var(--mist)}
+.tgl.on{background:var(--accent-subtle);border-color:var(--accent-bd);color:var(--accent-emph)}
+.tgl .n{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.tgl.on .n{color:var(--accent-emph)}
+.tgl .drop-lab{display:none;font-family:var(--mono);font-size:var(--t-2xs)}
+body.dragging .app:not(.notes-on) #tNotes{background:var(--accent-emph);border-color:var(--accent-emph);
+  color:#fff;border-style:dashed;transform:scale(1.06);box-shadow:0 4px 14px #068ef14d}
+body.dragging .app:not(.notes-on) #tNotes .n{color:#ffffffb3}
+body.dragging .app:not(.notes-on) #tNotes .drop-lab{display:inline;color:#ffffffcc}
+#tNotes.hot{background:var(--accent);border-color:#fff;transform:scale(1.14);
+  box-shadow:0 0 0 3px var(--accent-muted),0 6px 18px #068ef166}
+#tNotes.pulse{animation:pop .4s ease}
+@keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.16)}100%{transform:scale(1)}}
+
+.thread{flex:1;overflow-y:auto;padding:var(--s-xl) var(--s-2xl)}
+.q{background:var(--accent-subtle);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);
+  font-size:var(--t-sm);max-width:26rem;margin-left:auto}
+.funnel{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin:var(--s-lg) 0}
+h1{font-size:var(--h-sm);margin-bottom:var(--s-sm);letter-spacing:-.01em}
+.ans p{font-size:var(--t-sm);line-height:1.7;margin-bottom:var(--s-md);max-width:40rem}
+.cite{font-family:var(--mono);font-size:var(--t-2xs);background:var(--faint);border-radius:var(--r-xs);
+  padding:1px 5px;cursor:grab}
+.cite:hover{background:var(--accent-subtle);outline:1px solid var(--accent-bd)}
+.cite.dragging{opacity:.35}
+
+.pane{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.pane-hd{display:flex;align-items:baseline;gap:var(--s-xs);padding:var(--s-sm) var(--s-md);
+  border-bottom:1px solid var(--bd);flex:none}
+.pane-hd b{font-size:var(--t-sm)}
+.pane-hd span{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pane-hd .x{margin-left:auto;background:none;border:0;color:var(--muted);cursor:pointer;
+  font-family:var(--mono);font-size:var(--t-sm);line-height:1;padding:0 2px}
+.pane-body{flex:1;overflow-y:auto;min-height:0}
+
+#notesPane{border-left:1px solid var(--paper-bd);background:var(--paper)}
+#notesPane .pane-hd{border-color:var(--paper-bd)}
+#notesBody{padding:0 var(--s-sm) var(--s-sm)}
+#notesBody.over{outline:2px dashed var(--accent-bd);outline-offset:-4px}
+
+/* composer pinned to the top: always reachable, never scrolled past */
+.composer{position:sticky;top:0;z-index:6;background:var(--paper);
+  padding:var(--s-sm) 0 var(--s-xs);border-bottom:1px solid var(--paper-bd)}
+.composer .box{background:#fff;border:1px dashed var(--paper-bd);border-radius:var(--r-md);
+  padding:var(--s-xs) var(--s-sm);transition:border-color .14s ease,box-shadow .14s ease}
+.composer.armed .box,.composer .box:focus-within{border-style:solid;border-color:var(--accent-bd);
+  box-shadow:0 0 0 3px var(--accent-subtle)}
+.composer.over .box{border-style:solid;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-muted)}
+.composer textarea{width:100%;border:0;outline:0;resize:none;font-family:inherit;font-size:var(--t-xs);
+  line-height:1.5;color:var(--fg);background:transparent;overflow:hidden}
+.composer textarea::placeholder{color:#b5b0a0}
+.composer .hint{display:none;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);
+  margin-top:var(--s-2xs);padding-left:var(--s-2xs)}
+.composer.armed .hint,.composer .box:focus-within~.hint{display:block}
+
+.note{background:#fff;border:1px solid var(--paper-bd);border-radius:var(--r-md);
+  padding:var(--s-xs) var(--s-sm);margin-top:var(--s-xs);box-shadow:0 1px 2px #0000000a}
+.note.over{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-subtle)}
+.note.landing{animation:land .42s cubic-bezier(.2,.9,.3,1)}
+@keyframes land{0%{opacity:0;transform:translateY(-8px) scale(.97)}100%{opacity:1;transform:none}}
+.note.flash{animation:flash 1.2s ease}
+@keyframes flash{0%{box-shadow:0 0 0 3px var(--accent-muted)}100%{box-shadow:0 1px 2px #0000000a}}
+.note textarea{width:100%;border:0;outline:0;resize:none;font-family:inherit;font-size:var(--t-xs);
+  line-height:1.5;color:var(--fg);background:transparent;padding:var(--s-2xs) 0;overflow:hidden}
+.note textarea::placeholder{color:#b5b0a0}
+/* an excerpt taken from the answer, and where it came from */
+.quote{font-size:var(--t-2xs);line-height:1.5;color:var(--fg);background:var(--faint);
+  border-radius:var(--r-xs);padding:var(--s-2xs) var(--s-xs);margin-bottom:var(--s-2xs)}
+.origin{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-bottom:var(--s-2xs);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.origin.weak{color:var(--warn)}
+.pins{display:flex;flex-direction:column;gap:2px;margin-top:var(--s-2xs)}
+.pin{display:flex;gap:var(--s-2xs);align-items:baseline;font-size:var(--t-2xs);line-height:1.35;
+  background:var(--faint);border-radius:var(--r-xs);padding:2px var(--s-2xs)}
+.pin b{font-weight:500}.pin span{color:var(--muted);font-family:var(--mono)}
+.pin .x{margin-left:auto;color:var(--muted);cursor:pointer;opacity:0;font-family:var(--mono)}
+.pin:hover .x{opacity:1}
+.foot{display:flex;gap:var(--s-2xs);margin-top:var(--s-2xs);flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:var(--t-2xs);border:1px solid var(--bd);border-radius:625rem;
+  padding:0 var(--s-xs);color:var(--muted);cursor:pointer;background:#fff}
+.tag.on{border-color:var(--accent-bd);background:var(--accent-subtle);color:var(--accent-emph)}
+.tag.add{border-style:dashed}
+
+#refsPane{border-left:1px solid var(--bd);background:var(--bg)}
+#refsBody{padding:var(--s-xs)}
+.src{border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-sm);margin-bottom:var(--s-xs);
+  background:var(--bg);position:relative;cursor:grab}
+.src:hover{border-color:var(--bd-emph);box-shadow:0 1px 3px #0000000d}
+.src.dragging{opacity:.35}
+.src h3{font-size:var(--t-xs);font-weight:500;line-height:1.35}
+.src .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs)}
+.src .p{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-xs);
+  display:flex;gap:var(--s-2xs);align-items:center}
+.dots{letter-spacing:-1px;color:var(--accent)}.dots i{color:var(--subtle);font-style:normal}
+
+.receipt{position:fixed;z-index:45;width:19rem;background:#fff;border:1px solid var(--paper-bd);
+  border-radius:var(--r-md);box-shadow:0 14px 34px #00000029;padding:var(--s-sm);display:none}
+.receipt.on{display:block}
+.receipt .top{display:flex;align-items:baseline;gap:var(--s-2xs);
+  font-family:var(--mono);font-size:var(--t-2xs);color:var(--pos)}
+.receipt .top .u{margin-left:auto;color:var(--muted);cursor:pointer;text-decoration:underline}
+.receipt .who{font-size:var(--t-xs);font-weight:500;margin-top:2px;line-height:1.35}
+.receipt .prompt{margin-top:var(--s-xs);border-top:1px solid var(--bd);padding-top:var(--s-xs);
+  font-size:var(--t-xs);color:var(--muted);cursor:text;display:flex;gap:var(--s-2xs);align-items:center}
+.receipt .prompt:hover{color:var(--fg)}
+.receipt .prompt kbd{margin-left:auto;font-family:var(--mono);font-size:var(--t-2xs)}
+.receipt textarea{display:none;width:100%;border:0;outline:0;resize:none;font-family:inherit;
+  font-size:var(--t-xs);line-height:1.5;margin-top:var(--s-xs);overflow:hidden}
+.receipt.writing .prompt{display:none}
+.receipt.writing textarea{display:block}
+.receipt .keys{display:none;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);
+  border-top:1px solid var(--bd);padding-top:var(--s-2xs);margin-top:var(--s-xs)}
+.receipt.writing .keys{display:block}
+
+.menu{position:fixed;z-index:60;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r-md);
+  box-shadow:0 12px 32px #0000001f;padding:var(--s-2xs);min-width:15rem;display:none;font-size:var(--t-xs)}
+.menu.on{display:block}
+.menu i{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-2xs) var(--s-xs);
+  border-radius:var(--r-xs);cursor:pointer;font-style:normal}
+.menu i:hover{background:var(--faint)}
+.menu i kbd{margin-left:auto;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.menu hr{border:0;border-top:1px solid var(--bd);margin:var(--s-2xs) 0}
+.menu .head{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);padding:var(--s-2xs) var(--s-xs);
+  border-bottom:1px solid var(--bd);margin-bottom:var(--s-2xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* the menu changes shape by what you right-clicked */
+.menu .sel-only{display:none}
+.menu.sel .sel-only{display:flex}
+.menu.sel .src-only{display:none}
+.menu .sub{font-family:var(--mono);font-size:var(--t-2xs);color:var(--pos);
+  padding:0 var(--s-xs) var(--s-2xs) 1.65rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu .sub.weak{color:var(--warn)}
+
+.fly{position:fixed;z-index:70;pointer-events:none;background:var(--fg);color:#fff;border-radius:625rem;
+  padding:3px var(--s-sm);font-size:var(--t-2xs);font-family:var(--mono);box-shadow:0 6px 18px #00000033;
+  transition:transform .46s cubic-bezier(.4,0,.2,1),opacity .46s ease}
+</style>
+</head>
+<body>
+<div class="proto"><b>N · Twin, refined</b><span>Notes left of References. The composer is pinned to the top: type and press ⏎ and it completes into a card below, ready for the next one. Drop a source on it to stage it first.</span></div>
+
+<div class="app notes-on refs-on" id="app">
+  <nav class="rail">
+    <button title="New thread">＋</button><button title="Home">⌂</button>
+    <button title="My Library">🔖</button><button title="History">⟲</button>
+    <div class="sep"></div>
+    <button title="Paper search">🔍</button><button title="Citation Graph">⁂</button>
+  </nav>
+
+  <div class="mid">
+    <div class="thread-hd">
+      <span class="t">CRISPR Off Target Effects</span>
+      <button class="tgl on" id="tNotes">🗒 Notes <span class="n" id="tnCount">2</span>
+        <span class="drop-lab">drop to add</span></button>
+      <button class="tgl on" id="tRefs">References <span class="n">24</span></button>
+    </div>
+    <main class="thread">
+      <div class="q">What are the open questions in CRISPR off-target effects for in vivo therapies?</div>
+      <div class="funnel">32.8M retrieved · 100 eligible · 20 included</div>
+      <h1>Open Questions in CRISPR Off-Target Effects for In Vivo Therapies</h1>
+      <div class="ans">
+        <p>Several unresolved questions persist across detection, biological variability, structural
+        variants, and clinical monitoring <span class="cite" data-p="0">WIENERT 2022</span>
+        <span class="cite" data-p="3">KALTER 2025</span>.</p>
+        <p>Large-scale aberrations remain far harder to detect than small indels using current
+        workflows <span class="cite" data-p="1">HÖIJER 2021</span>.</p>
+        <p>Human genetic diversity is an under-explored confound: variants at off-target sites differ
+        across populations <span class="cite" data-p="2">CANCELLIERI 2022</span>.</p>
+        <p>There is no consensus on how long patients should be monitored after in vivo delivery
+        <span class="cite" data-p="4">ANGELINI STEWART 2025</span>.</p>
+      </div>
+    </main>
+  </div>
+
+  <aside class="pane" id="notesPane">
+    <div class="pane-hd"><b>Notes</b><span id="nSub">yours · 2</span>
+      <button class="x" id="xNotes" title="Close">✕</button></div>
+    <div class="pane-body" id="notesBody">
+
+      <div class="composer" id="composer">
+        <div class="box">
+          <textarea id="cText" rows="1" placeholder="Type a thought, or drag a source here…"></textarea>
+          <div class="pins" id="cPins"></div>
+        </div>
+        <div class="hint">⏎ add · ⇧⏎ new line</div>
+      </div>
+
+      <div id="notesList">
+        <article class="note">
+          <textarea rows="1" placeholder="What matters about this?">The detection gap is the actual thesis gap. Indel-focused assays miss what matters.</textarea>
+          <div class="pins"><div class="pin"><b>Höijer 2021</b><span>●●○ 2 of 3 · #2</span><span class="x">✕</span></div></div>
+          <div class="foot"><span class="tag on">ch.3</span><span class="tag add">＋ tag</span></div>
+        </article>
+        <article class="note">
+          <textarea rows="1" placeholder="What matters about this?">Ask Sarah whether anyone has run this on liver-directed guides.</textarea>
+          <div class="foot"><span class="tag add">＋ tag</span></div>
+        </article>
+      </div>
+    </div>
+  </aside>
+
+  <aside class="pane" id="refsPane">
+    <div class="pane-hd"><b>References</b><span>ranked by Consensus</span>
+      <button class="x" id="xRefs" title="Close">✕</button></div>
+    <div class="pane-body" id="refsBody">
+      <div class="src" draggable="true" data-p="0">
+        <h3>CRISPR nuclease off-target activity and mitigation strategies</h3>
+        <div class="m">2022 · 46 cites · Frontiers in Genome Editing</div>
+        <div class="p"><span class="dots">●●●</span>3 of 3 searches · #1</div></div>
+      <div class="src" draggable="true" data-p="1">
+        <h3>CRISPR-Cas9 induces large structural variants at on- and off-target sites</h3>
+        <div class="m">2021 · 149 cites · Nature Communications</div>
+        <div class="p"><span class="dots">●●<i>●</i></span>2 of 3 searches · #2</div></div>
+      <div class="src" draggable="true" data-p="2">
+        <h3>Human genetic diversity alters off-target outcomes of therapeutic gene editing</h3>
+        <div class="m">2022 · 98 cites · Nature Genetics</div>
+        <div class="p"><span class="dots">●<i>●●</i></span>search 3 · #4</div></div>
+      <div class="src" draggable="true" data-p="3">
+        <h3>Off-target effects in CRISPR-Cas genome editing for human therapeutics</h3>
+        <div class="m">2025 · 56 cites · Molecular Therapy Nucleic Acids</div>
+        <div class="p"><span class="dots">●●<i>●</i></span>2 of 3 searches · #3</div></div>
+      <div class="src" draggable="true" data-p="4">
+        <h3>Measurement and clinical interpretation of CRISPR off-targets</h3>
+        <div class="m">2025 · 6 cites · Nature Genetics</div>
+        <div class="p"><span class="dots">●<i>●●</i></span>search 2 · #9</div></div>
+    </div>
+  </aside>
+</div>
+
+<div class="receipt" id="receipt">
+  <div class="top">✓ ADDED TO NOTES <span class="u" id="undo">undo</span></div>
+  <div class="who" id="rWho"></div>
+  <div class="prompt" id="rPrompt">✎ Add a note<kbd>N</kbd></div>
+  <textarea id="rText" rows="2" placeholder="What matters about this?"></textarea>
+  <div class="keys">⏎ save · esc done</div>
+</div>
+
+<div class="menu" id="menu">
+  <div class="head" id="menuHead"></div>
+  <i id="selAdd" class="sel-only">🗒 Add selection to Notes<kbd>⌘⇧N</kbd></i>
+  <div class="sub sel-only" id="selLabel"></div>
+  <i class="src-only" data-a="add">🗒 Add to Notes<kbd>⌘⇧N</kbd></i>
+  <i class="src-only" data-a="annot">✎ Add with a note…</i>
+  <hr>
+  <i>⁂ Find more like this</i><i>💬 Ask about this</i>
+  <i class="src-only">◉ Show why this is here<kbd>⌥click</kbd></i>
+</div>
+
+<script>
+const P=[
+ {n:"Wienert 2022",t:"CRISPR nuclease off-target activity and mitigation strategies",d:"●●● 3 of 3 · #1"},
+ {n:"Höijer 2021",t:"CRISPR-Cas9 induces large structural variants at on- and off-target sites",d:"●●○ 2 of 3 · #2"},
+ {n:"Cancellieri 2022",t:"Human genetic diversity alters off-target outcomes of therapeutic gene editing",d:"●○○ search 3 · #4"},
+ {n:"Kalter 2025",t:"Off-target effects in CRISPR-Cas genome editing for human therapeutics",d:"●●○ 2 of 3 · #3"},
+ {n:"Angelini Stewart 2025",t:"Measurement and clinical interpretation of CRISPR off-targets",d:"●○○ search 2 · #9"}
+];
+const app=document.getElementById('app'), tNotes=document.getElementById('tNotes'),
+      notesBody=document.getElementById('notesBody'), notesList=document.getElementById('notesList'),
+      composer=document.getElementById('composer'), cText=document.getElementById('cText'),
+      cPins=document.getElementById('cPins'), receipt=document.getElementById('receipt'),
+      rText=document.getElementById('rText'), menu=document.getElementById('menu');
+let dragging=null, lastNote=null, ctx=null, hideTimer=null, staged=[];
+
+function fit(t){t.style.height='auto';t.style.height=t.scrollHeight+'px'}
+function refit(){notesBody.querySelectorAll('textarea').forEach(fit)}
+function counts(){
+  const n=notesList.querySelectorAll('.note').length;
+  document.getElementById('tnCount').textContent=n;
+  document.getElementById('nSub').textContent='yours · '+n;
+}
+function pinRow(i,onRemove){
+  const d=document.createElement('div'); d.className='pin';
+  d.innerHTML='<b></b><span></span><span class="x">✕</span>';
+  d.querySelector('b').textContent=P[i].n; d.querySelector('span').textContent=P[i].d;
+  d.querySelector('.x').addEventListener('click',()=>{d.remove(); onRemove&&onRemove(i); counts()});
+  return d;
+}
+/* newest first, so the composer never scrolls out of reach */
+function addNote(text,idxs,excerpt){
+  const a=document.createElement('article'); a.className='note landing';
+  if(excerpt){
+    const q=document.createElement('div'); q.className='quote';
+    q.textContent='“'+excerpt.text+'”'; a.appendChild(q);
+    const o=document.createElement('div');
+    o.className='origin'+(excerpt.weak?' weak':'');
+    o.textContent=excerpt.weak
+      ? '↳ nearest citation in this paragraph'
+      : '↳ from “'+excerpt.q+'”';
+    a.appendChild(o);
+  }
+  const ta=document.createElement('textarea'); ta.rows=1; ta.placeholder='What matters about this?';
+  if(text) ta.value=text;
+  ta.addEventListener('input',()=>fit(ta)); a.appendChild(ta);
+  const pins=document.createElement('div'); pins.className='pins';
+  (idxs||[]).forEach(i=>pins.appendChild(pinRow(i)));
+  a.appendChild(pins);
+  const f=document.createElement('div'); f.className='foot';
+  f.innerHTML='<span class="tag add">＋ tag</span>'; a.appendChild(f);
+  notesList.insertBefore(a, notesList.firstChild);
+  wire(a); fit(ta); counts();
+  setTimeout(()=>a.classList.remove('landing'),450);
+  return a;
+}
+/* the composer completes into a card and resets, ready for the next thought */
+function commitComposer(){
+  const text=cText.value.trim();
+  if(!text && !staged.length) return null;
+  const note=addNote(text,staged.slice());
+  cText.value=''; cPins.innerHTML=''; staged=[];
+  composer.classList.remove('armed'); fit(cText);
+  notesBody.scrollTop=0;
+  return note;
+}
+cText.addEventListener('input',()=>{fit(cText);composer.classList.toggle('armed',!!cText.value.trim())});
+cText.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault(); const n=commitComposer(); if(n) cText.focus()}
+  if(e.key==='Escape'){cText.value='';cPins.innerHTML='';staged=[];composer.classList.remove('armed');fit(cText);cText.blur()}
+});
+function stage(i){
+  staged.push(i);
+  cPins.appendChild(pinRow(i,rem=>{const k=staged.indexOf(rem); if(k>-1) staged.splice(k,1)}));
+  composer.classList.add('armed');
+  cText.focus();
+}
+
+function render(){
+  tNotes.classList.toggle('on',app.classList.contains('notes-on'));
+  document.getElementById('tRefs').classList.toggle('on',app.classList.contains('refs-on'));
+  if(app.classList.contains('notes-on')) refit();
+}
+function toggle(w){
+  app.classList.toggle(w+'-on');
+  if(w==='notes'&&app.classList.contains('notes-on')){
+    receipt.classList.remove('on','writing'); clearTimeout(hideTimer);
+    if(lastNote){lastNote.classList.add('flash'); notesBody.scrollTop=0}
+  }
+  render();
+}
+tNotes.addEventListener('click',()=>toggle('notes'));
+document.getElementById('tRefs').addEventListener('click',()=>toggle('refs'));
+document.getElementById('xNotes').addEventListener('click',()=>toggle('notes'));
+document.getElementById('xRefs').addEventListener('click',()=>toggle('refs'));
+
+function fly(fromEl,label,done){
+  const r=fromEl.getBoundingClientRect();
+  const chip=document.createElement('div'); chip.className='fly'; chip.textContent=label;
+  chip.style.left=r.left+'px'; chip.style.top=r.top+'px';
+  document.body.appendChild(chip);
+  const target=app.classList.contains('notes-on')?composer:tNotes;
+  const t=target.getBoundingClientRect();
+  requestAnimationFrame(()=>{
+    chip.style.transform=`translate(${t.left+t.width/2-r.left-chip.offsetWidth/2}px, ${t.top+10-r.top}px) scale(.65)`;
+    chip.style.opacity='0';
+  });
+  setTimeout(()=>{chip.remove(); done&&done()},480);
+}
+function showReceipt(i){
+  const r=tNotes.getBoundingClientRect();
+  document.getElementById('rWho').textContent=P[i].t;
+  rText.value=''; receipt.classList.remove('writing'); receipt.classList.add('on');
+  receipt.style.left=Math.min(r.left-160,innerWidth-320)+'px';
+  receipt.style.top=(r.bottom+8)+'px';
+  clearTimeout(hideTimer);
+  hideTimer=setTimeout(()=>{if(!receipt.classList.contains('writing'))receipt.classList.remove('on')},5000);
+}
+function beginWriting(){receipt.classList.add('writing');clearTimeout(hideTimer);rText.focus();fit(rText)}
+document.getElementById('rPrompt').addEventListener('click',beginWriting);
+rText.addEventListener('input',()=>fit(rText));
+rText.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();
+    if(lastNote){const ta=lastNote.querySelector('textarea');ta.value=rText.value;fit(ta)}
+    receipt.classList.remove('on','writing')}
+  if(e.key==='Escape'){e.preventDefault();receipt.classList.remove('on','writing')}
+});
+document.getElementById('undo').addEventListener('click',()=>{
+  if(lastNote){lastNote.remove();lastNote=null;counts()}
+  receipt.classList.remove('on','writing');
+});
+addEventListener('keydown',e=>{
+  if(e.key.toLowerCase()==='n'&&receipt.classList.contains('on')&&!receipt.classList.contains('writing')
+     &&document.activeElement.tagName!=='TEXTAREA'){e.preventDefault();beginWriting()}
+});
+function commit(i,fromEl){
+  fly(fromEl,P[i].n,()=>{
+    if(app.classList.contains('notes-on')){
+      stage(i); notesBody.scrollTop=0;
+    } else {
+      lastNote=addNote('',[i]);
+      tNotes.classList.add('pulse'); setTimeout(()=>tNotes.classList.remove('pulse'),420);
+      showReceipt(i);
+    }
+  });
+}
+
+tNotes.addEventListener('dragover',e=>{
+  if(app.classList.contains('notes-on')) return;
+  e.preventDefault(); tNotes.classList.add('hot');
+});
+tNotes.addEventListener('dragleave',()=>tNotes.classList.remove('hot'));
+tNotes.addEventListener('drop',e=>{
+  e.preventDefault(); tNotes.classList.remove('hot');
+  if(dragging!=null) commit(dragging,tNotes);
+});
+
+document.querySelectorAll('.src, .cite').forEach(el=>{
+  const i=+el.dataset.p;
+  el.setAttribute('draggable','true');
+  el.addEventListener('dragstart',e=>{dragging=i;el.classList.add('dragging');
+    document.body.classList.add('dragging');receipt.classList.remove('on','writing');
+    e.dataTransfer.effectAllowed='copy'});
+  el.addEventListener('dragend',()=>{dragging=null;el.classList.remove('dragging');
+    document.body.classList.remove('dragging');tNotes.classList.remove('hot');
+    composer.classList.remove('over');notesBody.classList.remove('over')});
+  el.addEventListener('contextmenu',e=>{
+    e.preventDefault(); ctx={i,el}; selCtx=null; menu.classList.remove('sel');
+    document.getElementById('menuHead').textContent=P[i].n;
+    menu.style.left=Math.min(e.clientX,innerWidth-260)+'px';
+    menu.style.top=Math.min(e.clientY,innerHeight-260)+'px';
+    menu.classList.add('on');
+  });
+});
+menu.querySelectorAll('i[data-a]').forEach(item=>item.addEventListener('click',e=>{
+  e.stopPropagation(); menu.classList.remove('on');
+  if(!ctx) return;
+  commit(ctx.i,ctx.el);
+  if(item.dataset.a==='annot') setTimeout(()=>{
+    if(receipt.classList.contains('on')) beginWriting(); else cText.focus();
+  },540);
+  ctx=null;
+}));
+addEventListener('click',e=>{if(!receipt.contains(e.target))menu.classList.remove('on')});
+
+/* ---- selecting prose in the answer ----
+   A quote without its source is worthless, so the excerpt carries the papers cited
+   inside it. If the selection contains no citation, fall back to the paragraph's
+   citations and say so rather than implying a link that isn't there. */
+const THREAD_Q='What are the open questions in CRISPR off-target effects for in vivo therapies?';
+function citedIn(range){
+  const hits=[];
+  document.querySelectorAll('.ans .cite').forEach(c=>{
+    if(range.intersectsNode(c)) hits.push(+c.dataset.p);
+  });
+  return hits;
+}
+function paragraphCites(range){
+  let n=range.commonAncestorContainer;
+  if(n.nodeType===3) n=n.parentElement;
+  const p=n.closest('p');
+  return p ? [...p.querySelectorAll('.cite')].map(c=>+c.dataset.p) : [];
+}
+let selCtx=null;
+document.querySelector('.thread').addEventListener('contextmenu',e=>{
+  const sel=getSelection();
+  if(!sel.rangeCount || !sel.toString().trim() || e.target.closest('.cite')) return;
+  const range=sel.getRangeAt(0);
+  if(!e.target.closest('.ans')) return;
+  e.preventDefault();
+  let idxs=citedIn(range), weak=false;
+  if(!idxs.length){ idxs=paragraphCites(range); weak=true; }
+  let text=sel.toString().trim().replace(/\s+/g,' ');
+  if(text.length>220) text=text.slice(0,217)+'…';
+  selCtx={text,idxs,weak};
+  const names=idxs.map(i=>P[i].n).join(', ')||'no citation found';
+  document.getElementById('menuHead').textContent='“'+text.slice(0,42)+(text.length>42?'…':'')+'”';
+  const label=document.getElementById('selLabel');
+  label.textContent=weak
+    ? 'carries '+names+' (paragraph)'
+    : 'carries '+names;
+  label.className='sub'+(weak?' weak':'');
+  menu.classList.add('sel');
+  menu.style.left=Math.min(e.clientX,innerWidth-280)+'px';
+  menu.style.top=Math.min(e.clientY,innerHeight-240)+'px';
+  menu.classList.add('on');
+});
+document.getElementById('selAdd').addEventListener('click',e=>{
+  e.stopPropagation(); menu.classList.remove('on','sel');
+  if(!selCtx) return;
+  const {text,idxs,weak}=selCtx; selCtx=null;
+  const anchor=getSelection().rangeCount ? getSelection().getRangeAt(0).getBoundingClientRect() : null;
+  const from={getBoundingClientRect:()=>anchor||tNotes.getBoundingClientRect()};
+  fly(from,'excerpt',()=>{
+    if(app.classList.contains('notes-on')){
+      lastNote=addNote('',idxs,{text,q:THREAD_Q,weak});
+      notesBody.scrollTop=0; lastNote.classList.add('flash');
+      lastNote.querySelector('textarea').focus();
+    } else {
+      lastNote=addNote('',idxs,{text,q:THREAD_Q,weak});
+      tNotes.classList.add('pulse'); setTimeout(()=>tNotes.classList.remove('pulse'),420);
+      const r=tNotes.getBoundingClientRect();
+      document.getElementById('rWho').textContent='“'+text.slice(0,60)+(text.length>60?'…':'')+'”';
+      rText.value=''; receipt.classList.remove('writing'); receipt.classList.add('on');
+      receipt.style.left=Math.min(r.left-160,innerWidth-320)+'px';
+      receipt.style.top=(r.bottom+8)+'px';
+      clearTimeout(hideTimer);
+      hideTimer=setTimeout(()=>{if(!receipt.classList.contains('writing'))receipt.classList.remove('on')},5000);
+    }
+    getSelection().removeAllRanges();
+  });
+});
+
+/* drop on the composer stages it; drop on a card pins there; drop in the gutter makes a card */
+composer.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();composer.classList.add('over')});
+composer.addEventListener('dragleave',()=>composer.classList.remove('over'));
+composer.addEventListener('drop',e=>{
+  e.preventDefault();e.stopPropagation();composer.classList.remove('over');
+  if(dragging!=null) stage(dragging);
+});
+function wire(note){
+  note.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();note.classList.add('over')});
+  note.addEventListener('dragleave',()=>note.classList.remove('over'));
+  note.addEventListener('drop',e=>{
+    e.preventDefault();e.stopPropagation();note.classList.remove('over');
+    if(dragging==null) return;
+    note.querySelector('.pins').appendChild(pinRow(dragging));
+    counts();
+  });
+}
+notesList.querySelectorAll('.note').forEach(wire);
+notesBody.querySelectorAll('textarea').forEach(t=>t.addEventListener('input',()=>fit(t)));
+notesBody.addEventListener('dragover',e=>{e.preventDefault();notesBody.classList.add('over')});
+notesBody.addEventListener('dragleave',()=>notesBody.classList.remove('over'));
+notesBody.addEventListener('drop',e=>{
+  e.preventDefault();notesBody.classList.remove('over');
+  if(dragging!=null){stage(dragging);notesBody.scrollTop=0}
+});
+
+render(); counts(); refit(); fit(cText);
+</script>
+</body>
+</html>
