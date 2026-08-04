@@ -9,45 +9,66 @@
 --accent:#068ef1;--accent-emph:#006fce;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
 --bg:#fff;--mist:#fafafa;--faint:#f4f4f5;--subtle:#e4e4e7;
 --fg:#18181b;--muted:#71717b;--bd:#e4e4e7;--bd-emph:#d4d4d8;--warn:#a65f00;--pos:#148d74;
---s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;--s-3xl:2.5rem;
+--s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;--s-3xl:2.5rem;--s-4xl:3.5rem;
 --t-2xs:.69rem;--t-xs:.81rem;--t-sm:.94rem;--t-base:1rem;--t-lg:1.13rem;
 --sans:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
 --mono:"Reddit Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--sans);color:var(--fg);background:var(--mist);padding:var(--s-2xl) var(--s-lg);-webkit-font-smoothing:antialiased}
-.wrap{max-width:74rem;margin:0 auto}
+body{font-family:var(--sans);color:var(--fg);background:var(--mist);padding:var(--s-2xl) var(--s-lg) var(--s-4xl);-webkit-font-smoothing:antialiased}
+.wrap{max-width:60rem;margin:0 auto}
 .eyebrow{font-family:var(--mono);font-size:var(--t-2xs);text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
 h1{font-size:1.75rem;letter-spacing:-.015em;margin:var(--s-2xs) 0 var(--s-sm)}
-.lede{font-size:var(--t-base);color:var(--muted);max-width:46rem;line-height:1.6}
+.lede{font-size:var(--t-base);color:var(--muted);max-width:44rem;line-height:1.6}
 
-.hero{margin:var(--s-2xl) 0;display:block;background:var(--bg);border:1px solid var(--accent-bd);
-  border-radius:.75rem;padding:var(--s-lg);text-decoration:none;color:inherit}
-.hero:hover{border-color:var(--accent)}
-.hero .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);letter-spacing:.06em}
-.hero h2{font-size:var(--t-lg);margin:var(--s-2xs) 0}
-.hero p{font-size:var(--t-sm);color:var(--muted);line-height:1.55;max-width:52rem}
+/* ── latest ─────────────────────────────────────────────────── */
+.latest{margin:var(--s-2xl) 0 var(--s-md);display:block;background:var(--bg);border:1.5px solid var(--accent);
+  border-radius:.75rem;padding:var(--s-lg) var(--s-xl);text-decoration:none;color:inherit;
+  box-shadow:0 2px 14px #068ef114}
+.latest:hover{box-shadow:0 4px 20px #068ef126}
+.latest .k{font-family:var(--mono);font-size:var(--t-2xs);color:#fff;background:var(--accent);
+  letter-spacing:.08em;border-radius:625rem;padding:1px .5rem}
+.latest h2{font-size:var(--t-lg);margin:var(--s-sm) 0 var(--s-xs)}
+.latest p{font-size:var(--t-sm);color:var(--muted);line-height:1.6;max-width:46rem}
+.latest .go{display:inline-block;margin-top:var(--s-md);font-size:var(--t-xs);font-weight:500;color:var(--accent-emph)}
+.latest .new{font-family:var(--mono);font-size:var(--t-2xs);color:var(--pos);margin-top:var(--s-sm);line-height:1.7}
 
-h3.sec{font-size:var(--t-base);margin:var(--s-2xl) 0 var(--s-2xs)}
-p.secsub{font-size:var(--t-sm);color:var(--muted);margin-bottom:var(--s-md);line-height:1.55;max-width:52rem}
+.side{display:block;background:var(--bg);border:1px solid var(--bd);border-radius:.75rem;
+  padding:var(--s-md) var(--s-lg);text-decoration:none;color:inherit;margin-bottom:var(--s-3xl)}
+.side:hover{border-color:var(--bd-emph)}
+.side .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);letter-spacing:.08em}
+.side h2{font-size:var(--t-base);margin:var(--s-2xs) 0}
+.side p{font-size:var(--t-xs);color:var(--muted);line-height:1.55}
 
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(17rem,1fr));gap:var(--s-md)}
-.card{border:1px solid var(--bd);border-radius:.75rem;background:var(--bg);overflow:hidden;
-  display:flex;flex-direction:column;text-decoration:none;color:inherit}
-.card:hover{border-color:var(--bd-emph)}
-.card.rec{border-color:var(--accent)}
-.card .top{padding:var(--s-md);border-bottom:1px solid var(--bd)}
-.card .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);letter-spacing:.06em}
-.card h4{font-size:var(--t-base);margin:var(--s-2xs) 0}
-.card .qq{font-size:var(--t-xs);color:var(--muted);line-height:1.5}
-.card .body{padding:var(--s-md);font-size:var(--t-xs);line-height:1.55;flex:1}
-.card .lab{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);letter-spacing:.06em}
-.card .up{color:var(--pos);margin-bottom:var(--s-xs)}
-.card .dn{color:var(--warn)}
-.card .go{padding:var(--s-sm) var(--s-md);border-top:1px solid var(--bd);background:var(--faint);
-  color:var(--accent-emph);font-size:var(--t-xs);font-weight:500}
-.tag{display:inline-block;font-family:var(--mono);font-size:var(--t-2xs);background:var(--accent);color:#fff;
-  border-radius:625rem;padding:1px .45rem;margin-left:var(--s-2xs)}
+/* ── the index, newest first ────────────────────────────────── */
+h3.sec{font-size:var(--t-base);margin-bottom:var(--s-2xs)}
+p.secsub{font-size:var(--t-xs);color:var(--muted);margin-bottom:var(--s-xl);line-height:1.55;max-width:44rem}
+
+.round{border-top:1px solid var(--bd);padding-top:var(--s-sm);margin-bottom:var(--s-xl)}
+.rhd{display:flex;gap:var(--s-sm);align-items:baseline;margin-bottom:var(--s-xs);flex-wrap:wrap}
+.rn{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);letter-spacing:.08em;
+  white-space:nowrap;min-width:5.25rem}
+.rq{font-size:var(--t-xs);color:var(--fg);font-weight:500}
+.rq em{font-style:normal;color:var(--muted);font-weight:400}
+
+.row{display:grid;grid-template-columns:5.25rem 9.5rem 1fr auto;gap:var(--s-sm);align-items:baseline;
+  padding:var(--s-xs) var(--s-xs) var(--s-xs) 0;border-radius:var(--r-sm,.5rem);
+  text-decoration:none;color:inherit}
+.row:hover{background:var(--bg);box-shadow:0 0 0 1px var(--bd)}
+.row .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);letter-spacing:.06em}
+.row .nm{font-size:var(--t-sm);font-weight:500}
+.row .ds{font-size:var(--t-xs);color:var(--muted);line-height:1.5}
+.row .ds b{font-weight:500;color:var(--fg)}
+.row .go{font-size:var(--t-xs);color:var(--accent-emph);opacity:0;white-space:nowrap}
+.row:hover .go{opacity:1}
+.pill{display:inline-block;font-family:var(--mono);font-size:var(--t-2xs);background:var(--accent-subtle);
+  color:var(--accent-emph);border:1px solid var(--accent-bd);border-radius:625rem;padding:0 .4rem;margin-left:var(--s-2xs)}
+.pill.dead{background:var(--faint);color:var(--muted);border-color:var(--bd)}
+
+@media(max-width:44rem){
+  .row{grid-template-columns:1fr;gap:2px;padding-left:var(--s-xs);border-left:2px solid var(--bd)}
+  .rn{min-width:0}
+}
 footer{margin-top:var(--s-3xl);border-top:1px solid var(--bd);padding-top:var(--s-md);
   font-size:var(--t-xs);color:var(--muted);line-height:1.6}
 </style>
@@ -57,179 +78,195 @@ footer{margin-top:var(--s-3xl);border-top:1px solid var(--bd);padding-top:var(--
   <p class="eyebrow">Consensus design challenge · prototypes</p>
   <h1>Rethinking the Research Thread</h1>
   <p class="lede">Consensus remembers papers. It doesn’t remember research. Everything below runs on
-  real captured data and Consensus’s own extracted design tokens.</p>
+  real captured data and Consensus’s own extracted design tokens. <b>Newest work is always at the top.</b></p>
 
-  <a class="hero" href="journey.html">
-    <span class="k">START HERE · PROBLEM FRAMING</span>
+  <a class="latest" href="option-19-onenote.html">
+    <span class="k">LATEST · ROUND 11</span>
+    <h2>S · One note, many sources</h2>
+    <p>There is exactly <b>one note</b>, so there is nothing to file into and no target to pick. Select
+    references in the panel and drag <b>the whole set</b> at once: drop it in <b>open space</b> to start
+    a card, or <b>onto an existing card</b> to add to it, with the insertion line and the “＋3 sources
+    here” badge saying which will happen before you let go. Inside the note, select cards to <b>Ask
+    these</b>, <b>Add to My Library</b>, or open <b>⋯</b>; filter the note by tag or by text.</p>
+    <p class="new">new since round 10: multi-source drag · drop into open space or onto a card ·
+    one note, no filing decision · in-note multi-select bar · tag and text filter</p>
+    <span class="go">Open →</span>
+  </a>
+
+  <a class="side" href="journey.html">
+    <span class="k">PROBLEM FRAMING</span>
     <h2>Where Consensus sits, and where the work breaks</h2>
     <p>The graduate research journey across eight stages, where Consensus covers and where it hands
     off, and the four pain points drawn as spans. Includes the brief’s own scope and scoring criteria.</p>
   </a>
 
-  <a class="hero" href="option-18-notebooks.html" style="border-color:var(--accent);background:var(--accent-subtle)">
-    <span class="k">ROUND 10 · ORGANISING</span>
-    <h2>R · Notes as collections</h2>
-    <p>Each note becomes a small collection with its own name, its own sources and its own
-    <b>Ask these N</b>. Notes collapse to a title and a count so a panel of eight stays navigable.
-    The composer states <b>where things will land</b> — “adding to: Population variance (2)” — and
-    the target is switchable from the composer, from any note, or by dropping straight onto one.</p>
-  </a>
+  <h3 class="sec">Every round, newest first</h3>
+  <p class="secsub">Eleven rounds. Each row is a working prototype; the line after the name is what it
+  gives and what it costs.</p>
 
-  <h3 class="sec">Round 9 — how does a source get into Notes?</h3>
-  <p class="secsub">Same shell in all three (Notes left of References, sticky composer, newest first), so the
-  only variable is <b>how much intent you must declare before the add happens</b>.</p>
-
-  <div class="grid">
-    <a class="card rec" href="option-15-multiselect.html">
-      <div class="top"><span class="k">O · MULTI-SELECT + BAR</span><span class="tag">batch</span>
-        <h4>Multi-select</h4><p class="qq">Declare a set, then act on it.</p></div>
-      <div class="body"><p class="lab">GIVES</p><p class="up">Real batching. Shift-click ranges. Drag all three at once and they land staged in the composer under one thought.</p>
-        <p class="lab">COSTS</p><p class="dn">Highest intent. Checkboxes add permanent chrome to every card.</p></div>
-      <div class="go">Open →</div>
+  <section class="round">
+    <div class="rhd"><span class="rn">ROUND 11</span>
+      <span class="rq">Can you drag a whole set in, then act on it once it is there? <em>current direction</em></span></div>
+    <a class="row" href="option-19-onenote.html">
+      <span class="k">S</span><span class="nm">One note<span class="pill">latest</span></span>
+      <span class="ds"><b>Gives</b> multi-source drag with two legible drop outcomes, and no filing
+        decision at all. <b>Costs</b> one note means organisation has to come from tags and filter,
+        not from structure.</span>
+      <span class="go">Open →</span>
     </a>
-    <a class="card" href="option-16-hover.html">
-      <div class="top"><span class="k">P · HOVER TO ADD</span>
-        <h4>Hover</h4><p class="qq">No menu, no bar, no drag. One click.</p></div>
-      <div class="body"><p class="lab">GIVES</p><p class="up">Lowest friction of the three. Hover doubles as peek, so reading and collecting are the same gesture.</p>
-        <p class="lab">COSTS</p><p class="dn">One at a time only. The peek covers the Notes panel at this width.</p></div>
-      <div class="go">Open →</div>
-    </a>
-    <a class="card" href="option-17-selbar.html">
-      <div class="top"><span class="k">Q · SELECTION BAR</span><span class="tag">excerpt</span>
-        <h4>Selection bar</h4><p class="qq">The selection is the intent.</p></div>
-      <div class="body"><p class="lab">GIVES</p><p class="up">Captures the claim, not just the paper, and names the sources it carries before you commit.</p>
-        <p class="lab">COSTS</p><p class="dn">Only works on prose. Floats over the line above the selection.</p></div>
-      <div class="go">Open →</div>
-    </a>
-  </div>
+  </section>
 
-  <h3 class="sec">Round 1 — where does the curated set live?</h3>
-  <p class="secsub">Five structurally different containers. All five carry per-paper provenance, a note,
-  the right-click verb set, multi-select with “Ask within these”, and a path to My Library, so the only
-  variable is the container and the primary act.</p>
-
-  <div class="grid">
-    <a class="card rec" href="option-1-rail.html">
-      <div class="top"><span class="k">A · THE RAIL</span><span class="tag">spine</span>
-        <h4>The Rail</h4><p class="qq">Curation without leaving the thread.</p></div>
-      <div class="body"><p class="lab">GIVES</p><p class="up">Closest to today’s IA. Recurrence and decisions readable at a glance.</p>
-        <p class="lab">COSTS</p><p class="dn">A list, not a shape. No spatial thinking.</p></div>
-      <div class="go">Open →</div>
+  <section class="round">
+    <div class="rhd"><span class="rn">ROUND 10</span>
+      <span class="rq">What if a note were a collection?</span></div>
+    <a class="row" href="option-18-notebooks.html">
+      <span class="k">R</span><span class="nm">Notes as collections</span>
+      <span class="ds"><b>Gives</b> each note its own name, sources and <b>Ask these N</b>; the composer
+        states where things land. <b>Costs</b> you must choose a target before every add.</span>
+      <span class="go">Open →</span>
     </a>
-    <a class="card" href="option-2-margin.html">
-      <div class="top"><span class="k">B · THE MARGIN</span>
-        <h4>The Margin</h4><p class="qq">Curation as a byproduct of reading.</p></div>
-      <div class="body"><p class="lab">GIVES</p><p class="up">Lowest-friction capture; a note arrives linked to several sources.</p>
-        <p class="lab">COSTS</p><p class="dn">Weak at 40 papers and no opinions yet.</p></div>
-      <div class="go">Open →</div>
+  </section>
+
+  <section class="round">
+    <div class="rhd"><span class="rn">ROUND 9</span>
+      <span class="rq">How does a source get into Notes? <em>same shell, only the gesture varies</em></span></div>
+    <a class="row" href="option-15-multiselect.html">
+      <span class="k">O</span><span class="nm">Multi-select</span>
+      <span class="ds"><b>Gives</b> real batching: shift-click a range, drag all three at once under one
+        thought. <b>Costs</b> highest intent; checkboxes are permanent chrome.</span>
+      <span class="go">Open →</span>
     </a>
-    <a class="card" href="option-3-board.html">
-      <div class="top"><span class="k">C · THE BOARD</span>
-        <h4>The Board</h4><p class="qq">Where understanding lives, not evidence.</p></div>
-      <div class="body"><p class="lab">GIVES</p><p class="up">Best for synthesis. A one-paper group is a visible thesis gap.</p>
-        <p class="lab">COSTS</p><p class="dn">Highest build cost; risks reading as a different product.</p></div>
-      <div class="go">Open →</div>
+    <a class="row" href="option-16-hover.html">
+      <span class="k">P</span><span class="nm">Hover to add<span class="pill dead">rejected</span></span>
+      <span class="ds"><b>Gives</b> the lowest friction of the three, since hover doubles as peek. <b>Costs</b> one at a
+        time, and the peek covers the Notes panel.</span>
+      <span class="go">Open →</span>
     </a>
-    <a class="card" href="option-4-ledger.html">
-      <div class="top"><span class="k">D · THE LEDGER</span><span class="tag">verbs</span>
-        <h4>The Ledger</h4><p class="qq">How you defend this set to your advisor.</p></div>
-      <div class="body"><p class="lab">GIVES</p><p class="up">Strongest on trust. Exclusion reasons become a methods section.</p>
-        <p class="lab">COSTS</p><p class="dn">Feels like work. Assumes a systematic-review mindset.</p></div>
-      <div class="go">Open →</div>
+    <a class="row" href="option-17-selbar.html">
+      <span class="k">Q</span><span class="nm">Selection bar</span>
+      <span class="ds"><b>Gives</b> the claim, not just the paper, naming its sources before you commit.
+        <b>Costs</b> works on prose only.</span>
+      <span class="go">Open →</span>
     </a>
-    <a class="card" href="option-5-weave.html">
-      <div class="top"><span class="k">E · THE WEAVE</span>
-        <h4>The Weave</h4><p class="qq">What if we added no new surface at all?</p></div>
-      <div class="body"><p class="lab">GIVES</p><p class="up">No new container. Evidence acted on exactly where it is cited.</p>
-        <p class="lab">COSTS</p><p class="dn">Provenance chips are ~2× a plain citation and break prose flow.</p></div>
-      <div class="go">Open →</div>
+  </section>
+
+  <section class="round">
+    <div class="rhd"><span class="rn">ROUND 8</span><span class="rq">A composer that never scrolls away</span></div>
+    <a class="row" href="option-14-twin-refined.html">
+      <span class="k">N</span><span class="nm">Twin, refined</span>
+      <span class="ds"><b>Gives</b> a pinned composer and excerpts that carry the papers cited inside
+        them. <b>Costs</b> capture still starts from a right-click.</span>
+      <span class="go">Open →</span>
     </a>
-  </div>
+  </section>
 
-  <a class="hero" href="option-14-twin-refined.html" style="border-color:var(--accent);background:var(--accent-subtle)">
-    <span class="k">ROUND 8 · CURRENT DIRECTION</span>
-    <h2>N · Twin, refined</h2>
-    <p>Notes sits left of References. The composer is pinned to the top of Notes, so it never
-    scrolls out of reach: type, press ⏎, and it completes into a card below, ready for the next
-    thought. Newest first. And selecting prose in the answer then right-clicking gives
-    <b>Add selection to Notes</b>, which carries the excerpt <b>and the papers cited inside it</b>,
-    naming them in the menu before you commit.</p>
-  </a>
-
-  <a class="hero" href="option-13-twin.html" style="border-color:var(--accent);background:var(--accent-subtle)">
-    <span class="k">ROUND 7 · TWIN PANELS</span>
-    <h2>M · Twin panels</h2>
-    <p>Notes moves back to the right, beside References rather than beneath it: References next to
-    the answer it belongs to, Notes outermost. With Notes closed, the <b>Notes button itself becomes
-    the drop target</b> — it fills, scales and reads “drop to add”. Dropping shows a receipt hanging
-    off the button with undo, and <b>Add a note</b> is offered rather than forced.</p>
-  </a>
-
-  <a class="hero" href="option-12-flank.html" style="border-color:var(--accent);background:var(--accent-subtle)">
-    <span class="k">ROUND 6 · CURRENT DIRECTION</span>
-    <h2>L · Flanking</h2>
-    <p>Notes stops living beneath References and moves to the opposite flank: Notes left, thread
-    centre, References right, equal width. Symmetry is what makes them peers. Right-click any
-    citation or source for <b>Add to Notes</b> or <b>Add with a note…</b>; a chip flies to wherever
-    Notes currently is, and a toast confirms with View and Undo.</p>
-  </a>
-
-  <a class="hero" href="option-11-dock-split.html" style="border-color:var(--accent);background:var(--accent-subtle)">
-    <span class="k">ROUND 5 · CURRENT DIRECTION</span>
-    <h2>K · Dock + Split</h2>
-    <p>J and I combined. References and Notes open <b>independently</b>, so a researcher who wants
-    notes visible while reading can close References entirely. When both are open the panel splits
-    with a draggable divider. The dock appears whenever Notes is off screen and disappears when it
-    is on, because it exists only to stand in for Notes. Citations in the answer are draggable too,
-    so the dock still works with References closed.</p>
-  </a>
-
-  <a class="hero" href="option-9-blend.html" style="border-color:var(--accent)">
-    <span class="k">ROUND 3 · CURRENT DIRECTION</span>
-    <h2>I · References → Notebook</h2>
-    <p>References stay first-class at the top of the column; the Notebook sits underneath, so the
-    drag is short and vertical. A note and an annotation are the same object: one pin makes it an
-    annotation, no pins makes it a loose thought, several pins make it a claim with evidence.
-    Drag a reference in, press ＋, or just start typing in the empty note.</p>
-  </a>
-
-  <a class="hero" href="option-10-dock.html" style="border-color:var(--accent)">
-    <span class="k">ROUND 4 · REVEAL / HIDE</span>
-    <h2>J · The Dock</h2>
-    <p>The pill <b>is</b> the collapsed Notebook, not a separate thing. Start dragging and it opens
-    into an upload-style drop target; drop and an annotation field appears, then closes, all without
-    leaving References. Click it to open Notes as a tab. One slot, two tabs, and a persistent bridge
-    between them.</p>
-  </a>
-
-  <h3 class="sec">Round 2 — the transition into a safe space</h3>
-  <p class="secsub">Select a source, peek at it on hover, drop it somewhere safe, annotate it, query it later.
-  Same gesture ladder in all three: <b>hover</b> peeks for free, <b>＋</b> keeps in one click,
-  <b>right-click</b> opens the verb set. The variable is where the safe space lives.</p>
-
-  <div class="grid">
-    <a class="card" href="option-6-modes.html">
-      <div class="top"><span class="k">F · TWO MODES, ONE PANEL</span>
-        <h4>Modes</h4><p class="qq">Found is the machine’s list. Kept is yours.</p></div>
-      <div class="body"><p class="lab">GIVES</p><p class="up">Answers “references feels separate” directly. No new surface. Cheapest.</p>
-        <p class="lab">COSTS</p><p class="dn">The safe space sits behind a tab, so it is out of sight by default.</p></div>
-      <div class="go">Open →</div>
+  <section class="round">
+    <div class="rhd"><span class="rn">ROUND 7</span><span class="rq">Notes beside References, not beneath</span></div>
+    <a class="row" href="option-13-twin.html">
+      <span class="k">M</span><span class="nm">Twin panels</span>
+      <span class="ds"><b>Gives</b> the closed Notes button as its own drop target, with a receipt and
+        undo. <b>Costs</b> two panels plus the thread is a lot of column.</span>
+      <span class="go">Open →</span>
     </a>
-    <a class="card" href="option-7-tray.html">
-      <div class="top"><span class="k">G · THE TRAY</span>
-        <h4>The Tray</h4><p class="qq">Docked, always visible, expands into notes.</p></div>
-      <div class="body"><p class="lab">GIVES</p><p class="up">The safe space is never hidden, which serves “safe” most literally.</p>
-        <p class="lab">COSTS</p><p class="dn">Permanent vertical real estate, even while just reading.</p></div>
-      <div class="go">Open →</div>
+  </section>
+
+  <section class="round">
+    <div class="rhd"><span class="rn">ROUND 6</span><span class="rq">Make them peers by making them symmetric</span></div>
+    <a class="row" href="option-12-flank.html">
+      <span class="k">L</span><span class="nm">Flanking</span>
+      <span class="ds"><b>Gives</b> Notes left, thread centre, References right; symmetry is what makes
+        them equals. <b>Costs</b> the drag across the thread is long.</span>
+      <span class="go">Open →</span>
     </a>
-    <a class="card" href="option-8-notebook.html">
-      <div class="top"><span class="k">H · THE NOTEBOOK</span>
-        <h4>The Notebook</h4><p class="qq">The note is the container; evidence pins to a thought.</p></div>
-      <div class="body"><p class="lab">GIVES</p><p class="up">Closest to how a chapter is written. One paper can support several thoughts.</p>
-        <p class="lab">COSTS</p><p class="dn">Demands a thought before you can file. Needs the Unfiled row as a release valve.</p></div>
-      <div class="go">Open →</div>
+  </section>
+
+  <section class="round">
+    <div class="rhd"><span class="rn">ROUND 5</span><span class="rq">Open the two panels independently</span></div>
+    <a class="row" href="option-11-dock-split.html">
+      <span class="k">K</span><span class="nm">Dock + Split</span>
+      <span class="ds"><b>Gives</b> Notes visible with References closed, a draggable divider, and
+        draggable citations. <b>Costs</b> three ways to arrange one column.</span>
+      <span class="go">Open →</span>
     </a>
-  </div>
+  </section>
+
+  <section class="round">
+    <div class="rhd"><span class="rn">ROUND 4</span><span class="rq">Reveal and hide the Notebook</span></div>
+    <a class="row" href="option-10-dock.html">
+      <span class="k">J</span><span class="nm">The Dock</span>
+      <span class="ds"><b>Gives</b> a pill that <em>is</em> the collapsed Notebook and opens into a drop
+        target mid-drag. <b>Costs</b> the safe space is off screen by default.</span>
+      <span class="go">Open →</span>
+    </a>
+  </section>
+
+  <section class="round">
+    <div class="rhd"><span class="rn">ROUND 3</span><span class="rq">Blend References and the Notebook into one column</span></div>
+    <a class="row" href="option-9-blend.html">
+      <span class="k">I</span><span class="nm">References → Notebook</span>
+      <span class="ds"><b>Gives</b> a short vertical drag, and one object for note and annotation alike.
+        <b>Costs</b> the two halves compete for the same height.</span>
+      <span class="go">Open →</span>
+    </a>
+  </section>
+
+  <section class="round">
+    <div class="rhd"><span class="rn">ROUND 2</span>
+      <span class="rq">Where does the safe space live? <em>same gesture ladder in all three</em></span></div>
+    <a class="row" href="option-6-modes.html">
+      <span class="k">F</span><span class="nm">Modes</span>
+      <span class="ds"><b>Gives</b> Found is the machine’s list, Kept is yours, with no new surface and the
+        cheapest build. <b>Costs</b> the safe space hides behind a tab.</span>
+      <span class="go">Open →</span>
+    </a>
+    <a class="row" href="option-7-tray.html">
+      <span class="k">G</span><span class="nm">The Tray</span>
+      <span class="ds"><b>Gives</b> a safe space that is never hidden. <b>Costs</b> permanent vertical
+        real estate even while just reading.</span>
+      <span class="go">Open →</span>
+    </a>
+    <a class="row" href="option-8-notebook.html">
+      <span class="k">H</span><span class="nm">The Notebook</span>
+      <span class="ds"><b>Gives</b> the note as container, closest to how a chapter is written.
+        <b>Costs</b> demands a thought before you can file.</span>
+      <span class="go">Open →</span>
+    </a>
+  </section>
+
+  <section class="round">
+    <div class="rhd"><span class="rn">ROUND 1</span>
+      <span class="rq">Where does the curated set live? <em>five structurally different containers</em></span></div>
+    <a class="row" href="option-1-rail.html">
+      <span class="k">A</span><span class="nm">The Rail<span class="pill">spine</span></span>
+      <span class="ds"><b>Gives</b> the closest fit to today’s IA; recurrence readable at a glance.
+        <b>Costs</b> a list, not a shape, so there is no spatial thinking.</span>
+      <span class="go">Open →</span>
+    </a>
+    <a class="row" href="option-2-margin.html">
+      <span class="k">B</span><span class="nm">The Margin</span>
+      <span class="ds"><b>Gives</b> curation as a byproduct of reading. <b>Costs</b> anchoring gets
+        fragile once notes stack.</span>
+      <span class="go">Open →</span>
+    </a>
+    <a class="row" href="option-3-board.html">
+      <span class="k">C</span><span class="nm">The Board</span>
+      <span class="ds"><b>Gives</b> the only view where an <em>absence</em> is visible; a one-paper group
+        is a thesis gap. <b>Costs</b> highest build cost; reads as a different product.</span>
+      <span class="go">Open →</span>
+    </a>
+    <a class="row" href="option-4-ledger.html">
+      <span class="k">D</span><span class="nm">The Ledger<span class="pill">verbs</span></span>
+      <span class="ds"><b>Gives</b> the best answer to “why is this here”, because a panel has room for
+        four reasons. <b>Costs</b> assumes a systematic-review mindset.</span>
+      <span class="go">Open →</span>
+    </a>
+    <a class="row" href="option-5-weave.html">
+      <span class="k">E</span><span class="nm">The Weave<span class="pill dead">dead end</span></span>
+      <span class="ds"><b>Gives</b> no new surface at all, and the end-of-answer roll-up. <b>Costs</b>
+        provenance chips are ~2× a plain citation and break prose.</span>
+      <span class="go">Open →</span>
+    </a>
+  </section>
 
   <footer>
     Real data throughout: the CRISPR off-target thread, its 32.8M → 100 → 20 funnel, the three queries
