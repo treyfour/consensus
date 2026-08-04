@@ -129,18 +129,37 @@ Two consequences:
    <name>` once you are inside something, sub-collections below, and `New collection here…`
    which creates at the current depth. Built in `option-21-ask.html`.
 
-**R5b · Where do notes live in that tree? — OPEN.**
-A collection already holds threads and sources. Notes are a third kind of content, and
-"collection" is the accurate word for the container but says nothing about the notes
-inside it. The options, none chosen:
+**R5b · Notes are the third tab. — DECIDED 2026-08-04.**
+A collection already holds threads and sources. Notes join them as a peer:
+`Threads · Sources · Notes`. No new noun, no second organising system, no surface competing
+with My Library. Chosen over a new top-level "Notebook" surface, and over leading the
+collection view with notes.
 
-| | Shape | Cost |
-|---|---|---|
-| **a** | Notes become a **third tab** in the existing collection view: `Threads · Sources · Notes` | No new noun, no new surface, cheapest. But it buries the most personal content one tab deep |
-| **b** | A **new top-level surface** with its own noun, holding notes across all collections | Discoverable and personal, but a second organising system competing with My Library |
-| **c** | Keep the noun, **lead the collection view with notes**, demote Threads and Sources | No new IA, strongest statement about what a collection is *for*. Riskiest — it re-ranks a shipped screen |
+The cost is real and should be said out loud on the slide: **the most personal content sits
+one tab deep**, so it is not what you see on arrival. Two things soften it — the tab carries
+a `new` badge, and both other tabs link into it (`2 cards cite it`, `3 note cards came from
+this thread`), so Notes is reachable from wherever you actually are.
 
-This blocks nothing in the thread-side prototypes; it blocks the My Library screen.
+**R5c · Inside the tab, notes group by originating thread.**
+Not by tag, not by date. A note is thread-scoped (R1), so when its cards are filed into a
+collection they arrive already grouped: `From CRISPR Off Target Effects · 3 cards · 4
+sources`. A collection that draws on four threads reads as four groups, and that grouping
+*is* the provenance. Tags cut across the groups as a filter, which is the job they are
+good at.
+
+**R5d · This is where the Evidence tab comes back.**
+The Sources tab is the payoff of the entire argument. Each paper shows what My Library drops
+today: which cards cite it, from which thread, and at what rank and recurrence —
+`from CRISPR Off Target Effects · ●●○ 2 of 3 searches · ranked #2`.
+
+Provenance is stored **per (paper, thread)**, never per paper, because recurrence and rank
+only mean anything relative to the queries that were actually run. In
+`option-22-library.html` only the real captured thread carries dots; papers reached through
+other threads show journal and year instead of invented provenance. A first pass got this
+wrong and repeated one thread's dots under every thread — worth remembering, because it is
+the exact error that makes a provenance feature untrustworthy.
+
+Built in `prototypes/option-22-library.html`.
 
 **R6 · Tags and filter carry the organisation that structure no longer does.**
 One note means no hierarchy, so retrieval has to come from somewhere. Tags on cards plus
