@@ -55,39 +55,55 @@ already fails. The note therefore starts where the question is. The panel says s
 `from this thread · CRISPR Off Target Effects`. No folder picker, no project selector,
 no decision at capture time.
 
-**R2 · Adding to a note adds to My Library. Automatically, one-way, always.**
-Nobody should file the same paper twice. Keeping is a single act with two consequences:
-the paper enters the flat set, and the card records why. This is stated as fact in the
-panel (`✓ 6 in My Library`), never offered as a choice.
+**R2 · Nothing reaches My Library on its own. ~~Adding to a note adds to My Library.~~**
 
-The consequence, which is a real change: **"Add to My Library" stops being a button.**
-It becomes state. The escape hatch lives in `⋯ → Remove from My Library`, and removing
-it from the Library does **not** remove it from the note — the note is the record of
-your reasoning, and reasoning you later rejected is still reasoning.
+> **Reversed after round 12, on the user's call.** Round 12 made the note → Library link
+> automatic and one-way, and turned "Add to My Library" from a button into state. That was
+> wrong for two reasons the round-13 review surfaced: it silently fills a personal
+> namespace with things the researcher never chose to keep, and — decisively — **"the
+> Library" is not a single destination.** See R5a: My Library is a *tree*. "Save to My
+> Library" has no unambiguous meaning, so it cannot be the automatic consequence of
+> anything.
 
-**R3 · From a paper in My Library, you can see the notes and threads it came from.**
-This is the return leg, and it is the whole point. The Library today is a terminus. Once
-notes exist, a saved paper carries backlinks to every card that cites it, and through
-those cards, to the query that surfaced it and the rank and recurrence it had there.
-That restores, indirectly, what the `Evidence` tab loses directly.
+The rule as it now stands: keeping into the note and keeping into the Library are
+**separate acts**, and the second one always names a destination. One button, `＋ Add to
+collection`, in exactly the same form at note level and on a selection. Its picker opens at
+the root of My Library and **refuses to accept anything there** — `pick a collection —
+nothing lands in My Library on its own`. You land somewhere, or you do not land.
 
-**R4 · Asking from a note produces a backlinked thread, never an orphan.**
-Verified failure, `screens/13` → `screens/14`: asking from the Citation Graph creates a
-top-level thread with **no backlink** to the graph it came from. Work leaks sideways and
-the trail is lost. A note must not repeat this. Every thread asked from a note announces
-its origin (`NEW THREAD · ASKED FROM YOUR NOTE`, with `← back to the note`), and the note
-counts them (`3 threads asked from this note ›`).
+The note is still where the reasoning lives. It just no longer files on your behalf.
 
-This closes the cycle:
+**R3 · From a paper in a collection, you can see the notes and threads it came from.**
+Unchanged, and still the return leg. The Library today is a terminus. Once notes exist, a
+saved paper carries backlinks to every card that cites it, and through those cards, to the
+query that surfaced it and the rank and recurrence it had there. That restores, indirectly,
+what the `Evidence` tab loses directly.
 
-```
-   thread ──references──▶ NOTE ──automatic──▶ My Library
-     ▲                     │                      │
-     └──── ask this note ──┘                      │
-          (backlinked, scoped to what you kept)   │
-                                                  │
-   from any saved paper: which notes and threads it came from
-```
+**R4 · Ask is one verb, and it attaches rather than navigates.**
+
+> **Revised after round 12.** Round 12 made "Ask this note" open a new, backlinked thread.
+> Simpler and already shipped: **Ask attaches what you have to the composer as scope**, the
+> way `Papers · 20 attached` does today (verified, `screens/14`). The button says `Ask`,
+> not `Ask this note`, because attaching a selection, a set of references, or the whole
+> note are the same act at different sizes.
+
+So the note's purpose, stated plainly: **it is a way to build up an attachment.** Drag
+sources in over the course of a session, then ask the whole collection of them at once.
+
+The orphan-thread problem does not disappear, it moves: whatever thread the attached
+question opens must still carry `← from your note`. That is R4's remaining obligation and
+it is not yet built.
+
+**R4a · Your written notes are not part of the question unless you say so.**
+A card's sources and a card's *text* are different things. The sources are public
+artefacts; the text is the researcher thinking out loud, and some of it is
+`Ask Sarah whether anyone has run this on liver-directed guides`. Attaching therefore
+scopes to **sources only** by default, with one explicit, reversible opt-in beside the
+attachment chip: `＋ include my notes`. The toast says which world you are in
+(`Sources only — your notes stay private`).
+
+This is a privacy default, not a feature. Get it backwards and the first time someone
+notices is the worst possible time.
 
 **R5 · Filing is a promotion, not a prerequisite.**
 Research outgrows one thread. When it does, cards — or the whole note — are promoted into
@@ -99,6 +115,33 @@ Round 10 (`option-18-notebooks.html`) put this decision at the *front* and it co
 answer to "which note?" on every single add. Round 11 removed the decision. This round
 puts it back where it belongs: at the end, optional, once you know the shape.
 
+**R5a · My Library is a tree, and the picker has to walk it.**
+Reported by the user 2026-08-04, from the current product; **not yet screenshotted, so it
+is on the ledger as reported-not-verified.** My Library contains **collections**, a
+collection contains **sub-collections**, navigation is a breadcrumb
+(`My Library / collection / sub-collection`), and a collection's detail view has **tabs** —
+Threads, and at least one more, believed to be Sources.
+
+Two consequences:
+
+1. It is why R2 was reversed. There is no single "the Library" to auto-save into.
+2. The picker is a **drill-down**, not a flat list: breadcrumb at the top, `Add here —
+   <name>` once you are inside something, sub-collections below, and `New collection here…`
+   which creates at the current depth. Built in `option-21-ask.html`.
+
+**R5b · Where do notes live in that tree? — OPEN.**
+A collection already holds threads and sources. Notes are a third kind of content, and
+"collection" is the accurate word for the container but says nothing about the notes
+inside it. The options, none chosen:
+
+| | Shape | Cost |
+|---|---|---|
+| **a** | Notes become a **third tab** in the existing collection view: `Threads · Sources · Notes` | No new noun, no new surface, cheapest. But it buries the most personal content one tab deep |
+| **b** | A **new top-level surface** with its own noun, holding notes across all collections | Discoverable and personal, but a second organising system competing with My Library |
+| **c** | Keep the noun, **lead the collection view with notes**, demote Threads and Sources | No new IA, strongest statement about what a collection is *for*. Riskiest — it re-ranks a shipped screen |
+
+This blocks nothing in the thread-side prototypes; it blocks the My Library screen.
+
 **R6 · Tags and filter carry the organisation that structure no longer does.**
 One note means no hierarchy, so retrieval has to come from somewhere. Tags on cards plus
 one Filter control — type to find a tag, or type anything to search the note — is the
@@ -108,15 +151,19 @@ whole mechanism. It is cheap, and it does not ask you to decide anything at capt
 
 ## 4. Answers to the questions as asked
 
-- **If we add to Notes, is it project-specific?** It is *thread*-specific. Consensus has no
-  verified "project" object, so inventing one is out of scope; a collection is the
-  cross-thread container, and it is opt-in.
-- **Is it auto-added to My Library?** Yes. See R2.
+- **If we add to Notes, is it project-specific?** It is *thread*-specific. A collection is
+  the cross-thread container, and it is opt-in.
+- **Is it auto-added to My Library?** **No** — reversed, see R2. There is no single Library
+  to add to; you choose a collection or nothing happens.
 - **Can you add a note or collection to My Library?** A collection *is* a Library object.
-  A note becomes one by being promoted.
-- **How do we tell the user the relationship while they are in a chat?** Three permanent
-  lines in the note panel, none of them interactive noise: where the note came from, how
-  many of its sources are in My Library, and how many threads have been asked from it.
+  A note becomes one by being added to a collection.
+- **Are my written notes included when I ask?** No, unless you opt in. See R4a.
+- **How do we tell the user the relationship while they are in a chat?** One line, not
+  three: `from this thread · CRISPR Off Target Effects`. The Library-state and
+  threads-asked counters built in round 12 were **removed in round 13** — they were
+  reporting on a link the user had not asked for, so once R2 flipped they had nothing
+  true left to say. Where a card *has* been filed, its own footer says so (`⊞ Assay
+  comparisons`), which is the same fact stated where it is actionable.
 
 ---
 
@@ -130,9 +177,11 @@ Same discipline as `HANDOFF.md` §2 — nothing here reaches a slide without a r
 | Library list carries no rank, recurrence or originating query | **Verified** | `screens/15` |
 | Asking from the Citation Graph creates a top-level orphan thread, no backlink | **Verified** | `screens/13`, `14` |
 | No note, tag or highlight anywhere in thread or library | **Verified** | `screens/09`, `15` |
-| Consensus has no "project" or "collection" object today | **Verified by absence** — searched the rail, Library and thread UI; label as such | `screens/09`, `15` |
+| Composer attaches papers as scope (`Papers · 20 attached`) | **Verified** — this is what `Ask` reuses | `screens/14` |
+| My Library has collections, sub-collections, a breadcrumb, and tabs incl. Threads | **REPORTED BY USER**, 2026-08-04, not screenshotted. Everything in R5a rests on it — capture a screen before this reaches a slide | — |
 | Researchers would rather not file at capture time | **ASSUMED** — motivates R1 and R5; it is the strongest untested premise here | — |
-| A one-way note → Library link is preferable to two-way sync | **Design choice**, not a finding. The alternative (Library adds appear in the note) was rejected: it would fill the note with papers that have no thought attached | — |
+| Researchers do not want notes auto-filed into a shared namespace | **User's explicit call**, 2026-08-04, overriding round 12's automatic link | — |
+| Written notes should be excluded from ask scope by default | **User's stated instinct** ("these notes are kind of personal"), implemented as an opt-in | — |
 | Grad students want to re-ask a curated set | **ASSUMED**, consistent with the brief's premise about papers getting buried | — |
 
 ---
@@ -147,5 +196,8 @@ Same discipline as `HANDOFF.md` §2 — nothing here reaches a slide without a r
 - **Reconciling a note with Zotero.** `HANDOFF.md` assumes Zotero is the grad student's
   ground truth. If it is, a note that never leaves Consensus is a second home for the same
   papers. Export exists in the `⋯` menu as an acknowledgement, not an answer.
+- **Where notes live inside My Library.** R5b, still open.
+- **Whether the thread an attached question opens carries a backlink.** R4's leftover.
 
-Built as `prototypes/option-20-loop.html`.
+Built as `prototypes/option-21-ask.html`; round 12's version, with the automatic Library
+link and the thread-spawning Ask, is preserved at `prototypes/option-20-loop.html`.
