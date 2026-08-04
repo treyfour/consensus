@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>F · Two modes, one panel</title>
+<style>
+:root{
+--accent:#068ef1;--accent-emph:#006fce;--accent-muted:#dfeeff;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
+--bg:#fff;--mist:#fafafa;--faint:#f4f4f5;--subtle:#e4e4e7;
+--fg:#18181b;--muted:#71717b;--bd:#e4e4e7;--bd-emph:#d4d4d8;
+--pos:#148d74;--alert:#c10007;--warn:#a65f00;
+--r-xs:.25rem;--r-sm:.5rem;--r-md:.75rem;--r-lg:1rem;
+--s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;
+--t-2xs:.69rem;--t-xs:.81rem;--t-sm:.94rem;--t-base:1rem;--t-lg:1.13rem;
+--h-2xs:1.13rem;--h-sm:1.38rem;
+--sans:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+--mono:"Reddit Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(--t-base);-webkit-font-smoothing:antialiased}
+.proto{background:var(--fg);color:#fff;padding:var(--s-xs) var(--s-md);display:flex;gap:var(--s-md);align-items:baseline;font-size:var(--t-xs)}
+.proto b{font-size:var(--t-sm)}.proto span{color:#a1a1aa}
+.app{display:grid;grid-template-columns:13rem 1fr 25rem;height:calc(100vh - 33px);overflow:hidden}
+.app>*{min-height:0}
+.side{border-right:1px solid var(--bd);padding:var(--s-md);display:flex;flex-direction:column;gap:var(--s-2xs)}
+.side a{font-size:var(--t-sm);color:var(--fg);text-decoration:none;padding:var(--s-2xs) var(--s-xs);border-radius:var(--r-sm)}
+.side a.on{background:var(--faint);font-weight:500}
+.side .lbl{font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-md);padding-left:var(--s-xs);text-transform:uppercase;letter-spacing:.06em;font-family:var(--mono)}
+
+.thread{overflow-y:auto;padding:var(--s-xl) var(--s-2xl)}
+.q{background:var(--accent-subtle);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);font-size:var(--t-sm);max-width:32rem;margin-left:auto}
+.funnel{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin:var(--s-lg) 0}
+h1.ans{font-size:var(--h-sm);margin-bottom:var(--s-sm);letter-spacing:-.01em}
+.ans p{font-size:var(--t-sm);line-height:1.65;margin-bottom:var(--s-md)}
+.cite{font-family:var(--mono);font-size:var(--t-2xs);background:var(--faint);border-radius:var(--r-xs);
+  padding:1px 5px;cursor:pointer;white-space:nowrap}
+.cite:hover{background:var(--accent-subtle);outline:1px solid var(--accent-bd)}
+.cite.kept{background:#eafaf5;color:var(--pos)}
+
+/* ---------- the panel: one surface, two states ---------- */
+.panel{border-left:1px solid var(--bd);display:flex;flex-direction:column;background:var(--mist)}
+.modes{display:flex;padding:var(--s-sm) var(--s-md) 0;background:var(--bg);border-bottom:1px solid var(--bd);gap:var(--s-md)}
+.mode{background:none;border:0;font-family:inherit;font-size:var(--t-sm);color:var(--muted);
+  padding:0 0 var(--s-sm);cursor:pointer;border-bottom:2px solid transparent;display:flex;gap:var(--s-2xs);align-items:baseline}
+.mode.on{color:var(--fg);font-weight:700;border-bottom-color:var(--accent)}
+.mode .n{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);font-weight:400}
+.mode.on .n{color:var(--accent-emph)}
+.who{padding:var(--s-xs) var(--s-md);font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);
+  background:var(--bg);border-bottom:1px solid var(--bd)}
+.list{flex:1;overflow-y:auto;padding:var(--s-xs)}
+.pane{display:none}.pane.on{display:block}
+
+.src{background:var(--bg);border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-sm);
+  margin-bottom:var(--s-xs);position:relative}
+.src:hover{border-color:var(--bd-emph)}
+.src h3{font-size:var(--t-xs);font-weight:500;line-height:1.35;padding-right:1.75rem}
+.meta{font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs);font-family:var(--mono)}
+.prov{margin-top:var(--s-xs);font-size:var(--t-2xs);color:var(--muted);font-family:var(--mono);
+  display:flex;align-items:center;gap:var(--s-2xs)}
+.dots{letter-spacing:-1px;color:var(--accent)}
+.dots i{color:var(--subtle);font-style:normal}
+/* one-click stash — the whole transition, no dialog */
+.stash{position:absolute;top:var(--s-xs);right:var(--s-xs);width:1.5rem;height:1.5rem;border-radius:var(--r-sm);
+  border:1px solid var(--bd);background:var(--bg);color:var(--muted);cursor:pointer;font-size:var(--t-sm);
+  line-height:1;display:none;align-items:center;justify-content:center;padding:0;font-family:inherit}
+.src:hover .stash{display:flex}
+.stash:hover{border-color:var(--pos);color:var(--pos);background:#eafaf5}
+.src.kept .stash{display:flex;border-color:#b6e5d8;color:var(--pos);background:#eafaf5}
+
+/* kept items carry the note inline */
+.note{margin-top:var(--s-xs);display:flex;gap:var(--s-xs);align-items:flex-start;
+  border-top:1px dashed var(--bd);padding-top:var(--s-xs)}
+.note input{border:0;outline:0;flex:1;font-family:inherit;font-size:var(--t-2xs);background:transparent;
+  color:var(--fg);line-height:1.45}
+.note input::placeholder{color:#a1a1aa}
+.tags{display:flex;gap:var(--s-2xs);margin-top:var(--s-xs);flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:var(--t-2xs);border:1px solid var(--bd);border-radius:625rem;
+  padding:0 var(--s-xs);color:var(--muted);cursor:pointer}
+.tag.on{border-color:var(--accent-bd);background:var(--accent-subtle);color:var(--accent-emph)}
+.tag.add{border-style:dashed}
+
+.empty{text-align:center;padding:var(--s-2xl) var(--s-md);color:var(--muted);font-size:var(--t-xs);line-height:1.6}
+.empty b{display:block;color:var(--fg);font-size:var(--t-sm);margin-bottom:var(--s-2xs)}
+
+.foot{border-top:1px solid var(--bd);padding:var(--s-sm) var(--s-md);background:var(--bg)}
+.foot .hint{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-bottom:var(--s-xs)}
+.btn{font-family:inherit;font-size:var(--t-xs);border:1px solid var(--bd);background:var(--bg);color:var(--fg);
+  border-radius:var(--r-sm);padding:var(--s-2xs) var(--s-sm);cursor:pointer}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ---------- hover peek: free, no commitment ---------- */
+.peek{position:fixed;z-index:60;width:23rem;background:var(--bg);border:1px solid var(--bd-emph);
+  border-radius:var(--r-md);box-shadow:0 12px 32px #00000024;padding:var(--s-sm) var(--s-md);display:none;font-size:var(--t-xs)}
+.peek.on{display:block}
+.peek h4{font-size:var(--t-sm);font-weight:500;line-height:1.35;margin-bottom:var(--s-2xs)}
+.peek .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.peek .quote{margin-top:var(--s-xs);background:var(--faint);border-radius:var(--r-sm);padding:var(--s-xs);
+  line-height:1.5;font-size:var(--t-2xs)}
+.peek .quote b{font-family:var(--mono);color:var(--muted);display:block;font-size:var(--t-2xs);margin-bottom:2px}
+.peek .why{margin-top:var(--s-xs);font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);
+  display:flex;gap:var(--s-xs);align-items:center}
+.peek .act{margin-top:var(--s-sm);border-top:1px solid var(--bd);padding-top:var(--s-xs);
+  font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);display:flex;gap:var(--s-sm)}
+.peek .act b{color:var(--fg);font-weight:400}
+</style>
+</head>
+<body>
+<div class="proto"><b>F · Two modes, one panel</b><span>Found is the machine’s list. Kept is yours. Hover a source to peek, click ＋ to stash — no dialog, nothing leaves the thread.</span></div>
+
+<div class="app">
+  <nav class="side">
+    <a href="#">＋ New Thread</a><a href="#">Home</a><a href="#">My Library</a><a href="#">History</a>
+    <div class="lbl">Recents</div><a href="#" class="on">CRISPR Off Target…</a><a href="#">Gut Microbiome…</a>
+    <div class="lbl">Tools</div><a href="#">Paper search</a><a href="#">Citation Graph</a>
+  </nav>
+
+  <main class="thread">
+    <div class="q">What are the open questions in CRISPR off-target effects for in vivo therapies?</div>
+    <div class="funnel">32.8M retrieved · 100 eligible · 20 included · 5 steps</div>
+    <h1 class="ans">Open Questions in CRISPR Off-Target Effects for In Vivo Therapies</h1>
+    <div class="ans">
+      <p>Several unresolved questions persist across detection, biological variability, structural
+      variants, and clinical monitoring
+      <span class="cite kept" data-p="0">WIENERT 2022</span> <span class="cite" data-p="3">KALTER 2025</span>.</p>
+      <p>Large-scale aberrations remain far harder to detect than small indels using current
+      workflows <span class="cite kept" data-p="1">HÖIJER 2021</span>.</p>
+      <p>Human genetic diversity is an under-explored confound: variants at off-target sites differ
+      across populations <span class="cite" data-p="2">CANCELLIERI 2022</span>.</p>
+      <p>There is no consensus on how long, and with what assay, patients should be monitored after
+      in vivo delivery <span class="cite" data-p="4">ANGELINI STEWART 2025</span>.</p>
+    </div>
+  </main>
+
+  <aside class="panel">
+    <div class="modes">
+      <button class="mode on" data-m="found">Found <span class="n" id="nFound">24</span></button>
+      <button class="mode" data-m="kept">Kept <span class="n" id="nKept">2</span></button>
+    </div>
+    <div class="who" id="who">ranked by Consensus · all cited papers ▾</div>
+
+    <div class="list">
+      <!-- FOUND -->
+      <div class="pane on" id="paneFound">
+        <div class="src kept" data-p="0">
+          <button class="stash" title="Kept">✓</button>
+          <h3>CRISPR nuclease off-target activity and mitigation strategies</h3>
+          <div class="meta">2022 · 46 cites · Frontiers in Genome Editing</div>
+          <div class="prov"><span class="dots">●●●</span> 3 of 3 searches · #1</div>
+        </div>
+        <div class="src kept" data-p="1">
+          <button class="stash" title="Kept">✓</button>
+          <h3>CRISPR-Cas9 induces large structural variants at on- and off-target sites</h3>
+          <div class="meta">2021 · 149 cites · Nature Communications</div>
+          <div class="prov"><span class="dots">●●<i>●</i></span> 2 of 3 searches · #2</div>
+        </div>
+        <div class="src" data-p="2">
+          <button class="stash" title="Keep this">＋</button>
+          <h3>Human genetic diversity alters off-target outcomes of therapeutic gene editing</h3>
+          <div class="meta">2022 · 98 cites · Nature Genetics</div>
+          <div class="prov"><span class="dots">●<i>●●</i></span> search 3 · #4</div>
+        </div>
+        <div class="src" data-p="3">
+          <button class="stash" title="Keep this">＋</button>
+          <h3>Off-target effects in CRISPR-Cas genome editing for human therapeutics</h3>
+          <div class="meta">2025 · 56 cites · Molecular Therapy Nucleic Acids</div>
+          <div class="prov"><span class="dots">●●<i>●</i></span> 2 of 3 searches · #3</div>
+        </div>
+        <div class="src" data-p="4">
+          <button class="stash" title="Keep this">＋</button>
+          <h3>Measurement and clinical interpretation of CRISPR off-targets</h3>
+          <div class="meta">2025 · 6 cites · Nature Genetics</div>
+          <div class="prov"><span class="dots">●<i>●●</i></span> search 2 · #9</div>
+        </div>
+      </div>
+
+      <!-- KEPT -->
+      <div class="pane" id="paneKept">
+        <div class="src kept">
+          <button class="stash" title="Remove from Kept">✓</button>
+          <h3>CRISPR nuclease off-target activity and mitigation strategies</h3>
+          <div class="meta">2022 · 46 cites · Frontiers in Genome Editing</div>
+          <div class="prov"><span class="dots">●●●</span> 3 of 3 searches · #1</div>
+          <div class="note">🗒 <input value="Anchor paper for the detection-gap argument. Cite in ch.3 intro."></div>
+          <div class="tags"><span class="tag on">detection</span><span class="tag on">ch.3</span><span class="tag add">＋ tag</span></div>
+        </div>
+        <div class="src kept">
+          <button class="stash" title="Remove from Kept">✓</button>
+          <h3>CRISPR-Cas9 induces large structural variants at on- and off-target sites</h3>
+          <div class="meta">2021 · 149 cites · Nature Communications</div>
+          <div class="prov"><span class="dots">●●<i>●</i></span> 2 of 3 searches · #2</div>
+          <div class="note">🗒 <input placeholder="Add a note — travels with this paper everywhere"></div>
+          <div class="tags"><span class="tag on">detection</span><span class="tag add">＋ tag</span></div>
+        </div>
+        <div class="empty" id="keptEmpty" style="display:none">
+          <b>Nothing kept yet</b>
+          Hover any source in Found and press ＋.<br>Nothing leaves the thread; you can always un-keep.
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <div class="hint" id="hint">hover to peek · ＋ to keep · right-click for more</div>
+      <div style="display:flex;gap:var(--s-xs)">
+        <button class="btn pri">→ “CRISPR ch.3” in My Library</button>
+        <button class="btn">Ask these</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="peek" id="peek">
+  <h4 id="pkTitle"></h4>
+  <div class="m" id="pkMeta"></div>
+  <div class="quote"><b>WHY IT WAS CITED HERE</b><span id="pkQuote"></span></div>
+  <div class="why" id="pkWhy"></div>
+  <div class="act"><b>＋</b> keep <b>·</b> <b>right-click</b> for note, tag, exclude</div>
+</div>
+
+<script>
+const PAPERS=[
+ {t:"CRISPR nuclease off-target activity and mitigation strategies",
+  m:"2022 · Wienert & Cromer · Frontiers in Genome Editing · 46 citations · Q1",
+  q:"“Detecting large-scale off-target effects and mitigating potential safety concerns are crucial for full translational potential.”",
+  w:"●●● 3 of 3 searches · ranked #1 · 28 supporting quotes"},
+ {t:"CRISPR-Cas9 induces large structural variants at on- and off-target sites",
+  m:"2021 · Höijer et al. · Nature Communications · 149 citations",
+  q:"“Large structural variants segregate across generations and are missed by standard indel-focused workflows.”",
+  w:"●●○ 2 of 3 searches · ranked #2 · 11 supporting quotes"},
+ {t:"Human genetic diversity alters off-target outcomes of therapeutic gene editing",
+  m:"2022 · Cancellieri et al. · Nature Genetics · 98 citations · Q1",
+  q:"“Variants at off-target sites differ across populations, so a guide validated on one reference genome may behave differently in another.”",
+  w:"●○○ search 3 only · ranked #4 · only paper here on population variance"},
+ {t:"Off-target effects in CRISPR-Cas genome editing for human therapeutics",
+  m:"2025 · Kalter et al. · Molecular Therapy Nucleic Acids · 56 citations",
+  q:"“Progress and challenges in translating off-target assessment into clinical practice.”",
+  w:"●●○ 2 of 3 searches · ranked #3"},
+ {t:"Measurement and clinical interpretation of CRISPR off-targets",
+  m:"2025 · Angelini Stewart et al. · Nature Genetics · 6 citations",
+  q:"“No consensus exists on the duration or assay for post-delivery monitoring.”",
+  w:"●○○ search 2 only · ranked #9"}
+];
+const peek=document.getElementById('peek');
+function showPeek(i,el){
+  const p=PAPERS[i]; if(!p) return;
+  document.getElementById('pkTitle').textContent=p.t;
+  document.getElementById('pkMeta').textContent=p.m;
+  document.getElementById('pkQuote').textContent=p.q;
+  document.getElementById('pkWhy').textContent=p.w;
+  const r=el.getBoundingClientRect();
+  peek.classList.add('on');
+  const h=peek.offsetHeight;
+  peek.style.top=Math.min(Math.max(8,r.top),innerHeight-h-8)+'px';
+  peek.style.left=Math.max(8,r.left-378)+'px';
+}
+document.querySelectorAll('[data-p]').forEach(el=>{
+  el.addEventListener('mouseenter',()=>showPeek(+el.dataset.p,el));
+  el.addEventListener('mouseleave',()=>peek.classList.remove('on'));
+});
+document.querySelectorAll('.mode').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.mode').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  const kept=b.dataset.m==='kept';
+  document.getElementById('paneFound').classList.toggle('on',!kept);
+  document.getElementById('paneKept').classList.toggle('on',kept);
+  document.getElementById('who').textContent=kept
+    ? 'your order · notes and tags travel with each paper'
+    : 'ranked by Consensus · all cited papers ▾';
+  document.getElementById('hint').textContent=kept
+    ? 'drag to reorder · un-keep anytime · nothing is deleted'
+    : 'hover to peek · ＋ to keep · right-click for more';
+}));
+document.querySelectorAll('.stash').forEach(b=>b.addEventListener('click',e=>{
+  e.stopPropagation();
+  const card=b.closest('.src'); card.classList.toggle('kept');
+  b.textContent=card.classList.contains('kept')?'✓':'＋';
+  const n=document.querySelectorAll('#paneFound .src.kept').length;
+  document.getElementById('nKept').textContent=n;
+}));
+</script>
+</body>
+</html>
