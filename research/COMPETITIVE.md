@@ -67,9 +67,11 @@ papers, correctly) but nothing links back and nothing persists as a relationship
 | **Rayyan** | Decisions and exclusion reasons flow automatically into a **PRISMA flow diagram**. Only *reasons* populate PRISMA — labels don't | **The audit trail is the deliverable.** Curation work becomes a methods section for free |
 | **Zotero** | Notes, tags, related items sync with the item permanently | The benchmark Consensus is measured against — and imports from |
 
-**Consensus today:** saving drops key takeaway, supporting quotes, study type, funnel
-position, and originating question. What survives — Title/Type/Authors/Journal/Year — is
-exactly what Zotero already stores, with a Zotero Import button beside it.
+**Consensus today:** the paper survives; its relationship to your question does not. A saved
+paper keeps authors, journal, SJR score, citation counts, DOI and abstract, but loses the
+`Evidence (N)` tab it carries inside a thread, along with rank, recurrence and which query
+surfaced it. Evidence is query-relative and the Library has no query. What remains is close
+to what Zotero already stores, with a Zotero Import button beside it.
 
 ---
 
