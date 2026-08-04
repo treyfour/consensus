@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>J · The Dock</title>
+<style>
+:root{
+--accent:#068ef1;--accent-emph:#006fce;--accent-muted:#dfeeff;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
+--bg:#fff;--mist:#fafafa;--faint:#f4f4f5;--subtle:#e4e4e7;
+--fg:#18181b;--muted:#71717b;--bd:#e4e4e7;--bd-emph:#d4d4d8;
+--pos:#148d74;--warn:#a65f00;--paper:#fffcf0;--paper-bd:#ece0bd;
+--r-xs:.25rem;--r-sm:.5rem;--r-md:.75rem;--r-lg:1rem;
+--s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;
+--t-2xs:.69rem;--t-xs:.81rem;--t-sm:.94rem;--t-base:1rem;--t-lg:1.13rem;--h-sm:1.38rem;
+--sans:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+--mono:"Reddit Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(--t-base);-webkit-font-smoothing:antialiased}
+.proto{background:var(--fg);color:#fff;padding:var(--s-xs) var(--s-md);display:flex;gap:var(--s-md);align-items:baseline;font-size:var(--t-xs)}
+.proto b{font-size:var(--t-sm)}.proto span{color:#a1a1aa}
+.app{display:grid;grid-template-columns:12rem 1fr 26rem;height:calc(100vh - 33px);overflow:hidden}
+.app>*{min-height:0}
+.side{border-right:1px solid var(--bd);padding:var(--s-md);display:flex;flex-direction:column;gap:var(--s-2xs)}
+.side a{font-size:var(--t-sm);color:var(--fg);text-decoration:none;padding:var(--s-2xs) var(--s-xs);border-radius:var(--r-sm)}
+.side a.on{background:var(--faint);font-weight:500}
+.side .lbl{font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-md);padding-left:var(--s-xs);
+  text-transform:uppercase;letter-spacing:.06em;font-family:var(--mono)}
+
+.thread{overflow-y:auto;padding:var(--s-xl) var(--s-2xl)}
+.q{background:var(--accent-subtle);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);
+  font-size:var(--t-sm);max-width:28rem;margin-left:auto}
+.funnel{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin:var(--s-lg) 0}
+h1{font-size:var(--h-sm);margin-bottom:var(--s-sm);letter-spacing:-.01em}
+.ans p{font-size:var(--t-sm);line-height:1.65;margin-bottom:var(--s-md)}
+.cite{font-family:var(--mono);font-size:var(--t-2xs);background:var(--faint);border-radius:var(--r-xs);
+  padding:1px 5px;cursor:grab}
+.cite:hover{background:var(--accent-subtle);outline:1px solid var(--accent-bd)}
+
+/* right panel: one slot, two tabs */
+.panel{border-left:1px solid var(--bd);display:flex;flex-direction:column;min-height:0;position:relative}
+.tabs{display:flex;gap:var(--s-md);padding:var(--s-sm) var(--s-md) 0;border-bottom:1px solid var(--bd);background:var(--bg)}
+.tab{background:none;border:0;font-family:inherit;font-size:var(--t-sm);color:var(--muted);cursor:pointer;
+  padding:0 0 var(--s-sm);border-bottom:2px solid transparent;display:flex;gap:var(--s-2xs);align-items:baseline}
+.tab.on{color:var(--fg);font-weight:700;border-bottom-color:var(--accent)}
+.tab .n{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);font-weight:400}
+.tab.on .n{color:var(--accent-emph)}
+.sub{padding:var(--s-xs) var(--s-md);font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);
+  border-bottom:1px solid var(--bd);background:var(--bg)}
+.view{flex:1;overflow-y:auto;min-height:0}
+.view.hide{display:none}
+
+/* references */
+#refs{padding:var(--s-xs);background:var(--bg)}
+.src{border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-sm);margin-bottom:var(--s-xs);
+  background:var(--bg);position:relative;cursor:grab}
+.src:hover{border-color:var(--bd-emph);box-shadow:0 1px 3px #0000000d}
+.src.dragging{opacity:.35}
+.src h3{font-size:var(--t-xs);font-weight:500;line-height:1.35;padding-right:1.6rem}
+.src .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs)}
+.src .p{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-xs);
+  display:flex;gap:var(--s-2xs);align-items:center}
+.dots{letter-spacing:-1px;color:var(--accent)}.dots i{color:var(--subtle);font-style:normal}
+.add{position:absolute;top:var(--s-xs);right:var(--s-xs);width:1.4rem;height:1.4rem;border-radius:var(--r-sm);
+  border:1px solid var(--bd);background:var(--bg);color:var(--muted);cursor:pointer;font-size:var(--t-sm);
+  line-height:1;display:none;align-items:center;justify-content:center;padding:0;font-family:inherit}
+.src:hover .add{display:flex}
+.add:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-subtle)}
+
+/* notes view */
+#notes{background:var(--paper);padding:var(--s-xs) var(--s-sm) 5rem}
+.note{background:#fff;border:1px solid var(--paper-bd);border-radius:var(--r-md);
+  padding:var(--s-xs) var(--s-sm);margin-bottom:var(--s-xs);box-shadow:0 1px 2px #0000000a}
+.note.over{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-subtle)}
+.note textarea{width:100%;border:0;outline:0;resize:none;font-family:inherit;font-size:var(--t-xs);
+  line-height:1.5;color:var(--fg);background:transparent;padding:var(--s-2xs) 0;overflow:hidden}
+.note textarea::placeholder{color:#b5b0a0}
+.pins{display:flex;flex-direction:column;gap:2px;margin-top:var(--s-2xs)}
+.pin{display:flex;gap:var(--s-2xs);align-items:baseline;font-size:var(--t-2xs);line-height:1.35;
+  background:var(--faint);border-radius:var(--r-xs);padding:2px var(--s-2xs)}
+.pin b{font-weight:500}.pin span{color:var(--muted);font-family:var(--mono)}
+.foot{display:flex;gap:var(--s-2xs);margin-top:var(--s-2xs);flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:var(--t-2xs);border:1px solid var(--bd);border-radius:625rem;
+  padding:0 var(--s-xs);color:var(--muted);cursor:pointer;background:#fff}
+.tag.on{border-color:var(--accent-bd);background:var(--accent-subtle);color:var(--accent-emph)}
+.tag.add{border-style:dashed}
+.ghost{border-style:dashed;background:transparent;box-shadow:none}
+
+/* ---------- THE DOCK ---------- */
+/* resting: a small pill. dragging: a drop zone. clicked: opens the Notes tab. */
+.dock{position:absolute;right:var(--s-md);bottom:var(--s-md);z-index:30;
+  display:flex;align-items:center;gap:var(--s-xs);
+  background:var(--fg);color:#fff;border:2px solid transparent;
+  border-radius:625rem;padding:var(--s-xs) var(--s-md);cursor:pointer;
+  font-size:var(--t-xs);box-shadow:0 6px 20px #00000026;
+  /* only paint + transform are tweened; padding snaps, so nothing lays out mid-animation */
+  transition:border-radius .16s ease,background .16s ease,transform .16s ease,border-color .16s ease}
+.dock .ico{font-size:var(--t-sm);line-height:1}
+.dock .lab{white-space:nowrap}
+.dock .n{font-family:var(--mono);font-size:var(--t-2xs);background:#ffffff2e;border-radius:625rem;padding:0 .4rem}
+.dock .hint{display:none;font-family:var(--mono);font-size:var(--t-2xs);color:#ffffffb3}
+
+/* state 2: something is being dragged — the dock opens up as a target */
+body.dragging .dock{border-radius:var(--r-lg);padding:var(--s-md) var(--s-lg);
+  background:var(--accent-emph);border-color:#ffffff59;transform:scale(1.02)}
+body.dragging .dock .hint{display:block}
+/* state 3: hovering the target */
+.dock.hot{background:var(--accent);border-color:#fff;transform:scale(1.08);border-style:dashed}
+.dock.pulse{animation:pop .35s ease}
+@keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.18)}100%{transform:scale(1)}}
+.dock.hidden{display:none}
+
+/* the transient annotate popover — appears on drop, closes on Enter or Esc */
+.annot{position:absolute;right:var(--s-md);bottom:4.5rem;z-index:31;width:19rem;
+  background:#fff;border:1px solid var(--paper-bd);border-radius:var(--r-md);
+  box-shadow:0 12px 32px #00000029;padding:var(--s-sm);display:none}
+.annot.on{display:block}
+.annot .top{display:flex;gap:var(--s-2xs);align-items:baseline;font-size:var(--t-2xs);
+  font-family:var(--mono);color:var(--pos)}
+.annot .who{font-size:var(--t-xs);font-weight:500;color:var(--fg);margin-top:2px;font-family:var(--sans)}
+.annot textarea{width:100%;border:0;outline:0;resize:none;font-family:inherit;font-size:var(--t-xs);
+  line-height:1.5;margin-top:var(--s-xs);color:var(--fg);overflow:hidden}
+.annot textarea::placeholder{color:#b5b0a0}
+.annot .keys{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);
+  border-top:1px solid var(--bd);padding-top:var(--s-2xs);margin-top:var(--s-xs)}
+
+.peek{position:fixed;z-index:20;width:21rem;background:var(--bg);border:1px solid var(--bd-emph);
+  border-radius:var(--r-md);box-shadow:0 12px 32px #00000024;padding:var(--s-sm) var(--s-md);display:none;font-size:var(--t-xs)}
+.peek.on{display:block}
+.peek h4{font-size:var(--t-sm);font-weight:500;line-height:1.35;margin-bottom:var(--s-2xs)}
+.peek .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.peek .quote{margin-top:var(--s-xs);background:var(--faint);border-radius:var(--r-sm);padding:var(--s-xs);
+  line-height:1.5;font-size:var(--t-2xs)}
+.peek .quote b{font-family:var(--mono);color:var(--muted);display:block;margin-bottom:2px}
+
+.stateline{position:absolute;left:var(--s-md);bottom:var(--s-md);z-index:29;
+  font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);pointer-events:none}
+</style>
+</head>
+<body>
+<div class="proto"><b>J · The Dock</b><span>The pill is the collapsed Notebook. Start dragging a reference and it opens into a drop target; drop and annotate without leaving References; click it to open Notes.</span></div>
+
+<div class="app">
+  <nav class="side">
+    <a href="#">＋ New Thread</a><a href="#">Home</a><a href="#">My Library</a><a href="#">History</a>
+    <div class="lbl">Recents</div><a href="#" class="on">CRISPR Off Target…</a><a href="#">Gut Microbiome…</a>
+    <div class="lbl">Tools</div><a href="#">Paper search</a><a href="#">Citation Graph</a>
+  </nav>
+
+  <main class="thread">
+    <div class="q">What are the open questions in CRISPR off-target effects for in vivo therapies?</div>
+    <div class="funnel">32.8M retrieved · 100 eligible · 20 included</div>
+    <h1>Open Questions in CRISPR Off-Target Effects for In Vivo Therapies</h1>
+    <div class="ans">
+      <p>Several unresolved questions persist across detection, biological variability, structural
+      variants, and clinical monitoring <span class="cite" data-p="0">WIENERT 2022</span>
+      <span class="cite" data-p="3">KALTER 2025</span>.</p>
+      <p>Large-scale aberrations remain far harder to detect than small indels using current
+      workflows <span class="cite" data-p="1">HÖIJER 2021</span>.</p>
+      <p>Human genetic diversity is an under-explored confound <span class="cite" data-p="2">CANCELLIERI 2022</span>.</p>
+      <p>There is no consensus on post-delivery monitoring <span class="cite" data-p="4">ANGELINI STEWART 2025</span>.</p>
+    </div>
+  </main>
+
+  <aside class="panel">
+    <div class="tabs">
+      <button class="tab on" data-v="refs">References <span class="n">24</span></button>
+      <button class="tab" data-v="notes">Notes <span class="n" id="tabCount">2</span></button>
+    </div>
+    <div class="sub" id="sub">all cited papers · ranked by Consensus</div>
+
+    <div class="view" id="refs">
+      <div class="src" draggable="true" data-p="0"><button class="add" title="Add to Notes">＋</button>
+        <h3>CRISPR nuclease off-target activity and mitigation strategies</h3>
+        <div class="m">2022 · 46 cites · Frontiers in Genome Editing</div>
+        <div class="p"><span class="dots">●●●</span>3 of 3 searches · #1</div></div>
+      <div class="src" draggable="true" data-p="1"><button class="add" title="Add to Notes">＋</button>
+        <h3>CRISPR-Cas9 induces large structural variants at on- and off-target sites</h3>
+        <div class="m">2021 · 149 cites · Nature Communications</div>
+        <div class="p"><span class="dots">●●<i>●</i></span>2 of 3 searches · #2</div></div>
+      <div class="src" draggable="true" data-p="2"><button class="add" title="Add to Notes">＋</button>
+        <h3>Human genetic diversity alters off-target outcomes of therapeutic gene editing</h3>
+        <div class="m">2022 · 98 cites · Nature Genetics</div>
+        <div class="p"><span class="dots">●<i>●●</i></span>search 3 · #4</div></div>
+      <div class="src" draggable="true" data-p="3"><button class="add" title="Add to Notes">＋</button>
+        <h3>Off-target effects in CRISPR-Cas genome editing for human therapeutics</h3>
+        <div class="m">2025 · 56 cites · Molecular Therapy Nucleic Acids</div>
+        <div class="p"><span class="dots">●●<i>●</i></span>2 of 3 searches · #3</div></div>
+      <div class="src" draggable="true" data-p="4"><button class="add" title="Add to Notes">＋</button>
+        <h3>Measurement and clinical interpretation of CRISPR off-targets</h3>
+        <div class="m">2025 · 6 cites · Nature Genetics</div>
+        <div class="p"><span class="dots">●<i>●●</i></span>search 2 · #9</div></div>
+    </div>
+
+    <div class="view hide" id="notes">
+      <article class="note">
+        <textarea rows="1" placeholder="What matters about this?">The detection gap is the actual thesis gap. Indel-focused assays miss what matters.</textarea>
+        <div class="pins"><div class="pin"><b>Höijer 2021</b><span>●●○ 2 of 3 · #2</span></div></div>
+        <div class="foot"><span class="tag on">ch.3</span><span class="tag add">＋ tag</span></div>
+      </article>
+      <article class="note">
+        <textarea rows="1" placeholder="What matters about this?">Ask Sarah whether anyone has run this on liver-directed guides.</textarea>
+        <div class="foot"><span class="tag add">＋ tag</span></div>
+      </article>
+      <article class="note ghost">
+        <textarea rows="1" placeholder="Type a thought, or drag a reference here…"></textarea>
+      </article>
+    </div>
+
+    <div class="stateline" id="stateline">drag a reference →</div>
+
+    <button class="dock" id="dock">
+      <span class="ico">🗒</span>
+      <span class="lab" id="dockLab">Notes</span>
+      <span class="n" id="dockCount">2</span>
+      <span class="hint">drop to add</span>
+    </button>
+
+    <div class="annot" id="annot">
+      <div class="top">✓ ADDED TO NOTES</div>
+      <div class="who" id="annotWho"></div>
+      <textarea id="annotText" rows="2" placeholder="What matters about this? (optional)"></textarea>
+      <div class="keys">⏎ save · esc skip · both keep the source</div>
+    </div>
+  </aside>
+</div>
+
+<div class="peek" id="peek">
+  <h4 id="pkT"></h4><div class="m" id="pkM"></div>
+  <div class="quote"><b>WHY IT WAS CITED HERE</b><span id="pkQ"></span></div>
+</div>
+
+<script>
+const P=[
+ {n:"Wienert 2022",t:"CRISPR nuclease off-target activity and mitigation strategies",
+  m:"2022 · Wienert & Cromer · Frontiers in Genome Editing · 46 citations",
+  q:"“Detecting large-scale off-target effects and mitigating safety concerns are crucial for full translational potential.”",d:"●●● 3 of 3 · #1"},
+ {n:"Höijer 2021",t:"CRISPR-Cas9 induces large structural variants at on- and off-target sites",
+  m:"2021 · Höijer et al. · Nature Communications · 149 citations",
+  q:"“Large structural variants segregate across generations and are missed by indel-focused workflows.”",d:"●●○ 2 of 3 · #2"},
+ {n:"Cancellieri 2022",t:"Human genetic diversity alters off-target outcomes of therapeutic gene editing",
+  m:"2022 · Cancellieri et al. · Nature Genetics · 98 citations",
+  q:"“Variants at off-target sites differ across populations, so a guide validated on one reference genome may behave differently in another.”",d:"●○○ search 3 · #4"},
+ {n:"Kalter 2025",t:"Off-target effects in CRISPR-Cas genome editing for human therapeutics",
+  m:"2025 · Kalter et al. · Molecular Therapy Nucleic Acids · 56 citations",
+  q:"“Progress and challenges in translating off-target assessment into clinical practice.”",d:"●●○ 2 of 3 · #3"},
+ {n:"Angelini Stewart 2025",t:"Measurement and clinical interpretation of CRISPR off-targets",
+  m:"2025 · Angelini Stewart et al. · Nature Genetics · 6 citations",
+  q:"“No consensus exists on the duration or assay for post-delivery monitoring.”",d:"●○○ search 2 · #9"}
+];
+const dock=document.getElementById('dock'), annot=document.getElementById('annot'),
+      annotText=document.getElementById('annotText'), notes=document.getElementById('notes'),
+      peek=document.getElementById('peek'), stateline=document.getElementById('stateline');
+let dragging=null, pending=null;
+
+function fit(t){t.style.height='auto';t.style.height=t.scrollHeight+'px'}
+document.querySelectorAll('#notes textarea').forEach(t=>{fit(t);t.addEventListener('input',()=>fit(t))});
+
+function counts(){
+  const n=notes.querySelectorAll('.note:not(.ghost)').length;
+  document.getElementById('dockCount').textContent=n;
+  document.getElementById('tabCount').textContent=n;
+}
+function addNote(i,text){
+  const a=document.createElement('article'); a.className='note';
+  const ta=document.createElement('textarea'); ta.rows=1; ta.placeholder='What matters about this?';
+  if(text) ta.value=text;
+  ta.addEventListener('input',()=>fit(ta));
+  a.appendChild(ta);
+  if(i!=null){
+    const pins=document.createElement('div'); pins.className='pins';
+    const d=document.createElement('div'); d.className='pin';
+    d.innerHTML='<b></b><span></span>';
+    d.querySelector('b').textContent=P[i].n; d.querySelector('span').textContent=P[i].d;
+    pins.appendChild(d); a.appendChild(pins);
+  }
+  const f=document.createElement('div'); f.className='foot';
+  f.innerHTML='<span class="tag add">＋ tag</span>'; a.appendChild(f);
+  notes.insertBefore(a, notes.querySelector('.ghost'));
+  fit(ta); counts();
+  return a;
+}
+function openAnnot(i){
+  pending=addNote(i,'');
+  document.getElementById('annotWho').textContent=P[i].t;
+  annotText.value=''; annot.classList.add('on');
+  annotText.focus();
+  dock.classList.add('pulse'); setTimeout(()=>dock.classList.remove('pulse'),400);
+}
+function closeAnnot(save){
+  if(save && pending){ const ta=pending.querySelector('textarea'); ta.value=annotText.value; fit(ta); }
+  annot.classList.remove('on'); pending=null;
+}
+annotText.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();closeAnnot(true)}
+  if(e.key==='Escape'){e.preventDefault();closeAnnot(false)}
+});
+annotText.addEventListener('blur',()=>{if(annot.classList.contains('on'))closeAnnot(true)});
+
+/* drag lifecycle drives the dock's state */
+document.querySelectorAll('.src, .cite').forEach(el=>{
+  const i=+el.dataset.p;
+  el.setAttribute('draggable','true');
+  el.addEventListener('mouseenter',()=>{
+    if(dragging!=null) return;
+    const p=P[i]; if(!p) return;
+    document.getElementById('pkT').textContent=p.t;
+    document.getElementById('pkM').textContent=p.m;
+    document.getElementById('pkQ').textContent=p.q;
+    const r=el.getBoundingClientRect(); peek.classList.add('on');
+    peek.style.top=Math.min(Math.max(8,r.top),innerHeight-peek.offsetHeight-8)+'px';
+    peek.style.left=Math.max(8,r.left-352)+'px';
+  });
+  el.addEventListener('mouseleave',()=>peek.classList.remove('on'));
+  el.addEventListener('dragstart',e=>{
+    dragging=i; peek.classList.remove('on'); el.classList.add('dragging');
+    document.body.classList.add('dragging');
+    stateline.textContent='drop on the dock, or on a note';
+    e.dataTransfer.effectAllowed='copy';
+  });
+  el.addEventListener('dragend',()=>{
+    dragging=null; el.classList.remove('dragging');
+    document.body.classList.remove('dragging'); dock.classList.remove('hot');
+    stateline.textContent='drag a reference →';
+  });
+});
+dock.addEventListener('dragover',e=>{e.preventDefault();dock.classList.add('hot')});
+dock.addEventListener('dragleave',()=>dock.classList.remove('hot'));
+dock.addEventListener('drop',e=>{
+  e.preventDefault(); dock.classList.remove('hot');
+  if(dragging!=null) openAnnot(dragging);
+});
+document.querySelectorAll('.src .add').forEach(b=>b.addEventListener('click',e=>{
+  e.stopPropagation(); peek.classList.remove('on');
+  openAnnot(+b.closest('.src').dataset.p);
+}));
+
+/* notes are drop targets too, when that view is open */
+function wire(note){
+  note.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();note.classList.add('over')});
+  note.addEventListener('dragleave',()=>note.classList.remove('over'));
+  note.addEventListener('drop',e=>{
+    e.preventDefault();e.stopPropagation();note.classList.remove('over');
+    if(dragging==null) return;
+    let pins=note.querySelector('.pins');
+    if(!pins){pins=document.createElement('div');pins.className='pins';
+      note.insertBefore(pins,note.querySelector('.foot'))}
+    const d=document.createElement('div'); d.className='pin';
+    d.innerHTML='<b></b><span></span>';
+    d.querySelector('b').textContent=P[dragging].n; d.querySelector('span').textContent=P[dragging].d;
+    pins.appendChild(d);
+    if(note.classList.contains('ghost')){
+      note.classList.remove('ghost');
+      note.querySelector('textarea').placeholder='What matters about this?';
+      const g=document.createElement('article'); g.className='note ghost';
+      g.innerHTML='<textarea rows="1" placeholder="Type a thought, or drag a reference here…"></textarea>';
+      const gt=g.querySelector('textarea'); gt.addEventListener('input',()=>fit(gt));
+      wire(g); notes.appendChild(g); fit(gt);
+    }
+    counts();
+  });
+}
+document.querySelectorAll('#notes .note').forEach(wire);
+
+/* tabs — the dock hides on the Notes view because you are already there */
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  const isNotes=b.dataset.v==='notes';
+  document.getElementById('refs').classList.toggle('hide',isNotes);
+  notes.classList.toggle('hide',!isNotes);
+  dock.classList.toggle('hidden',isNotes);
+  /* textareas sized while hidden report scrollHeight 0, so re-fit on reveal */
+  if(isNotes) notes.querySelectorAll('textarea').forEach(fit);
+  document.getElementById('sub').textContent=isNotes
+    ? 'your notes · a source, a thought, or both'
+    : 'all cited papers · ranked by Consensus';
+  stateline.textContent=isNotes?'drag between notes to re-pin':'drag a reference →';
+}));
+dock.addEventListener('click',()=>document.querySelector('.tab[data-v="notes"]').click());
+counts();
+</script>
+</body>
+</html>
