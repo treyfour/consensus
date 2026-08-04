@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>L · Flanking</title>
+<style>
+:root{
+--accent:#068ef1;--accent-emph:#006fce;--accent-muted:#dfeeff;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
+--bg:#fff;--mist:#fafafa;--faint:#f4f4f5;--subtle:#e4e4e7;
+--fg:#18181b;--muted:#71717b;--bd:#e4e4e7;--bd-emph:#d4d4d8;
+--pos:#148d74;--warn:#a65f00;--paper:#fffcf0;--paper-bd:#ece0bd;
+--r-xs:.25rem;--r-sm:.5rem;--r-md:.75rem;--r-lg:1rem;
+--s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;
+--t-2xs:.69rem;--t-xs:.81rem;--t-sm:.94rem;--t-base:1rem;--t-lg:1.13rem;--h-sm:1.38rem;
+--sans:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+--mono:"Reddit Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(--t-base);-webkit-font-smoothing:antialiased}
+.proto{background:var(--fg);color:#fff;padding:var(--s-xs) var(--s-md);display:flex;gap:var(--s-md);align-items:baseline;font-size:var(--t-xs)}
+.proto b{font-size:var(--t-sm)}.proto span{color:#a1a1aa}
+
+/* Notes flanks left, References flanks right. Neither is beneath the other. */
+.app{display:grid;grid-template-columns:3.25rem 0 1fr 0;height:calc(100vh - 33px);position:relative;overflow:hidden}
+.app.notes-on{grid-template-columns:3.25rem 21rem 1fr 0}
+.app.refs-on{grid-template-columns:3.25rem 0 1fr 21rem}
+.app.notes-on.refs-on{grid-template-columns:3.25rem 21rem 1fr 21rem}
+.app>*{min-height:0}
+
+.rail{border-right:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;
+  gap:var(--s-xs);padding:var(--s-sm) 0;background:var(--mist)}
+.rail button{width:2.1rem;height:2.1rem;border-radius:var(--r-sm);border:0;background:transparent;
+  cursor:pointer;font-size:var(--t-base);line-height:1;color:var(--muted)}
+.rail button:hover{background:var(--faint);color:var(--fg)}
+.rail .sep{width:1.5rem;height:1px;background:var(--bd);margin:var(--s-2xs) 0}
+
+.mid{display:flex;flex-direction:column;min-height:0}
+.thread-hd{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-xs) var(--s-md);
+  border-bottom:1px solid var(--bd);background:var(--bg)}
+.thread-hd .t{font-size:var(--t-sm);font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tgl{font-family:inherit;font-size:var(--t-xs);border:1px solid var(--bd);background:var(--bg);color:var(--fg);
+  border-radius:var(--r-sm);padding:var(--s-2xs) var(--s-sm);cursor:pointer;white-space:nowrap;
+  display:flex;gap:var(--s-2xs);align-items:center}
+.tgl:hover{border-color:var(--bd-emph);background:var(--mist)}
+.tgl.on{background:var(--accent-subtle);border-color:var(--accent-bd);color:var(--accent-emph)}
+.tgl .n{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.tgl.on .n{color:var(--accent-emph)}
+.thread{flex:1;overflow-y:auto;padding:var(--s-xl) var(--s-2xl)}
+.q{background:var(--accent-subtle);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);
+  font-size:var(--t-sm);max-width:26rem;margin-left:auto}
+.funnel{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin:var(--s-lg) 0}
+h1{font-size:var(--h-sm);margin-bottom:var(--s-sm);letter-spacing:-.01em}
+.ans p{font-size:var(--t-sm);line-height:1.7;margin-bottom:var(--s-md);max-width:40rem}
+.cite{font-family:var(--mono);font-size:var(--t-2xs);background:var(--faint);border-radius:var(--r-xs);
+  padding:1px 5px;cursor:pointer}
+.cite:hover{background:var(--accent-subtle);outline:1px solid var(--accent-bd)}
+.cite.in{background:#eafaf5;color:var(--pos)}
+::selection{background:var(--accent-muted)}
+
+/* panels */
+.pane{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.pane-hd{display:flex;align-items:baseline;gap:var(--s-xs);padding:var(--s-sm) var(--s-md);
+  border-bottom:1px solid var(--bd);flex:none}
+.pane-hd b{font-size:var(--t-sm)}
+.pane-hd span{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pane-hd .x{margin-left:auto;background:none;border:0;color:var(--muted);cursor:pointer;
+  font-family:var(--mono);font-size:var(--t-sm);line-height:1;padding:0 2px}
+.pane-body{flex:1;overflow-y:auto;min-height:0}
+
+#notesPane{border-right:1px solid var(--paper-bd);background:var(--paper)}
+#notesPane .pane-hd{border-color:var(--paper-bd)}
+#notesBody{padding:var(--s-xs) var(--s-sm)}
+#notesBody.over{outline:2px dashed var(--accent-bd);outline-offset:-4px;background:var(--accent-subtle)}
+.note{background:#fff;border:1px solid var(--paper-bd);border-radius:var(--r-md);
+  padding:var(--s-xs) var(--s-sm);margin-bottom:var(--s-xs);box-shadow:0 1px 2px #0000000a}
+.note.over{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-subtle)}
+.note.flash{animation:flash 1.1s ease}
+@keyframes flash{0%{box-shadow:0 0 0 3px var(--accent-muted)}100%{box-shadow:0 1px 2px #0000000a}}
+.note textarea{width:100%;border:0;outline:0;resize:none;font-family:inherit;font-size:var(--t-xs);
+  line-height:1.5;color:var(--fg);background:transparent;padding:var(--s-2xs) 0;overflow:hidden}
+.note textarea::placeholder{color:#b5b0a0}
+.pins{display:flex;flex-direction:column;gap:2px;margin-top:var(--s-2xs)}
+.pin{display:flex;gap:var(--s-2xs);align-items:baseline;font-size:var(--t-2xs);line-height:1.35;
+  background:var(--faint);border-radius:var(--r-xs);padding:2px var(--s-2xs)}
+.pin b{font-weight:500}.pin span{color:var(--muted);font-family:var(--mono)}
+.foot{display:flex;gap:var(--s-2xs);margin-top:var(--s-2xs);flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:var(--t-2xs);border:1px solid var(--bd);border-radius:625rem;
+  padding:0 var(--s-xs);color:var(--muted);cursor:pointer;background:#fff}
+.tag.on{border-color:var(--accent-bd);background:var(--accent-subtle);color:var(--accent-emph)}
+.tag.add{border-style:dashed}
+.ghost{border-style:dashed;background:transparent;box-shadow:none}
+
+#refsPane{border-left:1px solid var(--bd);background:var(--bg)}
+#refsBody{padding:var(--s-xs)}
+.src{border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-sm);margin-bottom:var(--s-xs);
+  background:var(--bg);position:relative;cursor:grab}
+.src:hover{border-color:var(--bd-emph);box-shadow:0 1px 3px #0000000d}
+.src h3{font-size:var(--t-xs);font-weight:500;line-height:1.35}
+.src .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs)}
+.src .p{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-xs);
+  display:flex;gap:var(--s-2xs);align-items:center}
+.dots{letter-spacing:-1px;color:var(--accent)}.dots i{color:var(--subtle);font-style:normal}
+
+/* context menu — the primary path */
+.menu{position:fixed;z-index:60;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r-md);
+  box-shadow:0 12px 32px #0000001f;padding:var(--s-2xs);min-width:15rem;display:none;font-size:var(--t-xs)}
+.menu.on{display:block}
+.menu i{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-2xs) var(--s-xs);
+  border-radius:var(--r-xs);cursor:pointer;font-style:normal}
+.menu i:hover{background:var(--faint)}
+.menu i kbd{margin-left:auto;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.menu hr{border:0;border-top:1px solid var(--bd);margin:var(--s-2xs) 0}
+.menu .head{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);padding:var(--s-2xs) var(--s-xs);
+  border-bottom:1px solid var(--bd);margin-bottom:var(--s-2xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* annotate popover, anchored where you right-clicked */
+.annot{position:fixed;z-index:61;width:19rem;background:#fff;border:1px solid var(--paper-bd);
+  border-radius:var(--r-md);box-shadow:0 12px 32px #00000029;padding:var(--s-sm);display:none}
+.annot.on{display:block}
+.annot .top{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.annot .who{font-size:var(--t-xs);font-weight:500;margin-top:2px}
+.annot textarea{width:100%;border:0;outline:0;resize:none;font-family:inherit;font-size:var(--t-xs);
+  line-height:1.5;margin-top:var(--s-xs);overflow:hidden}
+.annot textarea::placeholder{color:#b5b0a0}
+.annot .keys{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);
+  border-top:1px solid var(--bd);padding-top:var(--s-2xs);margin-top:var(--s-xs)}
+
+/* the flight: a ghost chip travels to where the note now lives */
+.fly{position:fixed;z-index:70;pointer-events:none;background:var(--fg);color:#fff;
+  border-radius:625rem;padding:3px var(--s-sm);font-size:var(--t-2xs);font-family:var(--mono);
+  box-shadow:0 6px 18px #00000033;transition:transform .5s cubic-bezier(.4,0,.2,1),opacity .5s ease}
+
+/* toast confirms, and offers the way back */
+.toast{position:fixed;left:50%;bottom:var(--s-lg);transform:translateX(-50%) translateY(1rem);
+  z-index:65;background:var(--fg);color:#fff;border-radius:625rem;padding:var(--s-xs) var(--s-md);
+  display:flex;align-items:center;gap:var(--s-sm);font-size:var(--t-xs);box-shadow:0 8px 24px #0003;
+  opacity:0;transition:opacity .18s ease,transform .18s ease;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+.toast .ok{color:#6fdc8c;font-family:var(--mono);font-size:var(--t-2xs)}
+.toast button{font-family:inherit;font-size:var(--t-2xs);background:#ffffff2e;border:0;color:#fff;
+  border-radius:625rem;padding:2px var(--s-xs);cursor:pointer}
+.toast button:hover{background:#ffffff45}
+
+/* dock stands in for Notes only while Notes is closed; it sits on the Notes side */
+.dock{position:absolute;left:4rem;bottom:var(--s-lg);z-index:30;display:flex;align-items:center;
+  gap:var(--s-xs);background:var(--fg);color:#fff;border:2px solid transparent;border-radius:625rem;
+  padding:var(--s-xs) var(--s-md);cursor:pointer;font-size:var(--t-xs);font-family:inherit;
+  box-shadow:0 6px 20px #00000026;
+  transition:border-radius .16s ease,background .16s ease,transform .16s ease,border-color .16s ease}
+.dock .n{font-family:var(--mono);font-size:var(--t-2xs);background:#ffffff2e;border-radius:625rem;padding:0 .4rem}
+.dock .hint{display:none;font-family:var(--mono);font-size:var(--t-2xs);color:#ffffffb3}
+body.dragging .dock{border-radius:var(--r-lg);padding:var(--s-md) var(--s-lg);background:var(--accent-emph);
+  border-color:#ffffff59;transform:scale(1.02)}
+body.dragging .dock .hint{display:block}
+.dock.hot{background:var(--accent);border-color:#fff;transform:scale(1.08);border-style:dashed}
+.dock.pulse{animation:pop .4s ease}
+@keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.2)}100%{transform:scale(1)}}
+.app.notes-on .dock{display:none}
+</style>
+</head>
+<body>
+<div class="proto"><b>L · Flanking</b><span>Notes on the left, References on the right, thread between them. Right-click any citation or source → Add to Notes. Watch where it flies.</span></div>
+
+<div class="app refs-on" id="app">
+  <nav class="rail">
+    <button title="New thread">＋</button>
+    <button title="Home">⌂</button>
+    <button title="My Library">🔖</button>
+    <button title="History">⟲</button>
+    <div class="sep"></div>
+    <button title="Paper search">🔍</button>
+    <button title="Citation Graph">⁂</button>
+  </nav>
+
+  <aside class="pane" id="notesPane">
+    <div class="pane-hd"><b>Notes</b><span id="nSub">yours · 2</span>
+      <button class="x" id="xNotes" title="Close">✕</button></div>
+    <div class="pane-body" id="notesBody">
+      <article class="note">
+        <textarea rows="1" placeholder="What matters about this?">The detection gap is the actual thesis gap. Indel-focused assays miss what matters.</textarea>
+        <div class="pins"><div class="pin"><b>Höijer 2021</b><span>●●○ 2 of 3 · #2</span></div></div>
+        <div class="foot"><span class="tag on">ch.3</span><span class="tag add">＋ tag</span></div>
+      </article>
+      <article class="note">
+        <textarea rows="1" placeholder="What matters about this?">Ask Sarah whether anyone has run this on liver-directed guides.</textarea>
+        <div class="foot"><span class="tag add">＋ tag</span></div>
+      </article>
+      <article class="note ghost">
+        <textarea rows="1" placeholder="Type a thought, or drag a source here…"></textarea>
+      </article>
+    </div>
+  </aside>
+
+  <div class="mid">
+    <div class="thread-hd">
+      <span class="t">CRISPR Off Target Effects</span>
+      <button class="tgl on" id="tNotes">🗒 Notes <span class="n" id="tnCount">2</span></button>
+      <button class="tgl on" id="tRefs">References <span class="n">24</span></button>
+    </div>
+    <main class="thread">
+      <div class="q">What are the open questions in CRISPR off-target effects for in vivo therapies?</div>
+      <div class="funnel">32.8M retrieved · 100 eligible · 20 included</div>
+      <h1>Open Questions in CRISPR Off-Target Effects for In Vivo Therapies</h1>
+      <div class="ans">
+        <p>Several unresolved questions persist across detection, biological variability, structural
+        variants, and clinical monitoring <span class="cite" data-p="0">WIENERT 2022</span>
+        <span class="cite" data-p="3">KALTER 2025</span>.</p>
+        <p>Large-scale aberrations remain far harder to detect than small indels using current
+        workflows <span class="cite" data-p="1">HÖIJER 2021</span>.</p>
+        <p>Human genetic diversity is an under-explored confound: variants at off-target sites differ
+        across populations <span class="cite" data-p="2">CANCELLIERI 2022</span>.</p>
+        <p>There is no consensus on how long patients should be monitored after in vivo delivery
+        <span class="cite" data-p="4">ANGELINI STEWART 2025</span>.</p>
+      </div>
+    </main>
+  </div>
+
+  <aside class="pane" id="refsPane">
+    <div class="pane-hd"><b>References</b><span>ranked by Consensus</span>
+      <button class="x" id="xRefs" title="Close">✕</button></div>
+    <div class="pane-body" id="refsBody">
+      <div class="src" draggable="true" data-p="0">
+        <h3>CRISPR nuclease off-target activity and mitigation strategies</h3>
+        <div class="m">2022 · 46 cites · Frontiers in Genome Editing</div>
+        <div class="p"><span class="dots">●●●</span>3 of 3 searches · #1</div></div>
+      <div class="src" draggable="true" data-p="1">
+        <h3>CRISPR-Cas9 induces large structural variants at on- and off-target sites</h3>
+        <div class="m">2021 · 149 cites · Nature Communications</div>
+        <div class="p"><span class="dots">●●<i>●</i></span>2 of 3 searches · #2</div></div>
+      <div class="src" draggable="true" data-p="2">
+        <h3>Human genetic diversity alters off-target outcomes of therapeutic gene editing</h3>
+        <div class="m">2022 · 98 cites · Nature Genetics</div>
+        <div class="p"><span class="dots">●<i>●●</i></span>search 3 · #4</div></div>
+      <div class="src" draggable="true" data-p="3">
+        <h3>Off-target effects in CRISPR-Cas genome editing for human therapeutics</h3>
+        <div class="m">2025 · 56 cites · Molecular Therapy Nucleic Acids</div>
+        <div class="p"><span class="dots">●●<i>●</i></span>2 of 3 searches · #3</div></div>
+      <div class="src" draggable="true" data-p="4">
+        <h3>Measurement and clinical interpretation of CRISPR off-targets</h3>
+        <div class="m">2025 · 6 cites · Nature Genetics</div>
+        <div class="p"><span class="dots">●<i>●●</i></span>search 2 · #9</div></div>
+    </div>
+  </aside>
+
+  <button class="dock" id="dock">
+    <span>🗒</span><span>Notes</span><span class="n" id="dockCount">2</span><span class="hint">drop to add</span>
+  </button>
+</div>
+
+<div class="menu" id="menu">
+  <div class="head" id="menuHead"></div>
+  <i data-a="add">🗒 Add to Notes<kbd>⌘⇧N</kbd></i>
+  <i data-a="annot">✎ Add with a note…</i>
+  <hr>
+  <i>⁂ Find more like this</i>
+  <i>💬 Ask about this</i>
+  <i>◉ Show why this is here<kbd>⌥click</kbd></i>
+  <hr>
+  <i>🔖 Add to collection…<kbd>⌘S</kbd></i>
+</div>
+
+<div class="annot" id="annot">
+  <div class="top">ADDING TO NOTES</div>
+  <div class="who" id="annotWho"></div>
+  <textarea id="annotText" rows="2" placeholder="What matters about this? (optional)"></textarea>
+  <div class="keys">⏎ add · esc cancel</div>
+</div>
+
+<div class="toast" id="toast">
+  <span class="ok">✓</span><span id="toastMsg">Added to Notes</span>
+  <button id="toastView">View</button><button id="toastUndo">Undo</button>
+</div>
+
+<script>
+const P=[
+ {n:"Wienert 2022",t:"CRISPR nuclease off-target activity and mitigation strategies",d:"●●● 3 of 3 · #1"},
+ {n:"Höijer 2021",t:"CRISPR-Cas9 induces large structural variants at on- and off-target sites",d:"●●○ 2 of 3 · #2"},
+ {n:"Cancellieri 2022",t:"Human genetic diversity alters off-target outcomes of therapeutic gene editing",d:"●○○ search 3 · #4"},
+ {n:"Kalter 2025",t:"Off-target effects in CRISPR-Cas genome editing for human therapeutics",d:"●●○ 2 of 3 · #3"},
+ {n:"Angelini Stewart 2025",t:"Measurement and clinical interpretation of CRISPR off-targets",d:"●○○ search 2 · #9"}
+];
+const app=document.getElementById('app'), menu=document.getElementById('menu'),
+      annot=document.getElementById('annot'), annotText=document.getElementById('annotText'),
+      notesBody=document.getElementById('notesBody'), toast=document.getElementById('toast'),
+      dock=document.getElementById('dock');
+let ctx=null, lastNote=null, toastTimer=null, dragging=null;
+
+function fit(t){t.style.height='auto';t.style.height=t.scrollHeight+'px'}
+function refit(){notesBody.querySelectorAll('textarea').forEach(fit)}
+function counts(){
+  const n=notesBody.querySelectorAll('.note:not(.ghost)').length;
+  document.getElementById('tnCount').textContent=n;
+  document.getElementById('dockCount').textContent=n;
+  document.getElementById('nSub').textContent='yours · '+n;
+}
+function render(){
+  document.getElementById('tNotes').classList.toggle('on',app.classList.contains('notes-on'));
+  document.getElementById('tRefs').classList.toggle('on',app.classList.contains('refs-on'));
+  if(app.classList.contains('notes-on')) refit();
+}
+function toggle(w){app.classList.toggle(w+'-on');render()}
+document.getElementById('tNotes').addEventListener('click',()=>toggle('notes'));
+document.getElementById('tRefs').addEventListener('click',()=>toggle('refs'));
+document.getElementById('xNotes').addEventListener('click',()=>toggle('notes'));
+document.getElementById('xRefs').addEventListener('click',()=>toggle('refs'));
+dock.addEventListener('click',()=>{app.classList.add('notes-on');render()});
+
+function addNote(i,text){
+  const a=document.createElement('article'); a.className='note';
+  const ta=document.createElement('textarea'); ta.rows=1; ta.placeholder='What matters about this?';
+  if(text) ta.value=text;
+  ta.addEventListener('input',()=>fit(ta)); a.appendChild(ta);
+  const pins=document.createElement('div'); pins.className='pins';
+  const d=document.createElement('div'); d.className='pin'; d.innerHTML='<b></b><span></span>';
+  d.querySelector('b').textContent=P[i].n; d.querySelector('span').textContent=P[i].d;
+  pins.appendChild(d); a.appendChild(pins);
+  const f=document.createElement('div'); f.className='foot';
+  f.innerHTML='<span class="tag add">＋ tag</span>'; a.appendChild(f);
+  notesBody.insertBefore(a, notesBody.querySelector('.ghost'));
+  wire(a); fit(ta); counts();
+  return a;
+}
+/* the micro-interaction: a chip flies to wherever Notes currently lives */
+function fly(fromEl,label,done){
+  const r=fromEl.getBoundingClientRect();
+  const chip=document.createElement('div'); chip.className='fly'; chip.textContent=label;
+  chip.style.left=r.left+'px'; chip.style.top=r.top+'px';
+  document.body.appendChild(chip);
+  const targetEl = app.classList.contains('notes-on')
+    ? (notesBody.querySelector('.note') || notesBody) : dock;
+  const t=targetEl.getBoundingClientRect();
+  requestAnimationFrame(()=>{
+    chip.style.transform=`translate(${t.left+t.width/2-r.left-chip.offsetWidth/2}px, ${t.top+18-r.top}px) scale(.7)`;
+    chip.style.opacity='0';
+  });
+  setTimeout(()=>{chip.remove(); done&&done()},520);
+}
+function showToast(msg){
+  document.getElementById('toastMsg').textContent=msg;
+  toast.classList.add('on');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>toast.classList.remove('on'),4200);
+}
+function commit(i,el,text){
+  fly(el, P[i].n, ()=>{
+    lastNote=addNote(i,text);
+    if(app.classList.contains('notes-on')){
+      lastNote.classList.add('flash');
+      lastNote.scrollIntoView({block:'nearest'});
+    } else {
+      dock.classList.add('pulse'); setTimeout(()=>dock.classList.remove('pulse'),420);
+    }
+    showToast(text? 'Added to Notes with a note' : 'Added to Notes');
+  });
+}
+document.getElementById('toastUndo').addEventListener('click',()=>{
+  if(lastNote){lastNote.remove(); lastNote=null; counts()}
+  toast.classList.remove('on');
+});
+document.getElementById('toastView').addEventListener('click',()=>{
+  app.classList.add('notes-on'); render(); toast.classList.remove('on');
+  if(lastNote){lastNote.classList.add('flash');lastNote.scrollIntoView({block:'nearest'})}
+});
+
+/* right-click is the primary path */
+function openMenu(e,i,el){
+  e.preventDefault();
+  ctx={i,el};
+  document.getElementById('menuHead').textContent=P[i].n;
+  menu.style.left=Math.min(e.clientX,innerWidth-260)+'px';
+  menu.style.top=Math.min(e.clientY,innerHeight-300)+'px';
+  menu.classList.add('on');
+}
+document.querySelectorAll('.cite, .src').forEach(el=>{
+  const i=+el.dataset.p;
+  el.addEventListener('contextmenu',e=>openMenu(e,i,el));
+  el.setAttribute('draggable','true');
+  el.addEventListener('dragstart',e=>{dragging=i;document.body.classList.add('dragging');
+    e.dataTransfer.effectAllowed='copy'});
+  el.addEventListener('dragend',()=>{dragging=null;document.body.classList.remove('dragging');
+    dock.classList.remove('hot')});
+});
+menu.querySelectorAll('i[data-a]').forEach(item=>item.addEventListener('click',e=>{
+  e.stopPropagation(); menu.classList.remove('on');
+  if(!ctx) return;
+  if(item.dataset.a==='add'){ commit(ctx.i, ctx.el, ''); ctx=null; return; }
+  const r=ctx.el.getBoundingClientRect();
+  document.getElementById('annotWho').textContent=P[ctx.i].t;
+  annotText.value='';
+  annot.style.left=Math.min(r.left,innerWidth-320)+'px';
+  annot.style.top=Math.min(r.bottom+8,innerHeight-200)+'px';
+  annot.classList.add('on'); annotText.focus();
+}));
+addEventListener('click',()=>menu.classList.remove('on'));
+annotText.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){
+    e.preventDefault(); annot.classList.remove('on');
+    if(ctx){commit(ctx.i,ctx.el,annotText.value.trim()); ctx=null}
+  }
+  if(e.key==='Escape'){e.preventDefault();annot.classList.remove('on');ctx=null}
+});
+
+function wire(note){
+  note.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();note.classList.add('over')});
+  note.addEventListener('dragleave',()=>note.classList.remove('over'));
+  note.addEventListener('drop',e=>{
+    e.preventDefault();e.stopPropagation();note.classList.remove('over');
+    if(dragging==null) return;
+    let pins=note.querySelector('.pins');
+    if(!pins){pins=document.createElement('div');pins.className='pins';
+      note.insertBefore(pins,note.querySelector('.foot'))}
+    const d=document.createElement('div'); d.className='pin'; d.innerHTML='<b></b><span></span>';
+    d.querySelector('b').textContent=P[dragging].n; d.querySelector('span').textContent=P[dragging].d;
+    pins.appendChild(d);
+    if(note.classList.contains('ghost')){
+      note.classList.remove('ghost');
+      note.querySelector('textarea').placeholder='What matters about this?';
+      const g=document.createElement('article'); g.className='note ghost';
+      g.innerHTML='<textarea rows="1" placeholder="Type a thought, or drag a source here…"></textarea>';
+      const gt=g.querySelector('textarea'); gt.addEventListener('input',()=>fit(gt));
+      wire(g); notesBody.appendChild(g); fit(gt);
+    }
+    counts(); showToast('Pinned to a note');
+  });
+}
+notesBody.querySelectorAll('.note').forEach(wire);
+notesBody.querySelectorAll('textarea').forEach(t=>t.addEventListener('input',()=>fit(t)));
+notesBody.addEventListener('dragover',e=>{e.preventDefault();notesBody.classList.add('over')});
+notesBody.addEventListener('dragleave',()=>notesBody.classList.remove('over'));
+notesBody.addEventListener('drop',e=>{
+  e.preventDefault(); notesBody.classList.remove('over');
+  if(dragging!=null){lastNote=addNote(dragging,''); lastNote.querySelector('textarea').focus(); showToast('Added to Notes')}
+});
+dock.addEventListener('dragover',e=>{e.preventDefault();dock.classList.add('hot')});
+dock.addEventListener('dragleave',()=>dock.classList.remove('hot'));
+dock.addEventListener('drop',e=>{e.preventDefault();dock.classList.remove('hot');
+  if(dragging!=null) commit(dragging, dock, '')});
+
+render(); counts(); refit();
+</script>
+</body>
+</html>
