@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Prototype pass — five structures</title>
+<style>
+:root{
+--accent:#068ef1;--accent-emph:#006fce;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
+--bg:#fff;--mist:#fafafa;--faint:#f4f4f5;--subtle:#e4e4e7;
+--fg:#18181b;--muted:#71717b;--bd:#e4e4e7;--bd-emph:#d4d4d8;--warn:#a65f00;--pos:#148d74;
+--s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;--s-3xl:2.5rem;
+--t-2xs:.69rem;--t-xs:.81rem;--t-sm:.94rem;--t-base:1rem;
+--sans:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+--mono:"Reddit Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--fg);background:var(--mist);padding:var(--s-2xl);-webkit-font-smoothing:antialiased}
+.wrap{max-width:70rem;margin:0 auto}
+.eyebrow{font-family:var(--mono);font-size:var(--t-2xs);text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+h1{font-size:1.75rem;letter-spacing:-.01em;margin:var(--s-xs) 0 var(--s-sm)}
+.lede{font-size:var(--t-base);color:var(--muted);max-width:44rem;line-height:1.6}
+.axis{margin:var(--s-2xl) 0;border:1px solid var(--bd);border-radius:.75rem;background:var(--bg);overflow:hidden}
+table{border-collapse:collapse;width:100%;font-size:var(--t-xs)}
+th,td{text-align:left;padding:var(--s-xs) var(--s-md);border-bottom:1px solid var(--bd)}
+th{background:var(--faint);font-size:var(--t-2xs);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-family:var(--mono)}
+tr:last-child td{border-bottom:0}
+td b{font-weight:500}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(19rem,1fr));gap:var(--s-md)}
+.card{border:1px solid var(--bd);border-radius:.75rem;background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
+.card .top{padding:var(--s-md);border-bottom:1px solid var(--bd)}
+.card .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);letter-spacing:.06em}
+.card h2{font-size:var(--t-base);margin:var(--s-2xs) 0}
+.card .qq{font-size:var(--t-xs);color:var(--muted);line-height:1.5}
+.card .body{padding:var(--s-md);font-size:var(--t-xs);line-height:1.55;flex:1}
+.card .body p{margin-bottom:var(--s-xs)}
+.card .body .lab{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);letter-spacing:.06em}
+.card .body .up{color:var(--pos)}
+.card .body .dn{color:var(--warn)}
+.card a{display:block;padding:var(--s-sm) var(--s-md);border-top:1px solid var(--bd);background:var(--faint);
+  text-decoration:none;color:var(--accent-emph);font-size:var(--t-xs);font-weight:500}
+.card a:hover{background:var(--accent-subtle)}
+.card.rec{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.tag{display:inline-block;font-family:var(--mono);font-size:var(--t-2xs);background:var(--accent);color:#fff;
+  border-radius:625rem;padding:1px var(--s-xs);margin-left:var(--s-2xs)}
+footer{margin-top:var(--s-3xl);border-top:1px solid var(--bd);padding-top:var(--s-md);font-size:var(--t-xs);color:var(--muted);line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Prototype pass · divergence before commitment</p>
+  <h1>Five structures for curation inside a research thread</h1>
+  <p class="lede">Same concept, same real data, five genuinely different containers. All five carry
+  per-paper provenance, a note, the right-click verb set, multi-select with “Ask within these”, and a
+  path to My Library — so the only variable is <b>where the curated set lives and what the primary act is</b>.</p>
+
+  <div class="axis">
+    <table>
+      <tr><th>Option</th><th>Container</th><th>Primary act</th><th>Question it answers</th></tr>
+      <tr><td><b>A · Rail</b></td><td>Beside the thread</td><td>Reviewing a list</td><td>How does curation happen without leaving the thread?</td></tr>
+      <tr><td><b>B · Margin</b></td><td>In the gutter, anchored to sentences</td><td>Annotating while reading</td><td>What if curation were a byproduct of reading?</td></tr>
+      <tr><td><b>C · Board</b></td><td>A 2D canvas</td><td>Arranging into themes</td><td>Where does understanding live, as opposed to evidence?</td></tr>
+      <tr><td><b>D · Ledger</b></td><td>A focused single-item queue</td><td>Deciding, one at a time</td><td>How do you defend this set to your advisor?</td></tr>
+      <tr><td><b>E · Weave</b></td><td><b>None</b></td><td>Acting where evidence is cited</td><td>What if we added no new surface at all?</td></tr>
+    </table>
+  </div>
+
+  <div class="grid">
+    <div class="card rec">
+      <div class="top"><span class="k">A · THE RAIL</span><span class="tag">spine</span>
+        <h2>The Rail</h2><p class="qq">The set accumulates in a panel beside the thread.</p></div>
+      <div class="body">
+        <p class="lab">GIVES</p><p class="up">Closest to today’s IA. Recurrence and decisions readable at a glance across the whole set.</p>
+        <p class="lab">COSTS</p><p class="dn">The set is a list, not a shape. No spatial thinking.</p>
+      </div>
+      <a href="option-1-rail.html">Open →</a>
+    </div>
+
+    <div class="card">
+      <div class="top"><span class="k">B · THE MARGIN</span>
+        <h2>The Margin</h2><p class="qq">Notes anchor to the sentence that produced them.</p></div>
+      <div class="body">
+        <p class="lab">GIVES</p><p class="up">Lowest-friction capture. The note arrives already linked to several sources at once.</p>
+        <p class="lab">COSTS</p><p class="dn">Weak at 40 papers and no opinions yet. Nothing to browse.</p>
+      </div>
+      <a href="option-2-margin.html">Open →</a>
+    </div>
+
+    <div class="card">
+      <div class="top"><span class="k">C · THE BOARD</span>
+        <h2>The Board</h2><p class="qq">Cards on a canvas, grouped until the gap is visible.</p></div>
+      <div class="body">
+        <p class="lab">GIVES</p><p class="up">Best for synthesis. A one-paper group is a visible thesis gap.</p>
+        <p class="lab">COSTS</p><p class="dn">Highest build cost. Real risk of reading as a different product.</p>
+      </div>
+      <a href="option-3-board.html">Open →</a>
+    </div>
+
+    <div class="card">
+      <div class="top"><span class="k">D · THE LEDGER</span><span class="tag">verbs</span>
+        <h2>The Ledger</h2><p class="qq">One decision at a time; the methods trail writes itself.</p></div>
+      <div class="body">
+        <p class="lab">GIVES</p><p class="up">Strongest on trust and reproducibility. Exclusion reasons become a methods section.</p>
+        <p class="lab">COSTS</p><p class="dn">Feels like work. Assumes a systematic-review mindset.</p>
+      </div>
+      <a href="option-4-ledger.html">Open →</a>
+    </div>
+
+    <div class="card">
+      <div class="top"><span class="k">E · THE WEAVE</span>
+        <h2>The Weave</h2><p class="qq">No container. The citation chip is the control surface.</p></div>
+      <div class="body">
+        <p class="lab">GIVES</p><p class="up">Adds no new surface, which the brief explicitly favours. Evidence acted on exactly where it is cited.</p>
+        <p class="lab">COSTS</p><p class="dn">Curation is invisible until you click. Hard to see the set as a set.</p>
+      </div>
+      <a href="option-5-weave.html">Open →</a>
+    </div>
+  </div>
+
+  <footer>
+    Real data throughout: the CRISPR off-target thread, its 32.8M → 100 → 20 funnel, the three queries
+    actually run, and the papers actually returned (Wienert 2022, Höijer 2021, Cancellieri 2022,
+    Kalter 2025, Angelini Stewart 2025, Huang 2022). Tokens are Consensus’s own CDL, pulled from the
+    live product. Figtree stands in for the licensed CircularXXWeb.
+  </footer>
+</div>
+</body>
+</html>
