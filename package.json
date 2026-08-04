@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "npm run guard && next build",
     "start": "next start",
+    "proto": "python3 -m http.server 4599 --directory prototypes",
     "guard": "node scripts/guard.mjs",
     "lint": "eslint"
   },
