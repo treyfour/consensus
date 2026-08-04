@@ -35,8 +35,9 @@ exploratory usage, so its thread lengths prove nothing about real researchers):
   rank, or recurrence for any paper in it
 - Asking from the **Citation Graph** creates a top-level thread in History with no link back
   to the graph, the node, or the originating thread — context flows forward, never recorded
-- **Saving to My Library** drops key takeaway, supporting quotes, study type, funnel position
-  and originating question, leaving exactly the fields Zotero already holds
+- **Saving to My Library** keeps the paper and loses the question: bibliographic and quality
+  metadata survive, but the `Evidence (N)` tab the same paper shows inside a thread does not,
+  along with its rank, recurrence, and which query surfaced it
 
 Take the brief's premise at face value: papers get buried as threads grow. These are the
 mechanisms by which burial happens.
@@ -48,7 +49,7 @@ mechanisms by which burial happens.
 | P1 | **I can't tell why this paper is here.** Aggregate provenance exists; per-paper doesn't | *"Have an explanation why certain 'most relevant' papers are picked over others. Because now it's impossible to tell"* |
 | P2 | **I have nowhere to put a thought.** No note, tag, or highlight anywhere | *"Have a place to make notes as I'm searching, tags with notes so I can remember to check something later"* |
 | P3 | **Every question starts over.** No continuity between queries or surfaces | *"try to use the same or similar papers in the follow up questions. It would be great to have flow in the references"* |
-| P4 | **Saving loses everything.** The Library keeps only what Zotero already had | *"saving time between finding papers and actually writing… so I can move faster from search to manuscript"* |
+| P4 | **The paper survives, the question doesn't.** Metadata carries over; the `Evidence` tab does not | *"saving time between finding papers and actually writing… so I can move faster from search to manuscript"* |
 
 Supporting evidence for the curation half: *"give me less but better papers"* — there is
 currently no mechanism to say "not this one."

@@ -35,10 +35,10 @@ the product that already exists.
 | # | Gap | Evidence |
 |---|---|---|
 | G1 | **Per-paper provenance.** Aggregate funnel is excellent; nothing on a paper says *which query surfaced it, its rank, whether it recurred across searches, or why it beat the ones that lost*. | `All cited papers` is a flat list. No origin, no recurrence, no rank. Directly matches the user quote: *"explanation why certain 'most relevant' papers are picked over others… impossible to tell"* |
-| G2 | **Annotation.** No notes, no tags, no highlights, anywhere — thread or library. | Library columns are Title/Type/Authors/Journal/Year only. Matches: *"a place to make notes as I'm searching, tags with notes"* |
+| G2 | **Annotation.** No notes, no tags, no highlights, anywhere — thread or library. | The library list shows Title/Type/Authors/Journal/Year, and the paper drawer offers Overview, Snapshot, Attachment and Metadata. No note or tag field on either. Matches: *"a place to make notes as I'm searching, tags with notes"* |
 | G3 | **Cross-surface memory.** Context flows forward between surfaces and is never remembered. | Graph → thread attaches 20 papers correctly, but the resulting thread is a top-level orphan in History with no link back to the graph, the node, or the parent thread |
 | G4 | **Thread hygiene.** No sections, forks, renaming of messages, or removal of dead ends. | A failed search ("I searched but couldn't find papers matching this query") sits permanently in the Air Pollution thread; user simply re-ran the same query below it |
-| G5 | **Lossy Library handoff.** Saving a paper drops everything the thread knew about it. | Thread knows: key takeaway, N supporting quotes, study type, funnel position, originating question. Library stores: Title, Type, Authors, Journal, Year — the same fields Zotero already has, with a Zotero Import button beside it |
+| G5 | **The saved paper loses its question.** Bibliographic and quality metadata survive; the thread-derived context does not. | VERIFIED: a saved paper opens a full drawer with authors, journal, SJR score, citation counts, DOI and abstract. What is missing is the **Evidence (N) tab** the same paper shows inside a thread, plus rank, recurrence and which query surfaced it. Evidence is query-relative and the Library has no query |
 | G6 | **Exclusion / curation.** No way to say "not this one" and have it stick or inform later retrieval. | Matches: *"give me less but better papers"* |
 | G7 | **Reading state.** No unread/skimmed/read/cited tracking. | — |
 
@@ -62,7 +62,7 @@ the interface regardless of who is driving.
 **Take the brief's premise at face value instead.** Consensus says valuable papers get
 buried as a thread grows, and they have the usage data. The gaps in §2 are the mechanisms
 by which burial happens: a paper with no origin, no note, no memory between questions, and
-nothing left of it once saved.
+no trace of the question that surfaced it once it is saved.
 
 **One structural observation does survive**, because it is a property of the product rather
 than of anyone's behaviour: asking a question from the Citation Graph creates a *top-level

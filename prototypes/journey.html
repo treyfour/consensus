@@ -39,11 +39,43 @@ figcaption{margin-top:var(--s-md);padding-top:var(--s-sm);border-top:1px solid v
 .pain blockquote cite{display:block;margin-top:var(--s-2xs);font-style:normal;
   font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
 
+.pain .verified{margin-top:var(--s-sm);font-size:var(--t-2xs);line-height:1.55;color:var(--muted)}
+.pain .verified b{color:var(--pos)}
+.pain .verified b+b,.pain .verified b:not(:first-child){color:var(--fg)}
+
 .sofar{margin-top:var(--s-2xl);background:var(--bg);border:1px solid var(--bd);border-radius:.75rem;padding:var(--s-lg)}
 .sofar h2{font-size:var(--t-base);margin-bottom:var(--s-xs)}
 .sofar p{font-size:var(--t-sm);line-height:1.6;color:var(--fg);max-width:62rem}
 .sofar p+p{margin-top:var(--s-xs)}
 .sofar em{font-style:normal;color:var(--accent-emph);font-weight:500}
+
+/* the brief, kept beside the work so scope and scoring stay visible */
+.brief{margin-top:var(--s-2xl);display:grid;grid-template-columns:1fr 1fr;gap:var(--s-md);align-items:start}
+@media (max-width:60rem){.brief{grid-template-columns:1fr}}
+.panel{background:var(--bg);border:1px solid var(--bd);border-radius:.75rem;padding:var(--s-lg)}
+.panel>h2{font-size:var(--t-base);margin-bottom:var(--s-2xs)}
+.panel>.sub{font-size:var(--t-xs);color:var(--muted);margin-bottom:var(--s-md);line-height:1.5}
+.panel .quote{font-size:var(--t-sm);line-height:1.55;background:var(--accent-subtle);
+  border:1px solid var(--accent-bd);border-radius:.5rem;padding:var(--s-sm);margin-bottom:var(--s-md)}
+.ask{list-style:none;display:flex;flex-direction:column;gap:var(--s-xs)}
+.ask li{display:flex;gap:var(--s-sm);align-items:baseline;font-size:var(--t-sm);line-height:1.5;
+  border-bottom:1px solid var(--bd);padding-bottom:var(--s-xs)}
+.ask li:last-child{border-bottom:0;padding-bottom:0}
+.ask .tag{flex:none;font-family:var(--mono);font-size:var(--t-2xs);border-radius:625rem;
+  padding:1px .45rem;background:var(--warn-fill);color:var(--warn);border:1px solid #e9c46a}
+.ask .tag.none{background:var(--faint);color:var(--muted);border-color:var(--bd)}
+.score{list-style:none;display:flex;flex-direction:column;gap:var(--s-sm)}
+.score li{font-size:var(--t-sm);line-height:1.5}
+.score .crit{display:block}
+.score .ans{display:block;font-size:var(--t-xs);color:var(--muted);margin-top:1px}
+.score .ans b{color:var(--accent-emph);font-weight:500}
+.flow{margin-top:var(--s-md);border-top:1px solid var(--bd);padding-top:var(--s-md)}
+.flow h3{font-size:var(--t-xs);font-family:var(--mono);letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:var(--s-xs)}
+.flow ol{margin-left:1.1rem;font-size:var(--t-sm);line-height:1.7}
+.constraints{margin-top:var(--s-md);border-top:1px solid var(--bd);padding-top:var(--s-md);
+  font-size:var(--t-xs);color:var(--muted);line-height:1.6}
+.constraints b{color:var(--fg)}
 </style>
 </head>
 <body>
@@ -51,12 +83,12 @@ figcaption{margin-top:var(--s-md);padding-top:var(--s-sm);border-top:1px solid v
   <p class="eyebrow">Problem framing · graduate student</p>
   <h1>Where Consensus sits, and where the work breaks</h1>
   <p class="claim">Consensus is strong through the evidence sweep and stops at the seam.
-  <b>Three of the four pain points bite before the handoff, not after it</b> — which is why
+  <b>Three of the four pain points bite before the handoff, not after it</b>. That is why
   this is a thread problem, not a library problem.</p>
 
   <figure>
     <svg viewBox="0 0 1600 640" role="img"
-         aria-label="A left-to-right journey of eight research stages. Consensus covers stages one to three strongly and stage four only partially. A seam falls between the evidence sweep and extraction, where the work hands off to Elicit, Zotero and the student's own head. Four pain points are marked as spans: every question starting over across stages one to three, nowhere to put a thought across stages one to five, why-is-this-paper-here at the sweep and again at the defence, and saving loses everything exactly at the seam.">
+         aria-label="A left-to-right journey of eight research stages. Consensus covers stages one to three strongly and stage four only partially. A seam falls between the evidence sweep and extraction, where the work hands off to Elicit, Zotero and the student's own head. Four pain points are marked as spans: every question starting over across stages one to three, nowhere to put a thought across stages one to five, why-is-this-paper-here at the sweep and again at the defence, and at the seam a saved paper keeping its metadata but losing its link to the question that surfaced it.">
       <defs>
         <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
           <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
@@ -204,10 +236,10 @@ figcaption{margin-top:var(--s-md);padding-top:var(--s-sm);border-top:1px solid v
       <!-- P4 — a point defect, exactly on the seam -->
       <polygon points="800,542 814,556 800,570 786,556" fill="#a65f00"/>
       <text x="826" y="561" font-family="Figtree,system-ui,sans-serif" font-size="13" fill="#a65f00">
-        <tspan font-family="ui-monospace,monospace" font-weight="700">P4</tspan>  saving loses everything the thread knew
+        <tspan font-family="ui-monospace,monospace" font-weight="700">P4</tspan>  the paper survives; its link to your question doesn’t
       </text>
       <text x="774" y="561" text-anchor="end" font-family="Figtree,system-ui,sans-serif" font-size="13" fill="#71717b">
-        key takeaway · quotes · rank · which question →
+        Evidence tab · rank · which query →
       </text>
     </svg>
 
@@ -215,7 +247,7 @@ figcaption{margin-top:var(--s-md);padding-top:var(--s-sm);border-top:1px solid v
       Stages are the student’s work, not the product’s features. Consensus covers 1–3 strongly      and 4 only partially and behind Pro. The seam is where a thread’s output stops matching what
       the next stage needs: prose and a flat citation list, where extraction and synthesis need a
       structured, annotated, provenanced corpus. P1–P4 are drawn as spans because they are not
-      single moments — P2 accumulates across five stages, and P1 returns months later at the defence,
+      single moments: P2 accumulates across five stages, and P1 returns months later at the defence,
       when the student can no longer reconstruct why a paper was ever in the set.
     </figcaption>
   </figure>
@@ -247,21 +279,84 @@ figcaption{margin-top:var(--s-md);padding-top:var(--s-sm);border-top:1px solid v
 
     <div class="pain">
       <p class="id">P4 · THE HANDOFF</p>
-      <h3>Saving loses everything</h3>
+      <h3>The paper survives, the question doesn’t</h3>
       <p class="where">Exactly at the seam, 3 → 4</p>
       <blockquote>“What would help me most is saving time between finding papers and actually
         writing… so I can move faster from search to manuscript.”<cite>Consensus user feedback</cite></blockquote>
+      <p class="verified"><b>Verified in product.</b> A saved paper keeps its authors, journal,
+        SJR score, citation counts, DOI and full abstract. What it loses is the
+        <b>Evidence tab</b>, the supporting quotes that existed only because you asked a
+        question. Evidence is query-relative, and the Library has no query.</p>
     </div>
   </div>
 
   <div class="sofar">
     <h2>What this settles</h2>
     <p>Taking the brief at its word: as a thread grows, valuable papers get buried. Every pain
-    below is a way that burial happens — a paper with no origin, no note, no memory between
-    questions, and nothing left of it once it is saved.</p>
+    below is a way that burial happens: a paper with no origin, no note, no memory between
+    questions, and no trace of the question that surfaced it once it is saved.</p>
     <p>The target is not stage 4 onward. Three of four pains sit at <em>1–3, inside the
     thread</em>, and the fourth sits on the seam itself. Fixing the thread fixes the handoff as a
     side effect; building a better library does not fix the thread.</p>
+  </div>
+
+  <div class="brief">
+    <section class="panel">
+      <h2>What they asked me to solve</h2>
+      <p class="sub">Verbatim from the brief, with the pain each outcome maps to.</p>
+
+      <p class="quote">“Rethink <b>how the thread experience should evolve as research progresses
+      beyond a simple linear conversation.</b> Focus on <b>one</b> core workflow or interaction
+      model that would most improve a researcher’s ability to…”</p>
+
+      <ul class="ask">
+        <li><span class="tag">P1</span><span>identify and compare relevant papers <b>over time</b></span></li>
+        <li><span class="tag">P3</span><span>curate a useful <b>set</b> of sources</span></li>
+        <li><span class="tag">P1</span><span>understand <b>where papers came from and why</b> they were surfaced</span></li>
+        <li><span class="tag">P4</span><span>move naturally from in-thread exploration to <b>My Library</b></span></li>
+        <li><span class="tag none">P2</span><span>not asked for. Annotation is the one pain their own user
+          feedback raises that the brief’s four outcomes never name</span></li>
+      </ul>
+
+      <div class="constraints">
+        <b>Constraints.</b> Three to four hours. High-fidelity designs of <b>a few key states</b>,
+        where the majority of time should go. A simple presentation. Polished UI explicitly not
+        expected. <b>Depth over breadth</b>: pick one workflow, do not redesign the product. Mock
+        data is fine. Note assumptions.
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>How they’re scoring it</h2>
+      <p class="sub">Their six criteria, and where each one gets answered.</p>
+
+      <ol class="score">
+        <li><span class="crit">1 · Identifying and <b>prioritising</b> the most important user problem</span>
+          <span class="ans">→ the retired options: <b>16 concepts, 12 killed by the audit, 4 survive</b></span></li>
+        <li><span class="crit">2 · Strength and clarity of product thinking</span>
+          <span class="ans">→ one line, one object model: <b>messages don’t own papers</b></span></li>
+        <li><span class="crit">3 · Quality of interaction and information design</span>
+          <span class="ans">→ the built states, on <b>their own extracted CDL tokens</b></span></li>
+        <li><span class="crit">4 · Support for <b>trust, transparency and provenance</b></span>
+          <span class="ans">→ P1: per-paper origin, rank and recurrence, durable to the defence</span></li>
+        <li><span class="crit">5 · Connection to the broader workflow and <b>My Library</b></span>
+          <span class="ans">→ P4: saving becomes a view change, so nothing is left to strip</span></li>
+        <li><span class="crit">6 · Effective use of <b>modern AI tools</b> in the design process</span>
+          <span class="ans">→ browser-driven product audit, tokens pulled from the live DOM,
+            five prototypes in an afternoon</span></li>
+      </ol>
+
+      <div class="flow">
+        <h3>Presentation structure they suggested</h3>
+        <ol>
+          <li>Problem framing</li>
+          <li>What you chose to focus on, and why</li>
+          <li>Key concepts and flows</li>
+          <li>Example states or prototype</li>
+          <li>Tradeoffs, open questions, what you’d test next</li>
+        </ol>
+      </div>
+    </section>
   </div>
 </div>
 </body>
