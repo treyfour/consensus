@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>C · The Board</title>
+<style>
+:root{
+--accent:#068ef1;--accent-emph:#006fce;--accent-muted:#dfeeff;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
+--bg:#fff;--mist:#fafafa;--faint:#f4f4f5;--subtle:#e4e4e7;
+--fg:#18181b;--muted:#71717b;--bd:#e4e4e7;--bd-emph:#d4d4d8;
+--pos:#148d74;--alert:#c10007;--warn:#a65f00;--lav:#d4bbff;--teal:#08bdba;
+--r-xs:.25rem;--r-sm:.5rem;--r-md:.75rem;--r-lg:1rem;
+--s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;
+--t-2xs:.69rem;--t-xs:.81rem;--t-sm:.94rem;--t-base:1rem;
+--h-2xs:1.13rem;--h-sm:1.38rem;
+--sans:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+--mono:"Reddit Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(--t-base);-webkit-font-smoothing:antialiased}
+.proto{background:var(--fg);color:#fff;padding:var(--s-xs) var(--s-md);display:flex;gap:var(--s-md);align-items:baseline;font-size:var(--t-xs)}
+.proto b{font-size:var(--t-sm)}.proto span{color:#a1a1aa}
+.app{display:grid;grid-template-columns:20rem 1fr;height:calc(100vh - 33px);overflow:hidden}
+.app>*{min-height:0}
+
+/* thread rail (narrow, feeds the board) */
+.feed{border-right:1px solid var(--bd);display:flex;flex-direction:column;min-height:0;background:var(--bg)}
+.feed-hd{padding:var(--s-sm) var(--s-md);border-bottom:1px solid var(--bd);font-size:var(--t-xs);color:var(--muted);
+  display:flex;justify-content:space-between;align-items:center}
+.feed-hd b{color:var(--fg);font-size:var(--t-sm)}
+.feed-body{overflow-y:auto;padding:var(--s-md);font-size:var(--t-xs);line-height:1.55}
+.q{background:var(--accent-subtle);border-radius:var(--r-sm);padding:var(--s-xs) var(--s-sm);margin-bottom:var(--s-sm)}
+.feed-body h1{font-size:var(--t-sm);margin:var(--s-sm) 0 var(--s-xs)}
+.feed-body p{margin-bottom:var(--s-sm);color:var(--fg)}
+.cite{font-family:var(--mono);font-size:var(--t-2xs);background:var(--faint);border-radius:var(--r-xs);padding:1px 4px;cursor:grab}
+.tray{border-top:1px solid var(--bd);padding:var(--s-xs) var(--s-md);background:var(--mist);font-size:var(--t-2xs);
+  color:var(--muted);font-family:var(--mono)}
+
+/* board */
+.board{position:relative;overflow:auto;
+  background-image:radial-gradient(var(--subtle) 1px,transparent 1px);background-size:20px 20px;background-color:var(--mist)}
+.board-hd{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:var(--s-sm);
+  padding:var(--s-xs) var(--s-md);background:#fffffff2;border-bottom:1px solid var(--bd);backdrop-filter:blur(6px)}
+.board-hd b{font-size:var(--t-sm)}
+.board-hd .sp{margin-left:auto;display:flex;gap:var(--s-xs)}
+.btn{font-family:inherit;font-size:var(--t-xs);border:1px solid var(--bd);background:var(--bg);color:var(--fg);
+  border-radius:var(--r-sm);padding:var(--s-2xs) var(--s-sm);cursor:pointer}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.canvas{padding:var(--s-xl);display:flex;gap:var(--s-xl);align-items:flex-start;min-width:max-content}
+
+.group{border:1px solid var(--bd);border-radius:var(--r-lg);background:#ffffffcc;padding:var(--s-sm);width:17rem}
+.group.gap{border-style:dashed;border-color:var(--warn);background:#fffaf0cc}
+.group>h3{font-size:var(--t-xs);font-weight:700;margin-bottom:var(--s-xs);display:flex;align-items:center;gap:var(--s-2xs)}
+.group>h3 em{font-style:normal;font-weight:400;color:var(--muted);font-family:var(--mono);font-size:var(--t-2xs);margin-left:auto}
+.swatch{width:8px;height:8px;border-radius:2px}
+
+.card{background:var(--bg);border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-xs) var(--s-sm);
+  margin-bottom:var(--s-xs);cursor:grab;box-shadow:0 1px 2px #0000000a}
+.card:hover{border-color:var(--bd-emph)}
+.card.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.card h4{font-size:var(--t-2xs);font-weight:500;line-height:1.35}
+.card .m{font-size:var(--t-2xs);color:var(--muted);font-family:var(--mono);margin-top:3px;display:flex;align-items:center;gap:4px}
+.dots{letter-spacing:-1px;color:var(--accent);font-size:.7rem}
+.dots i{color:var(--subtle);font-style:normal}
+.mk{margin-left:auto;font-weight:700}.mk.keep{color:var(--pos)}.mk.may{color:var(--warn)}.mk.exc{color:var(--muted)}
+.cnote{margin-top:var(--s-2xs);background:var(--faint);border-radius:var(--r-xs);padding:3px var(--s-2xs);
+  font-size:var(--t-2xs);line-height:1.4;color:var(--fg)}
+.sticky{background:#fdf6d8;border:1px solid #e9c46a;border-radius:var(--r-sm);padding:var(--s-xs);
+  font-size:var(--t-2xs);line-height:1.45;margin-top:var(--s-xs)}
+
+.bar{position:fixed;left:50%;transform:translateX(-50%);bottom:var(--s-md);background:var(--fg);color:#fff;
+  border-radius:var(--r-md);padding:var(--s-xs) var(--s-sm);display:flex;align-items:center;gap:var(--s-2xs);
+  font-size:var(--t-2xs);box-shadow:0 8px 24px #0003;z-index:20}
+.bar .n{font-family:var(--mono);margin-right:var(--s-2xs)}
+.bar button{font-family:inherit;font-size:var(--t-2xs);background:#ffffff1f;border:0;color:#fff;border-radius:var(--r-xs);padding:3px var(--s-xs);cursor:pointer}
+.bar button.go{background:var(--accent)}
+
+.menu{position:fixed;z-index:50;background:var(--bg);border:1px solid var(--bd);border-radius:var(--r-md);
+  box-shadow:0 12px 32px #0000001f;padding:var(--s-2xs);min-width:16rem;display:none;font-size:var(--t-xs)}
+.menu.on{display:block}
+.menu i{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-2xs) var(--s-xs);border-radius:var(--r-xs);cursor:pointer;font-style:normal}
+.menu i:hover{background:var(--faint)}
+.menu i kbd{margin-left:auto;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.menu hr{border:0;border-top:1px solid var(--bd);margin:var(--s-2xs) 0}
+</style>
+</head>
+<body>
+<div class="proto"><b>C · The Board</b><span>Sources become cards on a canvas fed by the thread. Primary act: arranging into themes until the gap is visible. Right-click a card; click two to select.</span></div>
+
+<div class="app">
+  <section class="feed">
+    <div class="feed-hd"><b>Thread</b><span>24 sources →</span></div>
+    <div class="feed-body">
+      <div class="q">What are the open questions in CRISPR off-target effects for in vivo therapies?</div>
+      <div style="font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-bottom:var(--s-sm)">
+        32.8M retrieved · 100 eligible · 20 included
+      </div>
+      <h1>Open Questions in CRISPR Off-Target Effects</h1>
+      <p>Several unresolved questions persist across detection, biological variability, structural variants
+      and clinical monitoring <span class="cite">WIENERT 2022</span> <span class="cite">KALTER 2025</span>.</p>
+      <p>Large-scale aberrations remain far harder to detect than small indels <span class="cite">HÖIJER 2021</span>.</p>
+      <p>Human genetic diversity is an under-explored confound <span class="cite">CANCELLIERI 2022</span>.</p>
+      <p>No consensus exists on post-delivery monitoring <span class="cite">ANGELINI STEWART 2025</span>
+      <span class="cite">HUANG 2022</span>.</p>
+    </div>
+    <div class="tray">↓ drag any citation onto the board · 6 of 24 placed</div>
+  </section>
+
+  <section class="board">
+    <div class="board-hd">
+      <b>CRISPR off-target · in vivo</b>
+      <span style="font-size:var(--t-2xs);color:var(--muted);font-family:var(--mono)">3 groups · 6 placed · 18 unplaced</span>
+      <span class="sp">
+        <button class="btn">Auto-group</button>
+        <button class="btn pri">→ Save board as collection</button>
+      </span>
+    </div>
+
+    <div class="canvas">
+      <div class="group">
+        <h3><span class="swatch" style="background:var(--accent)"></span>Detection methods<em>3</em></h3>
+
+        <div class="card" data-t="Wienert">
+          <h4>CRISPR nuclease off-target activity and mitigation strategies</h4>
+          <div class="m"><span class="dots">●●●</span>3 of 3 · #1 <span class="mk keep">✓</span></div>
+          <div class="cnote">Anchor paper for the detection-gap argument — ch.3 intro.</div>
+        </div>
+
+        <div class="card" data-t="Höijer">
+          <h4>CRISPR-Cas9 induces large structural variants at on- and off-target sites</h4>
+          <div class="m"><span class="dots">●●<i>●</i></span>2 of 3 · #2 <span class="mk keep">✓</span></div>
+        </div>
+
+        <div class="card" data-t="Angelini">
+          <h4>Measurement and clinical interpretation of CRISPR off-targets</h4>
+          <div class="m"><span class="dots">●<i>●●</i></span>search 2 · #9 <span class="mk">·</span></div>
+        </div>
+
+        <div class="sticky">All three assume ex vivo access to the edited cells. None address in vivo.</div>
+      </div>
+
+      <div class="group">
+        <h3><span class="swatch" style="background:var(--teal)"></span>Delivery &amp; exposure<em>2</em></h3>
+
+        <div class="card" data-t="Huang">
+          <h4>In vivo delivery of CRISPR-Cas9 genome editing components</h4>
+          <div class="m"><span class="dots">●<i>●●</i></span>search 1 · #12 <span class="mk">·</span></div>
+        </div>
+
+        <div class="card" data-t="Kalter">
+          <h4>Off-target effects in CRISPR-Cas genome editing for human therapeutics</h4>
+          <div class="m"><span class="dots">●●<i>●</i></span>2 of 3 · #3 <span class="mk may">~</span></div>
+        </div>
+      </div>
+
+      <div class="group gap">
+        <h3><span class="swatch" style="background:var(--warn)"></span>Gap — population variance<em>1</em></h3>
+
+        <div class="card" data-t="Cancellieri">
+          <h4>Human genetic diversity alters off-target outcomes of therapeutic gene editing</h4>
+          <div class="m"><span class="dots">●<i>●●</i></span>search 3 · #4 <span class="mk may">~</span></div>
+          <div class="cnote">Only paper in the set on population variance. Thin — search this directly.</div>
+        </div>
+
+        <div class="sticky">One paper does not make a section. This is either the thesis gap or a search failure.</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="bar" id="bar" style="display:none">
+  <span class="n" id="cnt">0 selected</span>
+  <button>🗒 Note</button><button>✓ Keep</button><button>⊘ Exclude…</button><button>▣ Group</button>
+  <button class="go">Ask within these</button><button>Find more like these</button>
+</div>
+
+<div class="menu" id="menu">
+  <i>🗒 Note…<kbd>⌘⇧N</kbd></i><i>🏷 Tag…<kbd>⌘⇧T</kbd></i>
+  <hr><i>✓ Keep<kbd>K</kbd></i><i>~ Maybe<kbd>M</kbd></i><i>⊘ Exclude…<kbd>E</kbd></i>
+  <hr><i>⁂ Find more like this</i><i>💬 Ask about this</i><i>◉ Show why this is here<kbd>⌥click</kbd></i>
+  <hr><i>🔖 Add to collection…<kbd>⌘S</kbd></i><i>⇗ Open in Citation Graph</i>
+</div>
+
+<script>
+const menu=document.getElementById('menu'),bar=document.getElementById('bar'),cnt=document.getElementById('cnt');
+document.querySelectorAll('.card').forEach(c=>{
+  c.addEventListener('contextmenu',e=>{
+    e.preventDefault();
+    menu.style.left=Math.min(e.clientX,innerWidth-280)+'px';
+    menu.style.top=Math.min(e.clientY,innerHeight-360)+'px';
+    menu.classList.add('on');
+  });
+  c.addEventListener('click',e=>{
+    e.stopPropagation(); c.classList.toggle('sel'); sync();
+  });
+});
+function sync(){
+  const n=document.querySelectorAll('.card.sel').length;
+  cnt.textContent=n+' selected';
+  bar.style.display=n?'flex':'none';
+}
+addEventListener('click',()=>menu.classList.remove('on'));
+document.querySelectorAll('.card')[0].classList.add('sel');
+document.querySelectorAll('.card')[1].classList.add('sel');sync();
+</script>
+</body>
+</html>
