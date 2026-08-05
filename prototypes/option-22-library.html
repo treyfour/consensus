@@ -91,6 +91,42 @@ h1{font-size:var(--h-md);letter-spacing:-.015em;flex:1;min-width:12rem}
 .grp.picked .gchk{background:var(--accent);border-color:var(--accent)}
 .grp.picked .gchk::after{content:'✓';position:absolute;inset:0;color:#fff;font-size:.68rem;line-height:1rem;text-align:center}
 
+/* a note is one summarised row, the same shape the Threads tab already uses */
+.nrow{display:flex;gap:var(--s-sm);align-items:flex-start;border:1px solid var(--paper-bd);
+  background:var(--paper);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);
+  margin-bottom:var(--s-xs);cursor:pointer}
+.nrow:hover{border-color:var(--accent-bd)}
+.nrow.picked{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.nrow .nbody{flex:1;min-width:0}
+.nrow h3{font-size:var(--t-sm);font-weight:500;line-height:1.4}
+.nrow .pv{font-size:var(--t-xs);color:var(--fg);line-height:1.5;margin-top:var(--s-2xs);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nrow .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs)}
+.nrow .opn{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);flex:none;opacity:0;margin-top:2px}
+.nrow:hover .opn{opacity:1}
+.gchk{flex:none;width:1rem;height:1rem;border:1.5px solid var(--bd-emph);border-radius:var(--r-xs);
+  background:#fff;cursor:pointer;position:relative;margin-top:2px}
+.nrow:hover .gchk{border-color:var(--accent-bd)}
+.nrow.picked .gchk{background:var(--accent);border-color:var(--accent)}
+.nrow.picked .gchk::after{content:'✓';position:absolute;inset:0;color:#fff;font-size:.68rem;line-height:1rem;text-align:center}
+
+/* selecting notes gives you a composer, not a button — you are about to ask something */
+.notebar{position:fixed;left:50%;bottom:1.25rem;transform:translate(-50%,180%);z-index:40;width:min(42rem,calc(100vw - 6rem));
+  background:var(--bg);border:1px solid var(--accent-bd);border-radius:var(--r-md);padding:var(--s-xs) var(--s-sm);
+  box-shadow:0 12px 32px #00000026,0 0 0 3px var(--accent-subtle);
+  transition:transform .22s cubic-bezier(.2,.9,.3,1)}
+.notebar.on{transform:translate(-50%,0)}
+.notebar .top{display:flex;align-items:center;gap:var(--s-xs);margin-bottom:var(--s-2xs)}
+.notebar .cnt{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph)}
+.notebar .clr{margin-left:auto;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);cursor:pointer;text-decoration:underline}
+.notebar .clr:hover{color:var(--fg)}
+.notebar .line{display:flex;gap:var(--s-xs);align-items:center}
+.notebar input{flex:1;border:0;outline:0;font-family:inherit;font-size:var(--t-sm);background:transparent;padding:var(--s-2xs) 0}
+.notebar input::placeholder{color:var(--muted)}
+.notebar .go{font-family:inherit;font-size:var(--t-2xs);border:0;background:var(--accent);color:#fff;
+  border-radius:var(--r-sm);padding:6px var(--s-sm);cursor:pointer;white-space:nowrap}
+.notebar .go:hover{background:var(--accent-emph)}
+
 /* ── comparing two notes ─────────────────────────────────────────────── */
 .cmp .back{display:block;font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);
   background:none;border:0;cursor:pointer;padding:0;margin-bottom:var(--s-md);text-align:left}
@@ -99,6 +135,8 @@ h1{font-size:var(--h-md);letter-spacing:-.015em;flex:1;min-width:12rem}
   color:var(--accent-emph);background:var(--accent-subtle);border:1px solid var(--accent-bd);
   border-radius:625rem;padding:2px var(--s-xs);margin-bottom:var(--s-sm)}
 .cmp h2{font-size:var(--t-lg);font-weight:600;letter-spacing:-.01em;margin-bottom:var(--s-xs)}
+.askedq{background:var(--accent-subtle);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);
+  font-size:var(--t-sm);max-width:28rem;margin:0 0 var(--s-md) auto}
 .cmp .fun{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-bottom:var(--s-lg)}
 .join{border:1px solid var(--pos);background:var(--pos-bg);border-radius:var(--r-md);
   padding:var(--s-sm) var(--s-md);margin-bottom:var(--s-lg)}
@@ -202,10 +240,12 @@ h1{font-size:var(--h-md);letter-spacing:-.015em;flex:1;min-width:12rem}
   <button id="sMove">＋ Add to collection</button>
   <span class="clr" id="sClr">clear</span>
 </div>
-<div class="selbar" id="notebar">
-  <span class="cnt" id="noteCount">0 notes</span>
-  <button class="go" id="nCompare">⇄ Compare</button>
-  <span class="clr" id="nClr">clear</span>
+<div class="notebar" id="notebar">
+  <div class="top"><span class="cnt" id="noteCount"></span><span class="clr" id="nClr">clear</span></div>
+  <div class="line">
+    <input id="nAsk" placeholder="Ask across these notes…">
+    <button class="go" id="nGo">Ask ↩</button>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -252,7 +292,7 @@ const LIB={name:"My Library",kids:[
 ]};
 
 let path=[], tab='notes', sel=new Set(), activeTags=new Set(), query='', open=new Set();
-let selNotes=new Set(), compare=null;
+let selNotes=new Set(), compare=null, openNote=null, askedQ='';
 const $=id=>document.getElementById(id);
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');
   clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2400)}
@@ -341,6 +381,7 @@ function render(){
   find.appendChild(fi); bar.appendChild(find);
   tw.appendChild(bar);
 
+  if(openNote){drawNoteView(body);syncSel();return}
   if(compare){drawCompare(body);syncSel();return}
   if(tab==='threads') drawThreads(body,ts);
   if(tab==='sources') drawSources(body,ss);
@@ -414,7 +455,7 @@ function drawNotes(body,cs){
   });
   const vis=cs.filter(cardVisible);
   const sh=document.createElement('span'); sh.className='shown';
-  sh.textContent=(activeTags.size||query)?vis.length+' of '+cs.length:cs.length+' cards';
+  sh.textContent=(activeTags.size||query)?vis.length+' of '+cs.length+' cards':cs.length+' cards';
   tb.appendChild(sh);
   body.appendChild(tb);
 
@@ -423,63 +464,71 @@ function drawNotes(body,cs){
       '<div class="empty-state">Nothing matches.<br>Notes arrive here when you add cards to this collection from a thread.</div>');
     return;
   }
-  /* grouped by originating thread, because a note is thread-scoped */
+  /* A note is one row, summarised — the same shape the Threads tab uses today.
+     Opening it is a separate experience; the checkbox is only for chatting. */
   const groups=[...new Set(vis.map(c=>c.thread))];
   groups.forEach(tid=>{
     const mine=vis.filter(c=>c.thread===tid);
-    const srcs=new Set(); mine.forEach(c=>c.srcs.forEach(i=>srcs.add(i)));
-    const g=document.createElement('article');
-    g.className='grp'+(open.has(tid)?' open':'')+(selNotes.has(tid)?' picked':'');
-    const hd=document.createElement('div'); hd.className='grp-hd';
-    hd.innerHTML='<span class="gchk"></span><span class="chev"></span>'+
-      '<div class="t"><b></b><div class="m"></div></div>';
-    hd.querySelector('.gchk').addEventListener('click',e=>{e.stopPropagation();
+    const srcs=[...new Set(mine.flatMap(c=>c.srcs))];
+    const first=mine.find(c=>c.text);
+    const r=document.createElement('div'); r.className='nrow'+(selNotes.has(tid)?' picked':'');
+    r.innerHTML='<span class="gchk"></span><div class="nbody">'+
+      '<h3></h3><div class="pv"></div><div class="m"></div></div><span class="opn">open ›</span>';
+    r.querySelector('h3').textContent='From '+THREADS[tid].name;
+    r.querySelector('.pv').textContent=first?first.text:'(sources only, nothing written)';
+    r.querySelector('.m').textContent=mine.length+(mine.length===1?' card · ':' cards · ')+
+      srcs.length+(srcs.length===1?' source':' sources')+' · '+
+      srcs.slice(0,2).map(i=>P[i].n).join(', ')+(srcs.length>2?' +'+(srcs.length-2):'');
+    r.querySelector('.gchk').addEventListener('click',e=>{e.stopPropagation();
       selNotes.has(tid)?selNotes.delete(tid):selNotes.add(tid); sel.clear(); render()});
-    hd.querySelector('.chev').textContent=open.has(tid)?'▾':'▸';
-    hd.querySelector('b').textContent='From '+THREADS[tid].name;
-    hd.querySelector('.m').textContent=mine.length+(mine.length===1?' card · ':' cards · ')+
-      srcs.size+(srcs.size===1?' source':' sources');
-    const go=document.createElement('button'); go.className='go';
-    go.textContent='💬 Ask '+srcs.size;
-    go.addEventListener('click',e=>{e.stopPropagation();
-      toast('📎 Papers · '+srcs.size+' attached — sources only, your notes stay private')});
-    hd.appendChild(go);
-    hd.addEventListener('click',()=>{open.has(tid)?open.delete(tid):open.add(tid);render()});
-    g.appendChild(hd);
-
-    const bd=document.createElement('div'); bd.className='grp-body';
-    mine.forEach(c=>{
-      const a=document.createElement('div'); a.className='card'+(sel.has(c.id)?' sel':'');
-      a.innerHTML='<span class="chk"></span><div class="cbody"></div>';
-      const cb=a.querySelector('.cbody');
-      const p=document.createElement('p');
-      p.textContent=c.text||'(sources only, no thought written)';
-      if(!c.text) p.className='empty';
-      cb.appendChild(p);
-      if(c.srcs.length){
-        const pins=document.createElement('div'); pins.className='pins';
-        c.srcs.forEach(i=>{
-          const d=document.createElement('div'); d.className='pin';
-          d.innerHTML='<b></b><span></span>';
-          d.querySelector('b').textContent=P[i].n;
-          d.querySelector('span').textContent=prov(c.thread,i)||P[i].m;
-          pins.appendChild(d);
-        });
-        cb.appendChild(pins);
-      }
-      const f=document.createElement('div'); f.className='foot';
-      c.tags.forEach(t=>{const s=document.createElement('span');s.className='tag on';s.textContent=t;
-        s.addEventListener('click',e=>{e.stopPropagation();
-          activeTags.has(t)?activeTags.delete(t):activeTags.add(t);render()});f.appendChild(s)});
-      cb.appendChild(f);
-      a.addEventListener('click',()=>{sel.has(c.id)?sel.delete(c.id):sel.add(c.id);selNotes.clear();render()});
-      bd.appendChild(a);
-    });
-    g.appendChild(bd);
-    body.appendChild(g);
+    r.addEventListener('click',()=>{openNote=tid; render()});
+    body.appendChild(r);
   });
 }
 
+/* the note, opened on its own — the whole thing, not a summary */
+function drawNoteView(body){
+  const tid=openNote, mine=cardsHere().filter(c=>c.thread===tid);
+  const srcs=[...new Set(mine.flatMap(c=>c.srcs))];
+  const wrap=document.createElement('div'); wrap.className='cmp';
+  const back=document.createElement('button'); back.className='back';
+  back.textContent='← '+here()+' · Notes';
+  back.addEventListener('click',()=>{openNote=null;render()});
+  wrap.appendChild(back);
+
+  const h=document.createElement('h2'); h.textContent='From '+THREADS[tid].name;
+  wrap.appendChild(h);
+  const fn=document.createElement('div'); fn.className='fun';
+  fn.textContent=mine.length+(mine.length===1?' card · ':' cards · ')+srcs.length+
+    (srcs.length===1?' source':' sources')+' · thread-scoped, so it stays with the question it came from';
+  wrap.appendChild(fn);
+
+  mine.forEach(c=>{
+    const a=document.createElement('div'); a.className='card';
+    a.innerHTML='<div class="cbody"></div>';
+    const cb=a.querySelector('.cbody');
+    const p=document.createElement('p');
+    p.textContent=c.text||'(sources only, no thought written)';
+    if(!c.text) p.className='empty';
+    cb.appendChild(p);
+    if(c.srcs.length){
+      const pins=document.createElement('div'); pins.className='pins';
+      c.srcs.forEach(i=>{
+        const d=document.createElement('div'); d.className='pin';
+        d.innerHTML='<b></b><span></span>';
+        d.querySelector('b').textContent=P[i].n;
+        d.querySelector('span').textContent=prov(c.thread,i)||P[i].m;
+        pins.appendChild(d);
+      });
+      cb.appendChild(pins);
+    }
+    const f=document.createElement('div'); f.className='foot';
+    c.tags.forEach(t=>{const s=document.createElement('span');s.className='tag on';s.textContent=t;f.appendChild(s)});
+    cb.appendChild(f);
+    wrap.appendChild(a);
+  });
+  body.appendChild(wrap);
+}
 /* ── comparing two or more notes ──────────────────────────────────────────
    A thread will not fit in one question — this collection's two threads are
    4 queries and 42 references between them. A note already is the reduction:
@@ -490,7 +539,7 @@ function drawCompare(body){
   const ids=compare;
   const back=document.createElement('button'); back.className='back';
   back.textContent='← '+here()+' · Notes';
-  back.addEventListener('click',()=>{compare=null;render()});
+  back.addEventListener('click',()=>{compare=null;askedQ='';render()});
   const wrap=document.createElement('div'); wrap.className='cmp';
   wrap.appendChild(back);
 
@@ -503,6 +552,10 @@ function drawCompare(body){
   chip.textContent='📎 '+ids.length+' notes · '+allCards+' cards · '+allSrcs.length+' sources';
   wrap.appendChild(chip);
 
+  if(askedQ){
+    const q=document.createElement('div'); q.className='askedq'; q.textContent=askedQ;
+    wrap.appendChild(q);
+  }
   const h=document.createElement('h2');
   h.textContent=shared.length
     ? 'Where these '+ids.length+' lines of enquiry meet, and where they do not'
@@ -581,17 +634,23 @@ const srcsOfNote=tid=>[...new Set(notesOf(tid).flatMap(c=>c.srcs))];
 function syncNotes(){
   const ids=[...selNotes], cards=ids.reduce((a,t)=>a+notesOf(t).length,0);
   const srcs=[...new Set(ids.flatMap(srcsOfNote))];
-  $('noteCount').textContent=ids.length+(ids.length===1?' note · ':' notes · ')+
+  $('noteCount').textContent='📎 '+ids.length+(ids.length===1?' note · ':' notes · ')+
     cards+' cards · '+srcs.length+(srcs.length===1?' source':' sources');
-  $('nCompare').textContent=ids.length>1?'⇄ Compare '+ids.length+' notes':'💬 Ask this note';
-  $('notebar').classList.toggle('on',ids.length>0&&!sel.size&&!compare);
+  $('nAsk').placeholder=ids.length>1
+    ? 'Ask across these '+ids.length+' notes…'
+    : 'Ask this note…';
+  $('notebar').classList.toggle('on',ids.length>0&&!sel.size&&!compare&&!openNote);
 }
 $('nClr').addEventListener('click',()=>{selNotes.clear();render()});
-$('nCompare').addEventListener('click',()=>{
-  const ids=[...selNotes];
-  if(ids.length<2){toast('📎 '+srcsOfNote(ids[0]).length+' sources attached — sources only');return}
-  compare=ids; render();
-});
+function askNotes(){
+  const ids=[...selNotes]; if(!ids.length) return;
+  askedQ=$('nAsk').value.trim()||(ids.length>1
+    ? 'Where do these lines of enquiry actually disagree?'
+    : 'What is this note actually claiming?');
+  $('nAsk').value=''; compare=ids; render();
+}
+$('nGo').addEventListener('click',askNotes);
+$('nAsk').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();askNotes()}});
 $('sClr').addEventListener('click',()=>{sel.clear();render()});
 $('sAsk').addEventListener('click',()=>{
   const srcs=new Set(); [...sel].forEach(id=>{const c=CARDS.find(x=>x.id===id);if(c)c.srcs.forEach(i=>srcs.add(i))});
