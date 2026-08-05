@@ -19,6 +19,7 @@ const shot=n=>p.screenshot({path:OUT+n});
 
 console.log('\n1–2 · insert a chat, populate it');
 ok('the thread starts empty', await p.evaluate(()=>!!document.querySelector('.blank')&&QUERIES.length===0));
+ok('no "new" badge on Notes', await p.evaluate(()=>!document.querySelector('#tNotes .badge')));
 ok('references say nothing retrieved yet',
   /nothing retrieved yet/.test(await p.evaluate(()=>document.getElementById('refSub').textContent)));
 await shot('pG-1-empty.png');
@@ -50,7 +51,7 @@ for(const i of [0,1,3]) await p.click('#refs .row[data-p="'+i+'"]');
 await p.click('#barAdd'); await p.waitForTimeout(400);
 ok('three cards, panel still closed', await p.evaluate(()=>CARDS.length===3
   && document.getElementById('notesPane').style.display==='none'));
-await p.click('#dropPop .add'); await p.waitForTimeout(350);
+await p.click('#tNotes'); await p.waitForTimeout(350);
 ok('the switcher says this is a note from this thread',
   /from CRISPR Off Target Effects/.test(await p.evaluate(()=>document.getElementById('nsFrom').textContent)),
   await p.evaluate(()=>document.getElementById('nsFrom').textContent));
@@ -159,6 +160,17 @@ ok('31.7M / 656.6K / 442.8K are all there',
   sq&&/31\.7M/.test(sq)&&/656\.6K/.test(sq)&&/442\.8K/.test(sq), (sq||'').slice(0,50));
 ok('and it says they are discarded today', /discards it/.test(sq||''));
 
+console.log('\nDETAIL · what the hover card can do');
+await p.hover('#refs .row[data-p="0"]'); await p.waitForTimeout(350);
+const acts=await p.evaluate(()=>[...document.querySelectorAll('.rowacts .mini')].map(b=>b.textContent.trim()));
+ok('it offers Ask and Add to note, in the product’s words',
+  JSON.stringify(acts)==='["💬 Ask","＋ Add to note"]', JSON.stringify(acts));
+await p.click('#whyAsk'); await p.waitForTimeout(300);
+ok('Ask from the hover card attaches just that paper',
+  /1 attached · Wienert 2022/.test(await p.evaluate(()=>document.getElementById('attLab').textContent)),
+  await p.evaluate(()=>document.getElementById('attLab').textContent));
+await p.click('#attX');
+
 console.log('\nDETAIL · the way out of a wrong reference');
 await p.hover('#refs .row[data-p="0"]'); await p.waitForTimeout(350);
 await p.click('#missBtn'); await p.waitForTimeout(250);
@@ -178,7 +190,7 @@ ok('escape leaves the reference intact',
 
 console.log('\nDETAIL · one control per card');
 await p.click('#refs .row[data-p="0"]'); await p.click('#barAdd'); await p.waitForTimeout(400);
-await p.click('#dropPop .add'); await p.waitForTimeout(400);
+await p.click('#tNotes'); await p.waitForTimeout(400);
 ok('a corner control, no actions row',
   await p.evaluate(()=>{const c=document.querySelector('#noteList .card');
     return c.querySelectorAll('.cardmore').length===1 && !c.querySelector('.cardacts')}));

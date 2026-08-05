@@ -41,8 +41,6 @@ body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(
 .tgl:hover{border-color:var(--bd-emph);color:var(--fg)}
 .tgl.on{background:var(--accent-subtle);border-color:var(--accent-bd);color:var(--accent-emph)}
 .tgl.drop{background:var(--accent);border-color:var(--accent);color:#fff}
-.tgl.fresh{border-color:var(--accent-bd);color:var(--accent-emph)}
-.tgl .badge{font-family:var(--mono);font-size:var(--t-2xs);background:var(--accent);color:#fff;border-radius:625rem;padding:0 var(--s-2xs);margin-left:2px}
 .tgl .n{font-family:var(--mono);font-size:var(--t-2xs)}
 .thread{flex:1;overflow-y:auto;padding:var(--s-lg) var(--s-2xl) var(--s-2xl)}
 .turn{padding-top:var(--s-lg)}
@@ -134,18 +132,7 @@ body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(
 .card:hover .grip{opacity:1}
 .card.dragging{opacity:.4}
 .ask.dropok .box{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-muted)}
-/* the drop confirmation: offers a note, never demands one */
-.droppop{position:fixed;left:50%;bottom:1.25rem;transform:translate(-50%,180%);z-index:80;
-  background:var(--fg);color:#fff;border-radius:625rem;padding:var(--s-xs) var(--s-sm);
-  display:flex;gap:var(--s-xs);align-items:center;box-shadow:0 12px 30px #00000038;
-  font-size:var(--t-xs);white-space:nowrap;transition:transform .22s cubic-bezier(.2,.9,.3,1);pointer-events:none}
-.droppop.on{transform:translate(-50%,0);pointer-events:auto}
-.droppop .ok{color:#6ee7c4}
-.droppop button{font-family:inherit;font-size:var(--t-2xs);border:0;border-radius:var(--r-sm);
-  padding:4px var(--s-xs);cursor:pointer;background:#ffffff21;color:#fff}
-.droppop button:hover{background:#ffffff36}
-.droppop .add{background:var(--accent)}
-.droppop .add:hover{background:var(--accent-emph)}
+
 .composer{margin-top:var(--s-sm);background:#fff;border:1px dashed var(--paper-bd);border-radius:var(--r-md);padding:var(--s-xs) var(--s-sm)}
 .composer.armed,.composer.over{border-style:solid;border-color:var(--accent-bd);box-shadow:0 0 0 3px var(--accent-subtle)}
 .composer.over{border-color:var(--accent)}
@@ -374,7 +361,7 @@ body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--acc
     <div class="screen on" id="threadScreen">
       <div class="mid">
         <div class="thread-hd"><span class="t" id="threadName">CRISPR Off Target Effects</span>
-          <button class="tgl fresh" id="tNotes">🗒 Notes <span class="n" id="tnCount">0</span><span class="badge">new</span></button>
+          <button class="tgl" id="tNotes">🗒 Notes <span class="n" id="tnCount">0</span></button>
           <button class="tgl on" id="tRefs">References <span class="n" id="trCount">6</span></button></div>
         <main class="thread" id="thread"></main>
         <div class="ask" id="ask">
@@ -394,7 +381,7 @@ body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--acc
           <button class="x" id="closeNotes">✕</button></div>
         <div class="notetop">
           <button class="noteswitch" id="noteSwitch">
-            <span class="k" id="nsKind">NEW NOTE</span>
+            <span class="k" id="nsKind">NOTE</span>
             <span class="w" id="nsFrom"></span><span class="cv">▾</span>
           </button>
           <div class="tools">
@@ -450,7 +437,6 @@ body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--acc
   <div class="top"><span class="cnt" id="noteCount"></span><span class="clr" id="nClr">clear</span></div>
   <div class="line"><input id="nAsk" placeholder="Ask across these notes…"><button class="send" id="nGo">Ask ↩</button></div>
 </div>
-<div class="droppop" id="dropPop"></div>
 <div class="pop" id="filterPop">
   <input id="fq" placeholder="Type to filter, or find a tag…">
   <div class="lab">TAGS</div><div id="fTags"></div>
@@ -632,8 +618,8 @@ function layout(){
   $('notesPane').style.display=showNotes?'':'none';
   $('refsPane').style.display=showRefs?'':'none';
   $('tNotes').classList.toggle('on',showNotes); $('tRefs').classList.toggle('on',showRefs);
-  if(showNotes){const b=$('tNotes').querySelector('.badge');if(b)b.remove();$('tNotes').classList.remove('fresh');
-    requestAnimationFrame(()=>{fit($('cText'));$('noteList').querySelectorAll('textarea').forEach(fit)})}
+  if(showNotes) requestAnimationFrame(()=>{fit($('cText'));
+    $('noteList').querySelectorAll('textarea').forEach(fit)});
 }
 $('tNotes').addEventListener('click',()=>{showNotes=!showNotes;layout()});
 $('tRefs').addEventListener('click',()=>{showRefs=!showRefs;layout()});
@@ -741,8 +727,8 @@ function showWhy(i,el,side){
     /* the explanation is the paper's own words, so it cannot be wrong about itself */
     '<div class="why"><span class="k">WHY THIS PAPER</span><q>'+esc(p.passage)+'</q>'+
     '<span class="tagline">the closest of '+p.q+' matching lines · found by “'+esc(SUBQ[p.sub].s)+'”</span></div>'+
-    '<div class="rowacts"><button class="mini" id="whyAsk">💬 Ask this paper</button>'+
-    '<button class="mini" id="whyKeep">🗒 Keep it</button></div>'+
+    '<div class="rowacts"><button class="mini" id="whyAsk">💬 Ask</button>'+
+    '<button class="mini" id="whyKeep">＋ Add to note</button></div>'+
     '<div class="miss"><button class="open" id="missBtn">not what you needed?</button>'+
     '<div class="goals" id="goals"></div><div class="sug" id="sug"></div></div>';
   $('whyAsk').addEventListener('click',()=>{hideWhy(true);attach(1,[i],P[i].n)});
@@ -865,9 +851,7 @@ function dropSources(idxs,targetId,atIndex){
     c.srcs.push(...added); render();
     const el=$('noteList').querySelector('[data-id="'+targetId+'"]');
     if(el){el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1000)}
-    const m=added.length?added.length+(added.length===1?' source':' sources')+' stacked onto this card'
-                        :'already on this card';
-    if(showNotes) toast(m); else dropPop(m,[targetId]);
+    toast(added.length?'Added to this card':'Already on this card');
     return;
   }
   /* a drop lands where you dropped it; only a drop with no position — onto the
@@ -878,28 +862,7 @@ function dropSources(idxs,targetId,atIndex){
   render();
   made.forEach(id=>{const el=$('noteList').querySelector('[data-id="'+id+'"]');
     if(el){el.classList.add('land');setTimeout(()=>el.classList.remove('land'),420)}});
-  /* the confirmation exists only for drops you cannot see land */
-  const msg=made.length+(made.length===1?' card added':' cards added — one per source');
-  if(showNotes) toast(msg); else dropPop(msg,made);
-}
-/* the popup is the whole confirmation: it does not steal focus and it does not
-   open the panel, because a drag is not a request to start writing */
-let popT=null;
-function dropPop(msg,ids){
-  const el=$('dropPop');
-  el.innerHTML='<span class="ok">✓</span><span class="msg"></span>'+
-    '<button class="add">＋ add a note</button><button class="undo">undo</button>';
-  el.querySelector('.msg').textContent=msg;
-  el.querySelector('.add').addEventListener('click',()=>{
-    showNotes=true; layout(); el.classList.remove('on');
-    const t=$('noteList').querySelector('[data-id="'+ids[0]+'"] textarea');
-    if(t){t.scrollIntoView({block:'nearest'});t.focus()}});
-  el.querySelector('.undo').addEventListener('click',()=>{
-    CARDS=CARDS.filter(c=>!ids.includes(c.id)); render(); el.classList.remove('on'); toast('Undone')});
-  /* bottom-centre, where this prototype already puts confirmations — anchoring it
-     to the Notes button covered the note's own header, which is what you just changed */
-  el.classList.add('on');
-  clearTimeout(popT); popT=setTimeout(()=>el.classList.remove('on'),5000);
+  toast(made.length===1?'Added to note':made.length+' added to note, one card each');
 }
 function cardUnder(y){
   const els=[...$('noteList').querySelectorAll('.card')];
@@ -1292,7 +1255,7 @@ $('nAsk').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();
 
 function syncSwitch(){
   const n=NOTES.find(x=>x.id===activeNote);
-  $('nsKind').textContent=CARDS.length?'NOTE':'NEW NOTE';
+  $('nsKind').textContent='NOTE';
   $('nsFrom').textContent='from '+n.thread+(CARDS.length?' · '+CARDS.length+
     (CARDS.length===1?' card':' cards'):'');
 }
