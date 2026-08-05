@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Z · The thread notices its own seam</title>
+<style>
+/* CDL tokens, copied from option-24-app.html */
+:root{
+--accent:#068ef1;--accent-emph:#006fce;--accent-muted:#dfeeff;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
+--bg:#fff;--mist:#fafafa;--faint:#f4f4f5;--subtle:#e4e4e7;
+--fg:#18181b;--muted:#71717b;--bd:#e4e4e7;--bd-emph:#d4d4d8;
+--pos:#148d74;--pos-bg:#eefaf6;--warn:#a65f00;--paper:#fffcf0;--paper-bd:#ece0bd;
+--r-xs:.25rem;--r-sm:.5rem;--r-md:.75rem;--r-lg:1rem;
+--s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;--s-3xl:2.5rem;
+--t-2xs:.69rem;--t-xs:.81rem;--t-sm:.94rem;--t-base:1rem;--t-lg:1.13rem;--h-sm:1.38rem;--h-md:1.6rem;
+--sans:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+--mono:"Reddit Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(--t-base);-webkit-font-smoothing:antialiased}
+.proto{background:var(--fg);color:#fff;padding:var(--s-xs) var(--s-md);display:flex;gap:var(--s-md);align-items:baseline;font-size:var(--t-xs)}
+.proto b{font-size:var(--t-sm);white-space:nowrap}.proto span{color:#a1a1aa}
+.app{display:grid;grid-template-columns:3.25rem 1fr;height:calc(100vh - 33px);overflow:hidden}
+.app>*{min-height:0}
+.rail{border-right:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;gap:var(--s-xs);padding:var(--s-sm) 0;background:var(--mist)}
+.rail button{width:2.1rem;height:2.1rem;border-radius:var(--r-sm);border:0;background:transparent;cursor:pointer;font-size:var(--t-base);line-height:1;color:var(--muted)}
+.rail button:hover{background:var(--faint);color:var(--fg)}
+.rail .sep{width:1.5rem;height:1px;background:var(--bd);margin:var(--s-2xs) 0}
+.stage{position:relative;min-height:0;overflow:hidden}
+.screen{position:absolute;inset:0;display:none}
+.screen.on{display:grid}
+#threadScreen{grid-template-columns:1fr 22rem}
+#threadScreen>*{min-height:0}
+
+.mid{display:flex;flex-direction:column;min-height:0}
+.thread-hd{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-xs) var(--s-md);border-bottom:1px solid var(--bd);background:var(--bg)}
+.thread-hd .t{font-size:var(--t-sm);font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  display:flex;gap:var(--s-2xs);align-items:baseline}
+.thread-hd .t i{font-style:normal;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.tgl{font-family:inherit;font-size:var(--t-xs);border:1px solid var(--bd);background:var(--bg);color:var(--muted);
+  border-radius:var(--r-sm);padding:var(--s-2xs) var(--s-sm);display:flex;gap:var(--s-2xs);align-items:center;cursor:pointer;white-space:nowrap}
+.tgl:hover{border-color:var(--bd-emph);color:var(--fg)}
+.tgl.on{background:var(--accent-subtle);border-color:var(--accent-bd);color:var(--accent-emph)}
+.tgl .n{font-family:var(--mono);font-size:var(--t-2xs)}
+
+/* the nudge — quiet, dismissible, and it says what it is */
+#nudge{flex:none;display:none;padding:var(--s-xs) var(--s-2xl);border-bottom:1px solid var(--accent-bd);
+  background:var(--accent-subtle);align-items:baseline;gap:var(--s-xs);flex-wrap:wrap}
+#nudge.on{display:flex}
+#nudge .txt{font-size:var(--t-xs);color:var(--fg);line-height:1.5;flex:1;min-width:16rem}
+#nudge .txt b{font-weight:500}
+#nudge .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);white-space:nowrap}
+.linkbtn{font-family:var(--mono);font-size:var(--t-2xs);border:0;background:none;color:var(--accent-emph);cursor:pointer;white-space:nowrap;padding:0}
+.linkbtn:hover{text-decoration:underline}
+.linkbtn.quiet{color:var(--muted)}
+#dismissed{flex:none;display:none;padding:var(--s-2xs) var(--s-2xl);border-bottom:1px solid var(--bd);
+  background:var(--mist);font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);gap:var(--s-xs);align-items:baseline}
+#dismissed.on{display:flex}
+
+/* the split banner a half-thread carries — neither half may be an orphan */
+.fromsplit{flex:none;display:none;padding:var(--s-xs) var(--s-2xl);border-bottom:1px solid var(--accent-bd);
+  background:var(--accent-subtle)}
+.fromsplit.on{display:block}
+.fromsplit .l{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);display:flex;gap:var(--s-xs);align-items:baseline;flex-wrap:wrap}
+.fromsplit .l b{font-weight:500}
+
+.thread{flex:1;overflow-y:auto;padding:var(--s-xl) var(--s-2xl)}
+.q{background:var(--accent-subtle);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);font-size:var(--t-sm);max-width:26rem;margin-left:auto}
+.funnel{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin:var(--s-lg) 0 var(--s-sm)}
+.funnel.derived{color:var(--bd-emph)}
+.aTitle{font-size:var(--t-lg);margin-bottom:var(--s-sm);letter-spacing:-.01em;font-weight:600}
+.turn{margin-bottom:var(--s-2xl);position:relative}
+.ans p{font-size:var(--t-sm);line-height:1.7;margin-bottom:var(--s-md);max-width:40rem}
+.cite{font-family:var(--mono);font-size:var(--t-2xs);background:var(--faint);border-radius:var(--r-xs);padding:1px 5px}
+.tn{font-family:var(--mono);font-size:var(--t-2xs);color:var(--bd-emph);margin-top:calc(var(--s-md) * -1 + 2px)}
+.tn.root{color:var(--accent-emph)}
+.seamline{border-top:2px dashed var(--accent);margin:var(--s-2xl) 0;position:relative;max-width:40rem}
+.seamline span{position:absolute;top:-.6rem;left:0;background:var(--accent);color:#fff;font-family:var(--mono);
+  font-size:var(--t-2xs);border-radius:625rem;padding:0 var(--s-xs)}
+
+.ask{border-top:1px solid var(--bd);padding:var(--s-sm) var(--s-2xl);background:var(--mist);flex:none}
+.ask .box{background:var(--bg);border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-xs) var(--s-sm);max-width:40rem;display:flex;gap:var(--s-xs);align-items:center}
+.ask input{flex:1;border:0;outline:0;font-family:inherit;font-size:var(--t-sm);background:transparent}
+.send{font-family:inherit;font-size:var(--t-2xs);border:0;background:var(--accent);color:#fff;border-radius:var(--r-sm);padding:6px var(--s-sm);cursor:pointer}
+.send:hover{background:var(--accent-emph)}
+.send:disabled{opacity:.4;cursor:default}
+.hintline{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs);max-width:40rem;line-height:1.6}
+
+/* note panel */
+#notesPane{border-left:1px solid var(--paper-bd);background:var(--paper);display:flex;flex-direction:column;min-height:0}
+.pane-hd{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-sm) var(--s-md);border-bottom:1px solid var(--paper-bd);flex:none}
+.pane-hd b{font-size:var(--t-sm)}
+.pane-hd span{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.pane-body{flex:1;overflow-y:auto;min-height:0;padding:var(--s-xs) var(--s-sm) var(--s-2xl)}
+.prov{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);padding:var(--s-xs) var(--s-sm) 0;line-height:1.5}
+.prov b{color:var(--fg);font-weight:500}
+.card{background:#fff;border:1px solid var(--paper-bd);border-radius:var(--r-md);margin-bottom:var(--s-sm);
+  box-shadow:0 1px 2px #0000000a;padding:var(--s-xs) var(--s-sm)}
+.card .tx{font-size:var(--t-xs);line-height:1.55}
+.pins{display:flex;flex-direction:column;gap:2px;margin-top:var(--s-xs)}
+.pin{display:flex;gap:var(--s-2xs);align-items:baseline;font-size:var(--t-2xs);line-height:1.35;background:var(--faint);border-radius:var(--r-xs);padding:2px var(--s-2xs)}
+.pin b{font-weight:500;white-space:nowrap;flex:none}
+.pin span{color:var(--muted);font-family:var(--mono);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.foot{display:flex;gap:var(--s-2xs);margin-top:var(--s-xs);flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:var(--t-2xs);border:1px solid var(--bd);border-radius:625rem;padding:0 var(--s-xs);color:var(--muted);background:#fff}
+
+/* ── the split review ──────────────────────────────────────────────────── */
+#review{position:fixed;inset:0;background:#18181bb8;z-index:70;display:none;padding:var(--s-lg)}
+#review.on{display:flex;align-items:center;justify-content:center}
+.rev{background:#fff;border-radius:var(--r-lg);width:100%;max-width:66rem;max-height:100%;display:flex;flex-direction:column;
+  box-shadow:0 24px 60px #00000040;overflow:hidden}
+.rev-hd{padding:var(--s-md) var(--s-xl) var(--s-sm);border-bottom:1px solid var(--bd);flex:none}
+.rev-hd h2{font-size:var(--t-lg);letter-spacing:-.01em}
+.rev-hd .sub{font-size:var(--t-xs);color:var(--muted);line-height:1.6;margin-top:var(--s-2xs);max-width:52rem}
+.rev-hd .sub b{color:var(--warn);font-weight:500}
+.rev-body{flex:1;overflow-y:auto;min-height:0;display:grid;grid-template-columns:19rem minmax(0,1fr)}
+.rev-body>*{min-height:0;min-width:0}
+.turnlist{border-right:1px solid var(--bd);padding:var(--s-sm);background:var(--mist)}
+.trow{font-size:var(--t-2xs);line-height:1.45;padding:var(--s-2xs) var(--s-xs);border-radius:var(--r-xs);display:flex;gap:var(--s-2xs)}
+.trow i{font-style:normal;font-family:var(--mono);color:var(--bd-emph);flex:none}
+.trow.a{background:var(--accent-subtle)}
+.trow.b{background:var(--pos-bg)}
+.trow.root{background:var(--faint);border:1px dashed var(--bd-emph)}
+.trow .rt{font-family:var(--mono);color:var(--muted);flex:none;margin-left:auto}
+.cand{display:flex;gap:var(--s-2xs);align-items:center;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);
+  cursor:pointer;padding:1px var(--s-xs);border-radius:625rem;margin:1px 0}
+.cand:hover{background:var(--faint);color:var(--fg)}
+.cand .bar{display:inline-block;letter-spacing:-1px;color:var(--bd-emph)}
+.cand.on{background:var(--accent);color:#fff}
+.cand.on .bar{color:#fff}
+.cand.best .bar{color:var(--accent)}
+.cand.on .best-t,.cand.best .best-t{opacity:1}
+.cand .best-t{opacity:0;white-space:nowrap}
+.rev-main{padding:var(--s-md) var(--s-xl)}
+.sides{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s-md);margin-bottom:var(--s-lg)}
+.side{border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);min-width:0}
+.side.a{border-color:var(--accent-bd);background:var(--accent-subtle)}
+.side.b{border-color:#bfe6da;background:var(--pos-bg)}
+.side .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);letter-spacing:.06em}
+.side input{width:100%;border:1px solid var(--bd);border-radius:var(--r-sm);background:#fff;outline:0;
+  font-family:inherit;font-size:var(--t-sm);font-weight:500;padding:var(--s-2xs) var(--s-xs);margin:var(--s-2xs) 0}
+.side .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);line-height:1.6}
+.side .terms{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);margin-top:var(--s-2xs)}
+.side.b .terms{color:var(--pos)}
+.warnbox{border:1px solid var(--paper-bd);background:var(--paper);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);
+  font-size:var(--t-xs);line-height:1.6;color:var(--fg);margin-bottom:var(--s-md)}
+.warnbox .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--warn);letter-spacing:.06em;display:block;margin-bottom:2px}
+.warnbox b{font-weight:500}
+h4.sec{font-size:var(--t-sm);margin-bottom:var(--s-2xs)}
+p.secsub{font-size:var(--t-xs);color:var(--muted);line-height:1.6;margin-bottom:var(--s-sm)}
+.ncards{display:flex;flex-direction:column;gap:var(--s-2xs);margin-bottom:var(--s-md)}
+.ncard{border:1px solid var(--bd);border-radius:var(--r-sm);padding:var(--s-2xs) var(--s-xs);display:flex;gap:var(--s-xs);align-items:baseline;font-size:var(--t-2xs);line-height:1.5}
+.ncard .tx{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ncard .lb{font-family:var(--mono);flex:none;border-radius:625rem;padding:0 var(--s-xs)}
+.ncard.a{border-color:var(--accent-bd)}.ncard.a .lb{background:var(--accent-subtle);color:var(--accent-emph)}
+.ncard.b{border-color:#bfe6da}.ncard.b .lb{background:var(--pos-bg);color:var(--pos)}
+.ncard.amb{border-color:var(--paper-bd);background:var(--paper)}
+.ncard.amb .lb{background:var(--paper);color:var(--warn);border:1px solid var(--paper-bd)}
+.treat{border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);margin-bottom:var(--s-xs);cursor:pointer;display:flex;gap:var(--s-sm)}
+.treat:hover{border-color:var(--accent-bd)}
+.treat.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);background:var(--accent-subtle)}
+.treat .dot{flex:none;width:.85rem;height:.85rem;border-radius:625rem;border:1px solid var(--bd-emph);margin-top:.2rem;background:#fff}
+.treat.on .dot{background:var(--accent);border-color:var(--accent);box-shadow:inset 0 0 0 2px #fff}
+.treat .t{font-size:var(--t-sm);font-weight:500}
+.treat .rec{font-family:var(--mono);font-size:var(--t-2xs);color:var(--pos);background:var(--pos-bg);border-radius:625rem;padding:0 var(--s-xs);margin-left:var(--s-2xs)}
+.treat .d{font-size:var(--t-xs);color:var(--muted);line-height:1.55;margin-top:2px}
+.treat .cost{font-family:var(--mono);font-size:var(--t-2xs);color:var(--warn);margin-top:var(--s-2xs);display:block}
+.rev-ft{flex:none;border-top:1px solid var(--bd);padding:var(--s-sm) var(--s-xl);display:flex;gap:var(--s-xs);align-items:center;background:var(--mist)}
+.rev-ft .sp{flex:1}
+.btn{font-family:inherit;font-size:var(--t-xs);border:1px solid var(--bd);background:#fff;color:var(--fg);
+  border-radius:var(--r-sm);padding:6px var(--s-md);cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--accent-bd);color:var(--accent-emph)}
+.btn.go{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.go:hover{background:var(--accent-emph);color:#fff}
+.btn.warn{border-color:var(--paper-bd);background:var(--paper);color:var(--warn)}
+
+/* ── the result ────────────────────────────────────────────────────────── */
+#after{grid-template-columns:1fr;overflow-y:auto}
+.afterin{width:100%;max-width:54rem;margin:0 auto;padding:var(--s-xl) var(--s-2xl) var(--s-3xl)}
+.crumb{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-bottom:var(--s-sm)}
+.rcoll{border:1.5px solid var(--accent);border-radius:var(--r-md);padding:var(--s-md) var(--s-lg);background:var(--accent-subtle);margin-bottom:var(--s-md)}
+.rcoll .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);letter-spacing:.06em}
+.rcoll h2{font-size:var(--t-lg);letter-spacing:-.01em;margin:2px 0}
+.rcoll .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.rcoll .why{font-size:var(--t-xs);color:var(--fg);line-height:1.6;margin-top:var(--s-xs);max-width:42rem}
+.rthread,.rnote{border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);margin-bottom:var(--s-xs);background:#fff}
+.rthread .k,.rnote .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);letter-spacing:.06em}
+.rthread h3,.rnote h3{font-size:var(--t-sm);font-weight:500;margin-top:2px;display:flex;gap:var(--s-2xs);align-items:baseline}
+.rthread .m,.rnote .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs);line-height:1.6}
+.rthread .back,.rnote .back{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);margin-top:var(--s-xs);
+  border-top:1px dashed var(--bd);padding-top:var(--s-xs);line-height:1.7}
+.rnote{border-color:var(--paper-bd);background:var(--paper)}
+.rthread .acts{display:flex;gap:var(--s-2xs);margin-top:var(--s-xs);flex-wrap:wrap}
+.mini{font-family:inherit;font-size:var(--t-2xs);border:1px solid var(--bd);background:#fff;color:var(--fg);
+  border-radius:var(--r-sm);padding:4px var(--s-xs);cursor:pointer;white-space:nowrap}
+.mini:hover{border-color:var(--accent-bd);color:var(--accent-emph)}
+.mini.go{background:var(--accent);border-color:var(--accent);color:#fff}
+.mini.go:hover{background:var(--accent-emph);color:#fff}
+.copied{font-family:var(--mono);font-size:var(--t-2xs);color:var(--warn);background:var(--paper);
+  border:1px solid var(--paper-bd);border-radius:625rem;padding:0 var(--s-xs)}
+.toast{position:fixed;left:50%;bottom:1.25rem;transform:translate(-50%,180%);z-index:80;background:var(--fg);color:#fff;
+  border-radius:625rem;padding:var(--s-xs) var(--s-md);font-size:var(--t-xs);box-shadow:0 10px 28px #00000040;
+  transition:transform .22s cubic-bezier(.2,.9,.3,1);max-width:46rem;text-align:center;line-height:1.5}
+.toast.on{transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div class="proto"><b>Z · The thread notices its own seam</b><span>Eleven turns, one note, seven cards. The banner is derived from the questions you asked, not from the papers. Open the review: <b>move the seam</b> and everything re-derives; see which sources a split would duplicate and which note cards cannot be assigned at all. Split, then move a turn across, then undo.</span></div>
+
+<div class="app">
+  <nav class="rail">
+    <button title="New thread">＋</button><button title="Home">⌂</button>
+    <button title="My Library">🔖</button><button title="History">⟲</button>
+    <div class="sep"></div><button title="Paper search">🔍</button><button title="Citation Graph">⁂</button>
+  </nav>
+
+  <div class="stage">
+    <div class="screen on" id="threadScreen">
+      <div class="mid">
+        <div class="thread-hd"><span class="t" id="threadName"></span>
+          <button class="tgl on" id="tNotes">🗒 Note <span class="n" id="tnCount">7</span></button>
+          <button class="tgl" id="tRefs">References <span class="n">6</span></button></div>
+        <div class="fromsplit" id="fromsplit"></div>
+        <div id="nudge">
+          <span class="k">⑂ SEAM</span>
+          <span class="txt" id="nudgeTxt"></span>
+          <button class="linkbtn" id="nudgeGo">review the seam ›</button>
+          <button class="linkbtn quiet" id="nudgeNo">not a seam</button>
+        </div>
+        <div id="dismissed">
+          <span id="dismissTxt"></span><button class="linkbtn" id="reconsider">reconsider</button>
+        </div>
+        <main class="thread" id="thread"></main>
+        <div class="ask">
+          <div class="box"><input placeholder="Ask a follow-up…" id="askInput">
+            <button class="send" id="sendBtn">Search ↩</button></div>
+          <div class="hintline" id="hintline"></div>
+        </div>
+      </div>
+
+      <aside id="notesPane">
+        <div class="pane-hd"><b>🗒 Note</b><span id="nSub"></span></div>
+        <div class="prov" id="noteProv"></div>
+        <div class="pane-body" id="noteBody"></div>
+      </aside>
+    </div>
+
+    <div class="screen" id="after"><div class="afterin" id="afterIn"></div></div>
+  </div>
+</div>
+
+<div id="review"><div class="rev">
+  <div class="rev-hd">
+    <h2>Split this thread?</h2>
+    <div class="sub" id="revSub"></div>
+  </div>
+  <div class="rev-body">
+    <div class="turnlist" id="turnlist"></div>
+    <div class="rev-main">
+      <div class="sides">
+        <div class="side a"><div class="k">SIDE A</div><input id="nameA">
+          <div class="m" id="mA"></div><div class="terms" id="termsA"></div></div>
+        <div class="side b"><div class="k">SIDE B</div><input id="nameB">
+          <div class="m" id="mB"></div><div class="terms" id="termsB"></div></div>
+      </div>
+      <div class="warnbox"><span class="k">WHAT A SPLIT DOES NOT DIVIDE</span>
+        <span id="sharedLine"></span>
+        <span class="k" style="margin-top:var(--s-sm)">AND WHAT IT SILENTLY REWRITES</span>
+        <span id="recurLine"></span></div>
+      <h4 class="sec">And the note</h4>
+      <p class="secsub">A note is thread-scoped. This one has seven cards. Cards are assigned by the
+        sources they cite — which works until a card cites both sides, only shared sources, or none.</p>
+      <div class="ncards" id="ncards"></div>
+      <div id="treats"></div>
+    </div>
+  </div>
+  <div class="rev-ft">
+    <button class="btn warn" id="notSeam">Not a seam</button>
+    <span class="sp"></span>
+    <button class="btn" id="revCancel">Cancel</button>
+    <button class="btn go" id="doSplit">Split</button>
+  </div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── the six papers captured from the real CRISPR off-target thread ───────── */
+const P=[
+ {n:"Wienert 2022",t:"CRISPR nuclease off-target activity and mitigation strategies",m:"2022 · 46 cites · Frontiers in Genome Editing",
+  k:["mitigat","guide","fidelity","off-target","nuclease","strateg","overview","open question"]},
+ {n:"Höijer 2021",t:"CRISPR-Cas9 induces large structural variants at on- and off-target sites",m:"2021 · 149 cites · Nature Communications",
+  k:["long-read","structural","variant","deletion","large","detect","assay","indel","sequenc"]},
+ {n:"Cancellieri 2022",t:"Human genetic diversity alters off-target outcomes of therapeutic gene editing",m:"2022 · 98 cites · Nature Genetics",
+  k:["diversity","population","genetic","variation","individual","ancestry","reference genome","risk"]},
+ {n:"Kalter 2025",t:"Off-target effects in CRISPR-Cas genome editing for human therapeutics",m:"2025 · 56 cites · Molecular Therapy Nucleic Acids",
+  k:["detect","therapeut","standard","method","survey","clinical","human","off-target"]},
+ {n:"Angelini Stewart 2025",t:"Measurement and clinical interpretation of CRISPR off-targets",m:"2025 · 6 cites · Nature Genetics",
+  k:["clinical","monitor","interpret","measure","patient","follow-up","after","regulat"]},
+ {n:"Huang 2022",t:"In vivo delivery of CRISPR-Cas9 genome editing components",m:"2022 · 39 cites · Biomaterials",
+  k:["deliver","vivo","lnp","nanoparticle","lipid","viral","aav","tropism","liver","vector"]}
+];
+
+const REAL={q:"What are the open questions in CRISPR off-target effects for in vivo therapies?",
+  title:"Open Questions in CRISPR Off-Target Effects for In Vivo Therapies",
+  funnel:"32.8M retrieved · 100 eligible · 20 included",
+  refs:[{p:0,rank:1},{p:1,rank:2},{p:3,rank:3},{p:2,rank:4},{p:4,rank:9},{p:5,rank:12}],
+  cites:[0,3,1,2,4,5],
+  paras:["Several unresolved questions persist across detection, biological variability, structural variants, and clinical monitoring [[0]] [[3]].",
+    "Large-scale aberrations remain far harder to detect than small indels using current workflows [[1]].",
+    "Human genetic diversity is an under-explored confound [[2]].",
+    "There is no consensus on post-delivery monitoring [[4]].",
+    "Delivery remains the rate-limiting step for in vivo work [[5]]."]};
+
+const SEED=[
+ {q:"How do long-read methods detect structural variants that short-read assays miss?",
+  title:"Long-read detection of structural variants",cites:[1,3],
+  paras:["Long-read sequencing recovers large deletions and rearrangements at on- and off-target sites that indel-focused short-read workflows systematically miss [[1]].",
+   "Surveys of therapeutic detection methods place long-read approaches outside the current standard set, which is part of why the standards disagree [[3]]."]},
+ {q:"Do detection standards agree on what counts as an off-target, and how is that measured clinically?",
+  title:"Whether detection standards agree",cites:[3,4,0],
+  paras:["They do not. Current standards disagree on what counts as detected, which makes cross-study comparison unreliable [[3]].",
+   "A framework for clinical interpretation has been proposed above the measurement layer, but it assumes the measurement is settled [[4]].",
+   "The mitigation literature treats the same disagreement as a guide-design problem rather than a measurement one [[0]]."]},
+ {q:"Which guide design changes reduce off-target activity the most, and which mitigation strategies actually work?",
+  title:"Guide design and mitigation strategies",cites:[0,3],
+  paras:["High-fidelity nuclease variants and guide redesign are the two mitigations with the most support behind them [[0]].",
+   "For therapeutic use, mitigation is judged against detection methods that themselves do not agree [[3]]."]},
+ {q:"How large are the deletions that indel-focused assays under-report, and do standard mitigation strategies address them?",
+  title:"The size of what indel assays miss",cites:[1,0],
+  paras:["Large deletions and rearrangements appear at on- and off-target sites, outside the window an indel-calling assay inspects [[1]].",
+   "Mitigations aimed at nuclease fidelity do not obviously address rearrangements, because the mechanism is different [[0]]."]},
+ {q:"Is there a single assay that catches both small indels and large rearrangements, and is it a standard method yet?",
+  title:"One assay for indels and rearrangements",cites:[1,3],
+  paras:["Nothing that came back claims to do both. Long-read sequencing covers the large events [[1]]; the therapeutic detection surveys cover the small ones and name no combined standard [[3]].",
+   "This is the weakest result in the thread — two papers, neither answering the question directly. Treat it as an open gap, not a finding."]},
+ {q:"Does human genetic diversity change the off-target risk for an individual patient?",
+  title:"Genetic diversity and individual risk",cites:[2,3,4],
+  paras:["Yes. Individual genetic variation changes the off-target landscape, so an analysis run against the reference genome under-reports risk for anyone who is not the reference [[2]].",
+   "Therapeutic detection surveys do not currently build this in [[3]].",
+   "The clinical interpretation framework treats it as a per-patient input rather than a population correction [[4]]."]},
+ {q:"What should be monitored in a patient after in vivo delivery?",
+  title:"Post-delivery monitoring",cites:[4,5],
+  paras:["There is no consensus. The clearest proposal is a framework for interpreting off-target measurements clinically, including what to monitor after delivery [[4]].",
+   "What can be monitored depends on where the editor went, and that is set by the delivery vehicle [[5]]."]},
+ {q:"How does the choice of viral vector or lipid nanoparticle constrain which tissue is edited in vivo, and what does that mean for monitoring after delivery?",
+  title:"Vector choice and tissue tropism",cites:[5,4],
+  paras:["Viral and lipid nanoparticle delivery impose different tropism constraints, so the vehicle largely decides which tissue is exposed [[5]].",
+   "That puts monitoring downstream of delivery rather than parallel to it [[4]]."]},
+ {q:"Is a reference genome analysis enough for a clinical trial population, or does ancestry change the answer?",
+  title:"Reference genome versus trial population",cites:[2,3,4],
+  paras:["Ancestry changes the answer. A reference-genome analysis under-reports off-target risk across a diverse population [[2]].",
+   "Neither the detection surveys [[3]] nor the clinical interpretation framework [[4]] currently require a population-matched analysis."]},
+ {q:"What follow-up period do regulators expect after liver-directed editing?",
+  title:"Follow-up after liver-directed editing",cites:[4,5],
+  paras:["Nothing in these six papers states a regulatory follow-up period. The closest is a framework for what to monitor, which stops short of naming a duration [[4]].",
+   "Liver-directed delivery is discussed as a tropism question rather than a follow-up one [[5]].",
+   "This is a gap in the corpus rather than a finding — worth a search outside it."]}
+];
+
+/* seven cards, deliberately including the three shapes that break a note split */
+const CARDS=[
+ {id:1,text:"Detection and delivery are the same problem seen twice: you can only monitor what the vehicle reached, and you can only detect what the assay looked for.",srcs:[1,5],tags:["gap?","ch.3"]},
+ {id:2,text:"Long-read is the only thing that sees the big events. Everything else is indel-shaped.",srcs:[1,3],tags:["ch.3","methods"]},
+ {id:3,text:"Fidelity variants and guide redesign — the two mitigations with real support behind them.",srcs:[0],tags:["ch.3"]},
+ {id:4,text:"Reference genome under-reports for anyone who is not the reference. This is the chapter's argument.",srcs:[2,4],tags:["ch.3","gap?"]},
+ {id:5,text:"Vehicle decides the tissue, tissue decides what you can even monitor. Ask Sarah whether anyone has run this on liver-directed guides.",srcs:[5,4],tags:["to ask"]},
+ {id:6,text:"Chapter 3 outline: measure → interpret → monitor.",srcs:[],tags:["ch.3"]},
+ {id:7,text:"Kalter and Angelini Stewart are the two I keep coming back to, and they disagree about where the problem actually is.",srcs:[3,4],tags:["to ask","gap?"]}
+];
+
+/* ── retrieval ───────────────────────────────────────────────────────────── */
+function score(text){
+  const q=text.toLowerCase();
+  return P.map((p,i)=>({i,s:p.k.reduce((a,k)=>a+(q.includes(k)?3:0),0)
+    +p.t.toLowerCase().split(/\W+/).filter(w=>w.length>4&&q.includes(w)).length}));
+}
+function derive(text,cites){
+  const keep=score(text).filter(x=>x.s>0||cites.includes(x.i));
+  keep.sort((a,b)=>b.s-a.s||a.i-b.i);
+  return keep.map((x,k)=>({p:x.i,rank:k+1}));
+}
+function mkTurn(s){
+  const refs=derive(s.q,s.cites);
+  return {q:s.q,title:s.title,cites:s.cites.slice(),refs,
+    funnel:'keyword-matched over 6 captured papers · '+refs.length+' included',derived:true,paras:s.paras.slice()};
+}
+
+/* ── seam detection, over the questions you asked ─────────────────────────
+   Two signals, both from your own thread and neither from the papers:
+     · the words in adjacent questions
+     · the papers those answers actually leaned on
+   Compared over a three-turn window either side, the way text segmentation
+   does it. Low overlap = a candidate seam. This is a guess and the interface
+   has to keep saying so, because the cost of a wrong guess is paid by the
+   researcher, not by the detector. */
+const STOP=new Set(("what does that which there both most them this from with have been into than then they will "+
+ "your when where after able also more over such very each about their would could should than only just "+
+ "much many some other where while").split(/\s+/));
+const norm=w=>(w.length>4&&w.endsWith('s')&&!w.endsWith('ss'))?w.slice(0,-1):w;
+function terms(text){
+  const out=new Map();
+  (text.toLowerCase().match(/[a-z]+/g)||[]).forEach(w=>{
+    if(w.length<4||STOP.has(w))return;
+    const k=norm(w);
+    const prev=out.get(k);
+    if(!prev||w.length>prev.length) out.set(k,w);
+  });
+  return out;
+}
+/* The corpus is the stemmer. A label has to be a word about the subject, so a
+   term only counts if it matches the vocabulary of the six papers — and the
+   vocabulary entry it matches is also what groups "monitored" with "monitoring"
+   and "detect" with "detection". No hand-written stem list. */
+const VOCAB=[...new Set(P.flatMap(p=>p.k.concat([p.t])).flatMap(s=>s.toLowerCase().match(/[a-z]+/g)||[]).filter(w=>w.length>=4))]
+  .sort((a,b)=>a.length-b.length);
+const canon=t=>VOCAB.find(v=>t.startsWith(v)||v.startsWith(t))||null;
+const jac=(a,b)=>{const A=new Set(a),B=new Set(b);if(!A.size&&!B.size)return 1;
+  let i=0;A.forEach(x=>{if(B.has(x))i++});return i/(A.size+B.size-i)};
+
+const W=3;
+function window_(turns,lo,hi){return turns.slice(Math.max(0,lo),Math.min(turns.length,hi))}
+function boundaryScore(turns,k){
+  const before=window_(turns,k-W,k), after=window_(turns,k,k+W);
+  const tb=before.flatMap(t=>[...terms(t.q).keys()]), ta=after.flatMap(t=>[...terms(t.q).keys()]);
+  const sb=before.flatMap(t=>t.cites), sa=after.flatMap(t=>t.cites);
+  return 0.5*jac(tb,ta)+0.5*jac(sb,sa);
+}
+function candidates(turns){
+  const out=[];
+  for(let k=2;k<=turns.length-2;k++) out.push({k,score:boundaryScore(turns,k)});
+  out.sort((a,b)=>a.score-b.score);
+  return out;
+}
+/* the root turn is the question both sides descend from, so it is not on
+   either side of the seam — it is copied into both. A split does not partition. */
+function sidesFor(turns,k){
+  const A=[],B=[];
+  for(let i=1;i<k;i++)A.push(i);
+  for(let i=k;i<turns.length;i++)B.push(i);
+  return {A,B,root:0};
+}
+function citedOf(turns,idxs){return [...new Set(idxs.flatMap(i=>turns[i].cites))]}
+function canonSet(turns,idxs){
+  const s=new Set();
+  idxs.forEach(i=>terms(turns[i].q).forEach((_,k)=>{const c=canon(k);if(c)s.add(c)}));
+  return s;
+}
+function labelFor(turns,mine,theirs){
+  const count=new Map(), surface=new Map();
+  mine.forEach(i=>terms(turns[i].q).forEach((s,k)=>{
+    const c=canon(k); if(!c)return;
+    count.set(c,(count.get(c)||0)+1);
+    if(!surface.has(c)||s.length>surface.get(c).length) surface.set(c,s);
+  }));
+  const other=canonSet(turns,theirs);
+  /* most used on this side, least used on the other, longest surface form wins
+     the tie — the longer word is the more specific one */
+  const ranked=[...count.entries()].filter(([k])=>!other.has(k))
+    .sort((a,b)=>b[1]-a[1]||surface.get(b[0]).length-surface.get(a[0]).length);
+  const top=ranked.slice(0,3).map(([k])=>surface.get(k));
+  const name=top.length>1?cap(top[0])+' and '+top[1]:(top.length?cap(top[0]):'Untitled');
+  return {name,top};
+}
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+
+/* ── state ───────────────────────────────────────────────────────────────── */
+let THREAD=null, SPLIT=null, viewHalf=null, seamK=null, chosenK=null, treatment='coll',
+    dismissed=false, snapshot=null, cardOwner={};
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');
+  clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),4200)}
+function fillCites(h){return h.replace(/\[\[(\d+)\]\]/g,(_,i)=>'<span class="cite">'+P[+i].n.toUpperCase()+'</span>')}
+function recurrence(idxs,i){return idxs.filter(x=>THREAD.turns[x].refs.some(r=>r.p===i)).length}
+function dotsFor(rec,tot){if(!tot)return '○○○○○';
+  const f=rec?Math.max(1,Math.round(rec/tot*5)):0;return '●'.repeat(f)+'○'.repeat(5-f)}
+
+/* ── the thread ──────────────────────────────────────────────────────────── */
+function visibleTurns(){
+  if(!SPLIT||!viewHalf) return THREAD.turns.map((_,i)=>i);
+  const h=SPLIT[viewHalf];
+  return [SPLIT.root].concat(h.turns);
+}
+function renderThread(){
+  const el=$('thread'); el.innerHTML='';
+  const idxs=visibleTurns();
+  idxs.forEach((ti,pos)=>{
+    const t=THREAD.turns[ti];
+    const d=document.createElement('div'); d.className='turn'; d.dataset.turn=ti;
+    const q=document.createElement('div'); q.className='q'; q.textContent=t.q;
+    const f=document.createElement('div'); f.className='funnel'+(t.derived?' derived':''); f.textContent=t.funnel;
+    const a=document.createElement('div'); a.className='ans';
+    a.innerHTML='<div class="aTitle">'+esc(t.title)+'</div>'+t.paras.map(p=>'<p>'+fillCites(esc(p))+'</p>').join('');
+    const n=document.createElement('div'); n.className='tn'+(SPLIT&&ti===SPLIT.root?' root':'');
+    n.textContent=SPLIT&&ti===SPLIT.root
+      ? 'turn '+(ti+1)+' · the root question — this turn is in both halves'
+      : 'turn '+(ti+1);
+    d.append(q,f,a,n); el.appendChild(d);
+    /* while the seam is under review the thread itself shows where the cut falls */
+    if(!SPLIT&&seamK!=null&&chosenK!=null&&ti===chosenK-1&&pos<idxs.length-1){
+      const s=document.createElement('div'); s.className='seamline';
+      s.innerHTML='<span>proposed seam · turns 1–'+chosenK+' | '+(chosenK+1)+'–'+THREAD.turns.length+'</span>';
+      el.appendChild(s);
+    }
+  });
+  el.scrollTop=0;
+}
+function renderNote(){
+  const body=$('noteBody'); body.innerHTML='';
+  CARDS.forEach(c=>{
+    const own=cardOwner[c.id];
+    if(SPLIT&&viewHalf&&treatment!=='coll'&&own!==viewHalf&&own!=='both') return;
+    const d=document.createElement('div'); d.className='card';
+    const tx=document.createElement('div'); tx.className='tx'; tx.textContent=c.text; d.appendChild(tx);
+    if(c.srcs.length){
+      const pins=document.createElement('div'); pins.className='pins';
+      c.srcs.forEach(i=>{
+        const p=document.createElement('div'); p.className='pin';
+        p.innerHTML='<b></b><span></span>';
+        p.querySelector('b').textContent=P[i].n;
+        const idxs=visibleTurns();
+        p.querySelector('span').textContent=dotsFor(recurrence(idxs,i),idxs.length)+' '+
+          recurrence(idxs,i)+' of '+idxs.length+' searches here';
+        pins.appendChild(p);
+      });
+      d.appendChild(pins);
+    }
+    const f=document.createElement('div'); f.className='foot';
+    c.tags.forEach(t=>{const s=document.createElement('span');s.className='tag';s.textContent=t;f.appendChild(s)});
+    if(SPLIT&&own==='both'&&treatment==='split'){
+      const s=document.createElement('span'); s.className='copied'; s.textContent='copied to both halves'; f.appendChild(s);
+    }
+    d.appendChild(f); body.appendChild(d);
+  });
+  const shown=body.querySelectorAll('.card').length;
+  const srcs=new Set(); CARDS.forEach(c=>c.srcs.forEach(i=>srcs.add(i)));
+  $('nSub').textContent=shown+(shown===1?' card':' cards');
+  $('tnCount').textContent=shown;
+  $('noteProv').innerHTML=SPLIT&&treatment==='coll'
+    ? 'from the collection · <b>'+esc(THREAD.name)+'</b> — shared by both halves'
+    : 'from this thread · <b>'+esc(SPLIT&&viewHalf?SPLIT[viewHalf].name:THREAD.name)+'</b>';
+}
+function renderHead(){
+  const nm=$('threadName'); nm.innerHTML='';
+  const b=document.createElement('span');
+  b.textContent=SPLIT&&viewHalf?SPLIT[viewHalf].name:THREAD.name;
+  nm.appendChild(b);
+  if(SPLIT&&viewHalf){const i=document.createElement('i');
+    i.textContent='· '+visibleTurns().length+' turns'; nm.appendChild(i)}
+  const fs=$('fromsplit');
+  if(SPLIT&&viewHalf){
+    const other=viewHalf==='a'?'b':'a';
+    fs.classList.add('on');
+    fs.innerHTML='<div class="l"><span>⑂ split from</span><b id="toColl"></b>'+
+      '<span>· the other half is</span><b id="toOther"></b>'+
+      '<span>· turn 1 is in both</span></div>';
+    fs.querySelector('#toColl').textContent='⊞ '+THREAD.name;
+    fs.querySelector('#toOther').textContent='⑂ '+SPLIT[other].name;
+    fs.querySelector('#toColl').style.cursor='pointer';
+    fs.querySelector('#toOther').style.cursor='pointer';
+    fs.querySelector('#toColl').addEventListener('click',()=>{viewHalf=null;showAfter()});
+    fs.querySelector('#toOther').addEventListener('click',()=>{viewHalf=other;renderAll()});
+  } else fs.classList.remove('on');
+}
+function renderNudge(){
+  const n=$('nudge'), d=$('dismissed');
+  if(SPLIT||dismissed||seamK==null){n.classList.remove('on');
+    d.classList.toggle('on',dismissed&&!SPLIT); return}
+  const {A,B}=sidesFor(THREAD.turns,seamK);
+  const la=labelFor(THREAD.turns,A,B), lb=labelFor(THREAD.turns,B,A);
+  n.classList.add('on'); d.classList.remove('on');
+  $('nudgeTxt').innerHTML='This thread changed subject once. <b>turns 1–'+seamK+'</b> are about '+
+    esc(la.top.slice(0,2).join(' and '))+'; <b>turns '+(seamK+1)+'–'+THREAD.turns.length+'</b> are about '+
+    esc(lb.top.slice(0,2).join(' and '))+'.';
+}
+function renderAll(){renderHead();renderThread();renderNote();renderNudge();
+  $('hintline').textContent=SPLIT
+    ? 'You are inside one half. Its header names the collection it belongs to and the other half — neither can be reached without seeing the other.'
+    : 'Eleven turns. The banner is derived from your own questions, not from the papers. Nothing has been split yet — and asking another turn recomputes the seam.';
+}
+
+/* ── the review ──────────────────────────────────────────────────────────── */
+function openReview(){
+  chosenK=seamK; treatment='coll';
+  drawReview(); $('review').classList.add('on');
+}
+function drawReview(){
+  const turns=THREAD.turns, cands=candidates(turns), best=cands[0];
+  const {A,B,root}=sidesFor(turns,chosenK);
+  const la=labelFor(turns,A,B), lb=labelFor(turns,B,A);
+  $('revSub').innerHTML='Derived from the eleven questions you asked — the words in them and the papers each '+
+    'answer leaned on. <b>Nothing about the papers says these are two subjects.</b> Move the seam and everything '+
+    'below re-derives; the strongest candidate is only the strongest of '+cands.length+'.';
+
+  /* turn list with every candidate boundary visible, not just the winner */
+  const tl=$('turnlist'); tl.innerHTML='';
+  turns.forEach((t,i)=>{
+    const cand=cands.find(c=>c.k===i);
+    if(cand){
+      const c=document.createElement('div');
+      c.className='cand'+(cand.k===chosenK?' on':'')+(cand.k===best.k?' best':'');
+      c.dataset.k=cand.k;
+      const st=1-cand.score, filled=Math.max(1,Math.round(st*7));
+      c.innerHTML='<span class="bar">'+'▰'.repeat(filled)+'▱'.repeat(7-filled)+'</span>'+
+        '<span>'+st.toFixed(2)+'</span><span class="best-t">'+
+        (cand.k===best.k?'strongest':(cand.k===chosenK?'chosen':''))+'</span>';
+      c.addEventListener('click',()=>{chosenK=cand.k;drawReview();renderThread()});
+      tl.appendChild(c);
+    }
+    const r=document.createElement('div');
+    r.className='trow '+(i===root?'root':(A.includes(i)?'a':'b'));
+    r.innerHTML='<i>'+(i+1)+'</i><span></span><span class="rt"></span>';
+    r.querySelector('span').textContent=t.q.length>62?t.q.slice(0,62)+'…':t.q;
+    r.querySelector('.rt').textContent=i===root?'both':(A.includes(i)?'A':'B');
+    tl.appendChild(r);
+  });
+
+  $('nameA').value=la.name; $('nameB').value=lb.name;
+  const ca=citedOf(turns,A), cb=citedOf(turns,B), shared=ca.filter(i=>cb.includes(i));
+  $('mA').textContent=(A.length+1)+' turns (turn 1 copied) · '+ca.length+' sources of its own';
+  $('mB').textContent=(B.length+1)+' turns (turn 1 copied) · '+cb.length+' sources of its own';
+  $('termsA').textContent='derived from: '+la.top.join(' · ');
+  $('termsB').textContent='derived from: '+lb.top.join(' · ');
+
+  $('sharedLine').innerHTML='Turn 1 asked the question both halves descend from, so it belongs to neither and is '+
+    '<b>copied into both</b> — eleven turns become twelve. '+
+    (shared.length
+      ? '<b>'+shared.map(i=>esc(P[i].n)).join(' and ')+'</b> '+(shared.length===1?'is':'are')+
+        ' cited on both sides. A split does not divide '+(shared.length===1?'it':'them')+'; it duplicates '+
+        (shared.length===1?'it':'them')+', and each copy keeps only the ranks it had on its own side.'
+      : 'No source is cited on both sides at this seam — which is itself unusual enough to be worth doubting.');
+
+  /* recurrence is "how many of THIS thread's searches returned it". Cut the
+     thread and the denominator changes, so every dot in the note moves. Nobody
+     asked for that, which is exactly why it has to be said out loud. */
+  const whole=turns.map((_,i)=>i), la_=[root].concat(A), lb_=[root].concat(B);
+  const rec=(idxs,i)=>idxs.filter(x=>turns[x].refs.some(r=>r.p===i)).length;
+  const movers=[...new Set(whole.flatMap(i=>turns[i].refs.map(r=>r.p)))]
+    .map(i=>({i,w:rec(whole,i)/whole.length,a:rec(la_,i)/la_.length,b:rec(lb_,i)/lb_.length,
+      ra:rec(la_,i),rb:rec(lb_,i),rw:rec(whole,i)}))
+    .sort((x,y)=>Math.max(Math.abs(y.a-y.w),Math.abs(y.b-y.w))-Math.max(Math.abs(x.a-x.w),Math.abs(x.b-x.w)));
+  const m=movers[0];
+  $('recurLine').innerHTML='Recurrence is how many of <b>this thread\'s</b> searches returned a paper, so cutting '+
+    'the thread changes the denominator and every dot in the note is recomputed. '+
+    '<b>'+esc(P[m.i].n)+'</b> goes from '+m.rw+' of '+whole.length+' to '+m.ra+' of '+la_.length+
+    ' on one side and '+m.rb+' of '+lb_.length+' on the other. The paper has not changed; what your thread '+
+    'says about it has.';
+
+  /* the note */
+  const aOnly=ca.filter(i=>!cb.includes(i)), bOnly=cb.filter(i=>!ca.includes(i));
+  const nc=$('ncards'); nc.innerHTML=''; cardOwner={};
+  let ambN=0;
+  CARDS.forEach(c=>{
+    const hasA=c.srcs.some(i=>aOnly.includes(i)), hasB=c.srcs.some(i=>bOnly.includes(i));
+    let owner,label;
+    if(hasA&&!hasB){owner='a';label='→ A'}
+    else if(hasB&&!hasA){owner='b';label='→ B'}
+    else if(hasA&&hasB){owner='both';label='cites both sides'}
+    else if(c.srcs.length){owner='both';label='only shared sources'}
+    else {owner='both';label='no sources at all'}
+    cardOwner[c.id]=owner;
+    if(owner==='both')ambN++;
+    const d=document.createElement('div');
+    d.className='ncard '+(owner==='both'?'amb':owner);
+    d.innerHTML='<span class="tx"></span><span class="lb"></span>';
+    d.querySelector('.tx').textContent=c.text;
+    d.querySelector('.lb').textContent=label;
+    nc.appendChild(d);
+  });
+
+  const opts=[
+   {id:'split',t:'Split the note too',
+    d:'Cards follow the sources they cite. Each half gets its own note and carries on from there.',
+    cost:ambN+' of '+CARDS.length+' cards cannot be assigned, so they are copied into both — and two copies of a thought drift apart from the moment they exist.'},
+   {id:'keep',t:'Keep the note with side A',
+    d:'The note stays whole and stays with the half it mostly belongs to. The other half starts empty.',
+    cost:'The half that starts empty loses the reasoning that produced it, which is the same shape as the Citation Graph orphan — the work survives, the thinking does not follow it.'},
+   {id:'coll',t:'Promote the note to a collection',rec:'recommended',
+    d:'The thread becomes a collection holding both halves. The note moves up one level and both threads see all seven cards, unaltered, with their sources intact.',
+    cost:'The note is now one level away from either thread: you open it from the collection, not from the thread header. And a collection is a heavier object than a note — filing has happened whether you asked for it or not.'}
+  ];
+  const tw=$('treats'); tw.innerHTML='';
+  opts.forEach(o=>{
+    const d=document.createElement('div'); d.className='treat'+(treatment===o.id?' on':'');
+    d.id='opt'+cap(o.id);
+    d.innerHTML='<span class="dot"></span><div><div class="t"></div><div class="d"></div><span class="cost"></span></div>';
+    const t=d.querySelector('.t'); t.textContent=o.t;
+    if(o.rec){const r=document.createElement('span');r.className='rec';r.textContent=o.rec;t.appendChild(r)}
+    d.querySelector('.d').textContent=o.d;
+    d.querySelector('.cost').textContent='costs: '+o.cost;
+    d.addEventListener('click',()=>{treatment=o.id;drawReview()});
+    tw.appendChild(d);
+  });
+}
+$('nudgeGo').addEventListener('click',openReview);
+$('reconsider').addEventListener('click',()=>{dismissed=false;renderAll();openReview()});
+$('nudgeNo').addEventListener('click',()=>dismiss());
+$('notSeam').addEventListener('click',()=>{$('review').classList.remove('on');dismiss()});
+function dismiss(){
+  dismissed=true; chosenK=null; renderAll();
+  $('dismissTxt').textContent='You said turns '+seamK+'|'+(seamK+1)+' is not a seam. The thread stops proposing.';
+  toast('Dismissed. The cost of a wrong guess should be one click, and this is that click — the thread does not ask again.');
+}
+$('revCancel').addEventListener('click',()=>{$('review').classList.remove('on');chosenK=null;renderThread()});
+$('review').addEventListener('click',e=>{if(e.target===$('review')){$('review').classList.remove('on');chosenK=null;renderThread()}});
+
+/* ── doing the split ─────────────────────────────────────────────────────── */
+$('doSplit').addEventListener('click',()=>{
+  const turns=THREAD.turns, {A,B,root}=sidesFor(turns,chosenK);
+  snapshot={seamK,dismissed};
+  SPLIT={root,k:chosenK,treatment,
+    a:{name:$('nameA').value.trim()||'Side A',turns:A.slice()},
+    b:{name:$('nameB').value.trim()||'Side B',turns:B.slice()}};
+  $('review').classList.remove('on');
+  viewHalf=null; showAfter();
+  toast('Split into two threads inside one collection. Nothing was thrown away and nothing is unreachable — check either half.');
+});
+function showAfter(){
+  $('threadScreen').classList.remove('on'); $('after').classList.add('on');
+  drawAfter();
+}
+function openHalf(w){viewHalf=w;$('after').classList.remove('on');$('threadScreen').classList.add('on');renderAll()}
+function drawAfter(){
+  const turns=THREAD.turns, el=$('afterIn'); el.innerHTML='';
+  const ownedBy=w=>CARDS.filter(c=>cardOwner[c.id]===w||cardOwner[c.id]==='both');
+  const allSrcs=[...new Set([SPLIT.root].concat(SPLIT.a.turns,SPLIT.b.turns).flatMap(i=>turns[i].cites))];
+
+  const c=document.createElement('div'); c.className='rcoll';
+  c.innerHTML='<div class="k">COLLECTION · MY LIBRARY</div><h2></h2><div class="m"></div><div class="why"></div>';
+  c.querySelector('h2').textContent='⊞ '+THREAD.name;
+  c.querySelector('.m').textContent='2 threads · '+allSrcs.length+' sources · '+
+    (SPLIT.treatment==='coll'?CARDS.length+' note cards':'note split across both halves');
+  c.querySelector('.why').textContent=SPLIT.treatment==='coll'
+    ? 'The thread you split kept its name and became the container. It is the only object that can hold two threads, one note and one set of sources at once — which is why the note went up rather than sideways.'
+    : SPLIT.treatment==='split'
+      ? 'The note was split with the thread. Cards that cited both sides were copied, and the copies are now two objects that will not stay the same.'
+      : 'The note stayed with '+SPLIT.a.name+'. The other half starts with no reasoning attached to it.';
+  el.appendChild(c);
+
+  /* the note, wherever the split put it — stated, not implied */
+  const nb=document.createElement('div'); nb.className='rnote';
+  nb.innerHTML='<div class="k">NOTE</div><h3></h3><div class="m"></div><div class="back"></div>';
+  nb.querySelector('h3').textContent='🗒 From '+THREAD.name;
+  const amb=CARDS.filter(c2=>cardOwner[c2.id]==='both').length;
+  nb.querySelector('.m').textContent=SPLIT.treatment==='coll'
+    ? CARDS.length+' cards · lives on the collection · both threads see all of it'
+    : SPLIT.treatment==='split'
+      ? CARDS.length+' cards became '+(CARDS.length+amb)+' — '+amb+' were copied into both halves'
+      : CARDS.length+' cards · all of them with '+SPLIT.a.name;
+  nb.querySelector('.back').innerHTML=SPLIT.treatment==='coll'
+    ? '↰ every card still names the turn and the sources it came from · nothing was copied, nothing was dropped'
+    : SPLIT.treatment==='split'
+      ? '⚠ '+amb+' cards exist twice from this moment on, and the two copies will not stay the same'
+      : '⚠ ⑂ '+SPLIT.b.name+' has no note — the work survived the split, the thinking did not';
+  el.appendChild(nb);
+
+  [['a',SPLIT.a],['b',SPLIT.b]].forEach(([w,h])=>{
+    const other=w==='a'?SPLIT.b:SPLIT.a, otherW=w==='a'?'b':'a';
+    const list=[SPLIT.root].concat(h.turns);
+    const d=document.createElement('div'); d.className='rthread';
+    d.innerHTML='<div class="k">THREAD</div><h3></h3><div class="m"></div><div class="back"></div><div class="acts"></div>';
+    d.querySelector('h3').textContent='⑂ '+h.name;
+    d.querySelector('.m').textContent=list.length+' turns (turn '+(SPLIT.root+1)+' shared) · '+
+      citedOf(turns,list).length+' sources cited · '+
+      (SPLIT.treatment==='coll'?CARDS.length+' note cards, via the collection':ownedBy(w).length+' note cards');
+    d.querySelector('.back').innerHTML='↰ split from <b>⊞ '+esc(THREAD.name)+'</b> · the other half is <b>⑂ '+
+      esc(other.name)+'</b> · turn '+(SPLIT.root+1)+' is in both';
+    const acts=d.querySelector('.acts');
+    const open=document.createElement('button'); open.className='mini go'; open.textContent='Open ›';
+    open.addEventListener('click',()=>openHalf(w)); acts.appendChild(open);
+    /* the seam was a guess, so a turn stays movable after the fact */
+    if(h.turns.length>1){
+      const edge=w==='a'?h.turns[h.turns.length-1]:h.turns[0];
+      const mv=document.createElement('button'); mv.className='mini mv';
+      mv.textContent='← turn '+(edge+1)+' → '+other.name;
+      mv.addEventListener('click',()=>{
+        SPLIT[w].turns=SPLIT[w].turns.filter(x=>x!==edge);
+        SPLIT[otherW].turns=SPLIT[otherW].turns.concat(edge).sort((x,y)=>x-y);
+        SPLIT.k=SPLIT.a.turns.length+1;
+        drawAfter();
+        toast('Turn '+(edge+1)+' moved. The seam was a guess; moving one turn is the whole repair, and neither thread lost its link to the other.');
+      });
+      acts.appendChild(mv);
+    }
+    el.appendChild(d);
+  });
+
+  const u=document.createElement('div'); u.style.marginTop='var(--s-md)';
+  u.innerHTML='<button class="btn" id="undo">↺ Undo the split</button>';
+  el.appendChild(u);
+  $('undo').addEventListener('click',()=>{
+    SPLIT=null; viewHalf=null; seamK=snapshot.seamK; dismissed=snapshot.dismissed; chosenK=null;
+    $('after').classList.remove('on'); $('threadScreen').classList.add('on');
+    cardOwner={}; renderAll();
+    toast('Back to one thread of eleven turns, one note of seven cards. Undo has to be free or the split is not a suggestion.');
+  });
+}
+
+/* ── asking ──────────────────────────────────────────────────────────────── */
+$('sendBtn').addEventListener('click',()=>{
+  const v=$('askInput').value.trim(); if(!v)return;
+  $('askInput').value=''; $('sendBtn').disabled=true;
+  setTimeout(()=>{
+    $('sendBtn').disabled=false;
+    const refs=derive(v,[]), top=refs.slice(0,3).map(r=>r.p);
+    const paras=top.length
+      ? ['The strongest match in the captured corpus is [['+top[0]+']]'+(top[1]!=null?', with [['+top[1]+']] behind it':'')+'.']
+      : ['Nothing in the six captured papers matches that.'];
+    THREAD.turns.push({q:v,title:cap(v.replace(/\?+$/,'')),cites:top,refs,derived:true,
+      funnel:'keyword-matched over 6 captured papers · '+refs.length+' included',paras});
+    if(SPLIT){SPLIT[viewHalf||'a'].turns.push(THREAD.turns.length-1)}
+    else {const c=candidates(THREAD.turns); seamK=c.length?c[0].k:null}
+    renderAll();
+    if(!SPLIT&&!dismissed) toast('The seam is recomputed on every turn — adding one can move it.');
+  },600);
+});
+$('askInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('sendBtn').click()}});
+$('tNotes').addEventListener('click',()=>{
+  const on=$('tNotes').classList.toggle('on');
+  $('notesPane').style.display=on?'':'none';
+  $('threadScreen').style.gridTemplateColumns=on?'1fr 22rem':'1fr';
+});
+$('tRefs').addEventListener('click',()=>toast('References are unchanged from the shipped product here — this prototype is about the seam, not the panel. See option-25 for per-thread references after a branch.'));
+
+/* ── boot ────────────────────────────────────────────────────────────────── */
+function boot(){
+  THREAD={name:'CRISPR Off Target Effects',
+    turns:[{q:REAL.q,title:REAL.title,funnel:REAL.funnel,refs:REAL.refs.slice(),cites:REAL.cites.slice(),
+            paras:REAL.paras.slice()}].concat(SEED.map(mkTurn))};
+  THREAD.turns.forEach((t,i)=>t.cites.forEach(c=>{
+    if(!t.refs.some(r=>r.p===c)) console.error('turn '+(i+1)+' cites a paper it did not retrieve: '+P[c].n);
+  }));
+  /* the detector only speaks once there is enough thread to be wrong about */
+  const c=candidates(THREAD.turns);
+  seamK=THREAD.turns.length>=8&&c.length?c[0].k:null;
+  cardOwner={}; CARDS.forEach(x=>cardOwner[x.id]='both');
+  renderAll();
+}
+boot();
+</script>
+</body>
+</html>
