@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Y · Branch from a turn</title>
+<style>
+/* CDL tokens, copied from option-24-app.html */
+:root{
+--accent:#068ef1;--accent-emph:#006fce;--accent-muted:#dfeeff;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
+--bg:#fff;--mist:#fafafa;--faint:#f4f4f5;--subtle:#e4e4e7;
+--fg:#18181b;--muted:#71717b;--bd:#e4e4e7;--bd-emph:#d4d4d8;
+--pos:#148d74;--pos-bg:#eefaf6;--warn:#a65f00;--paper:#fffcf0;--paper-bd:#ece0bd;
+--r-xs:.25rem;--r-sm:.5rem;--r-md:.75rem;--r-lg:1rem;
+--s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;--s-3xl:2.5rem;
+--t-2xs:.69rem;--t-xs:.81rem;--t-sm:.94rem;--t-base:1rem;--t-lg:1.13rem;--h-sm:1.38rem;--h-md:1.6rem;
+--sans:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+--mono:"Reddit Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(--t-base);-webkit-font-smoothing:antialiased}
+.proto{background:var(--fg);color:#fff;padding:var(--s-xs) var(--s-md);display:flex;gap:var(--s-md);align-items:baseline;font-size:var(--t-xs)}
+.proto b{font-size:var(--t-sm);white-space:nowrap}.proto span{color:#a1a1aa}
+.app{display:grid;grid-template-columns:3.25rem 1fr;height:calc(100vh - 33px);overflow:hidden}
+.app>*{min-height:0}
+.rail{border-right:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;gap:var(--s-xs);padding:var(--s-sm) 0;background:var(--mist)}
+.rail button{width:2.1rem;height:2.1rem;border-radius:var(--r-sm);border:0;background:transparent;cursor:pointer;font-size:var(--t-base);line-height:1;color:var(--muted)}
+.rail button:hover{background:var(--faint);color:var(--fg)}
+.rail button.lit{color:var(--accent-emph);background:var(--accent-subtle)}
+.rail .sep{width:1.5rem;height:1px;background:var(--bd);margin:var(--s-2xs) 0}
+.stage{display:grid;min-height:0;overflow:hidden}
+.stage>*{min-height:0}
+
+.mid{display:flex;flex-direction:column;min-height:0}
+.thread-hd{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-xs) var(--s-md);border-bottom:1px solid var(--bd);background:var(--bg)}
+.crumbs{flex:1;display:flex;gap:var(--s-2xs);align-items:baseline;min-width:0;font-size:var(--t-sm)}
+.crumbs a{color:var(--muted);cursor:pointer;font-size:var(--t-xs);white-space:nowrap}
+.crumbs a:hover{color:var(--accent-emph);text-decoration:underline}
+.crumbs .sl{color:var(--bd-emph);font-family:var(--mono);font-size:var(--t-xs)}
+.crumbs .here{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tgl{font-family:inherit;font-size:var(--t-xs);border:1px solid var(--bd);background:var(--bg);color:var(--muted);
+  border-radius:var(--r-sm);padding:var(--s-2xs) var(--s-sm);display:flex;gap:var(--s-2xs);align-items:center;cursor:pointer;white-space:nowrap}
+.tgl:hover{border-color:var(--bd-emph);color:var(--fg)}
+.tgl.on{background:var(--accent-subtle);border-color:var(--accent-bd);color:var(--accent-emph)}
+.tgl .n{font-family:var(--mono);font-size:var(--t-2xs)}
+
+/* the from-bar is the anti-orphan: a thread always says where it came from */
+.frombar{flex:none;border-bottom:1px solid var(--accent-bd);background:var(--accent-subtle);
+  padding:var(--s-xs) var(--s-2xl);display:none}
+.frombar.on{display:block}
+.frombar.orphan{background:var(--paper);border-color:var(--paper-bd)}
+.frombar .l1{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);display:flex;gap:var(--s-xs);align-items:baseline;flex-wrap:wrap}
+.frombar.orphan .l1{color:var(--warn)}
+.frombar .l1 a{cursor:pointer;text-decoration:underline}
+.frombar .qt{font-size:var(--t-xs);color:var(--fg);margin-top:2px;line-height:1.5;max-width:44rem;
+  border-left:2px solid var(--accent-bd);padding-left:var(--s-xs)}
+.frombar.orphan .qt{border-color:var(--paper-bd)}
+
+.thread{flex:1;overflow-y:auto;padding:var(--s-xl) var(--s-2xl)}
+.q{background:var(--accent-subtle);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);font-size:var(--t-sm);max-width:26rem;margin-left:auto}
+.funnel{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin:var(--s-lg) 0 var(--s-sm)}
+.funnel.derived{color:var(--bd-emph)}
+.aTitle{font-size:var(--t-lg);margin-bottom:var(--s-sm);letter-spacing:-.01em;font-weight:600}
+.turn{margin-bottom:var(--s-2xl);position:relative}
+.turn:last-child{margin-bottom:var(--s-md)}
+.ans p{font-size:var(--t-sm);line-height:1.7;margin-bottom:var(--s-md);max-width:40rem}
+.cite{font-family:var(--mono);font-size:var(--t-2xs);background:var(--faint);border-radius:var(--r-xs);padding:1px 5px;cursor:default}
+.cite:hover{background:var(--accent-subtle);outline:1px solid var(--accent-bd)}
+.turnfoot{display:flex;gap:var(--s-xs);align-items:center;max-width:40rem;margin-top:calc(var(--s-md) * -1 + 2px)}
+.tn{font-family:var(--mono);font-size:var(--t-2xs);color:var(--bd-emph);white-space:nowrap}
+.brbtn{font-family:inherit;font-size:var(--t-2xs);border:1px solid var(--bd);background:var(--bg);color:var(--muted);
+  border-radius:625rem;padding:2px var(--s-xs);cursor:pointer;opacity:0;transition:opacity .12s ease;white-space:nowrap}
+.turn:hover .brbtn,.brbtn:focus{opacity:1}
+.brbtn:hover{border-color:var(--accent-bd);color:var(--accent-emph);background:var(--accent-subtle)}
+.thinking{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);display:flex;gap:var(--s-2xs);align-items:center}
+.thinking i{width:5px;height:5px;border-radius:625rem;background:var(--accent);display:inline-block;animation:pulse 1s infinite}
+.thinking i:nth-child(2){animation-delay:.16s}.thinking i:nth-child(3){animation-delay:.32s}
+@keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
+
+/* the branch composer, opened from a turn */
+.brform{border:1px solid var(--accent-bd);background:var(--accent-subtle);border-radius:var(--r-md);
+  padding:var(--s-sm) var(--s-md);max-width:40rem;margin-top:var(--s-sm)}
+.brform .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);letter-spacing:.06em}
+.brform input{width:100%;border:1px solid var(--accent-bd);border-radius:var(--r-sm);background:#fff;outline:0;
+  font-family:inherit;font-size:var(--t-sm);padding:var(--s-xs) var(--s-sm);margin:var(--s-xs) 0}
+.brform .carries{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);line-height:1.6}
+.brform .carries b{color:var(--fg);font-weight:500}
+.brform .acts{display:flex;gap:var(--s-2xs);margin-top:var(--s-xs)}
+.mini{font-family:inherit;font-size:var(--t-2xs);border:1px solid var(--bd);background:#fff;color:var(--fg);
+  border-radius:var(--r-sm);padding:5px var(--s-sm);cursor:pointer;white-space:nowrap}
+.mini:hover{border-color:var(--accent-bd);color:var(--accent-emph)}
+.mini.go{background:var(--accent);border-color:var(--accent);color:#fff}
+.mini.go:hover{background:var(--accent-emph);color:#fff}
+.mini.go:disabled{background:var(--accent-muted);border-color:var(--accent-muted);color:#fff;cursor:default}
+.mini.warn{border-color:var(--paper-bd);background:var(--paper);color:var(--warn)}
+
+/* the stub the parent keeps — this is the half of the link that the Citation Graph drops */
+.stub{display:flex;gap:var(--s-xs);align-items:baseline;max-width:40rem;margin-top:var(--s-sm);
+  border-left:2px solid var(--accent);padding:var(--s-xs) var(--s-sm);background:var(--accent-subtle);
+  border-radius:0 var(--r-sm) var(--r-sm) 0;flex-wrap:wrap}
+.stub .ic{font-family:var(--mono);color:var(--accent-emph);font-size:var(--t-xs)}
+.stub b{font-size:var(--t-xs);font-weight:500}
+.stub .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.stub a{margin-left:auto;font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);cursor:pointer;white-space:nowrap}
+.stub a:hover{text-decoration:underline}
+
+.ask{border-top:1px solid var(--bd);padding:var(--s-sm) var(--s-2xl);background:var(--mist);flex:none}
+.ask .box{background:var(--bg);border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-xs) var(--s-sm);max-width:40rem;display:flex;gap:var(--s-xs);align-items:center}
+.ask input{flex:1;border:0;outline:0;font-family:inherit;font-size:var(--t-sm);background:transparent}
+.ask input::placeholder{color:var(--muted)}
+.send{font-family:inherit;font-size:var(--t-2xs);border:0;background:var(--accent);color:#fff;border-radius:var(--r-sm);
+  padding:6px var(--s-sm);cursor:pointer;white-space:nowrap}
+.send:hover{background:var(--accent-emph)}
+.send:disabled{opacity:.4;cursor:default}
+.hintline{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs);max-width:40rem}
+
+.pane{display:flex;flex-direction:column;min-height:0;overflow:hidden;border-left:1px solid var(--bd)}
+.pane-hd{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-sm) var(--s-md);border-bottom:1px solid var(--bd);flex:none}
+.pane-hd b{font-size:var(--t-sm)}
+.pane-hd span{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.pane-hd .x{margin-left:auto;background:none;border:0;color:var(--muted);cursor:pointer;font-size:var(--t-sm);line-height:1;padding:2px var(--s-2xs)}
+.pane-hd .x:hover{color:var(--fg)}
+.pane-body{flex:1;overflow-y:auto;min-height:0;padding:var(--s-xs)}
+
+/* thread tree */
+.tnode{border-radius:var(--r-sm);padding:var(--s-xs) var(--s-xs) var(--s-xs) var(--s-xs);cursor:pointer;display:block}
+.tnode:hover{background:var(--faint)}
+.tnode.on{background:var(--accent-subtle);box-shadow:inset 0 0 0 1px var(--accent-bd)}
+.tnode .nm{font-size:var(--t-xs);font-weight:500;line-height:1.35;display:flex;gap:var(--s-2xs);align-items:baseline}
+.tnode .nm i{font-style:normal;font-family:var(--mono);color:var(--muted);flex:none}
+.tnode.on .nm i{color:var(--accent-emph)}
+.tnode .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:2px}
+.tnode.orph{background:var(--paper);box-shadow:inset 0 0 0 1px var(--paper-bd)}
+.tnode.orph .m{color:var(--warn)}
+.kids{margin-left:var(--s-sm);border-left:1px solid var(--bd);padding-left:var(--s-xs)}
+.treenote{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);line-height:1.6;padding:var(--s-xs);
+  border-top:1px dashed var(--bd);margin-top:var(--s-xs)}
+
+/* references */
+.qbar{display:flex;gap:var(--s-2xs);padding:var(--s-xs) var(--s-xs) 0;flex-wrap:wrap;flex:none}
+.qb{font-family:var(--mono);font-size:var(--t-2xs);border:1px solid var(--bd);background:#fff;color:var(--muted);
+  border-radius:625rem;padding:2px var(--s-xs);cursor:pointer;white-space:nowrap}
+.qb:hover{border-color:var(--bd-emph);color:var(--fg)}
+.qb.on{border-color:var(--accent-bd);background:var(--accent-subtle);color:var(--accent-emph)}
+.qb.carr{border-style:dashed}
+.qb.carr.on{border-style:solid}
+.src{border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-sm);margin-bottom:var(--s-xs);background:var(--bg);position:relative}
+.src h3{font-size:var(--t-xs);font-weight:500;line-height:1.35}
+.src .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs)}
+.src .p{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-xs);display:flex;gap:var(--s-2xs);align-items:center;flex-wrap:wrap}
+.src .carried{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);margin-top:var(--s-xs);display:none}
+.src.carr .carried{display:block}
+.src.carr{border-color:var(--accent-bd)}
+.dots{letter-spacing:-1px;color:var(--accent)}.dots i{color:var(--subtle);font-style:normal}
+
+/* new-thread sheet */
+.sheet{position:fixed;inset:0;background:#18181b52;z-index:70;display:none;align-items:center;justify-content:center;padding:var(--s-lg)}
+.sheet.on{display:flex}
+.card2{background:#fff;border-radius:var(--r-lg);max-width:34rem;width:100%;padding:var(--s-lg) var(--s-xl);box-shadow:0 20px 50px #00000038}
+.card2 h2{font-size:var(--t-lg);letter-spacing:-.01em;margin-bottom:var(--s-2xs)}
+.card2 .sub{font-size:var(--t-xs);color:var(--muted);line-height:1.6;margin-bottom:var(--s-md)}
+.opt{border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);margin-bottom:var(--s-xs);cursor:pointer}
+.opt:hover{border-color:var(--accent-bd);background:var(--accent-subtle)}
+.opt.bad:hover{border-color:var(--paper-bd);background:var(--paper)}
+.opt .t{font-size:var(--t-sm);font-weight:500}
+.opt .d{font-size:var(--t-xs);color:var(--muted);line-height:1.55;margin-top:2px}
+.opt .d b{color:var(--warn);font-weight:500}
+.sheet .close{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);cursor:pointer;margin-top:var(--s-sm);display:inline-block}
+.sheet .close:hover{color:var(--fg);text-decoration:underline}
+
+.toast{position:fixed;left:50%;bottom:1.25rem;transform:translate(-50%,180%);z-index:80;background:var(--fg);color:#fff;
+  border-radius:625rem;padding:var(--s-xs) var(--s-md);font-size:var(--t-xs);box-shadow:0 10px 28px #00000040;
+  transition:transform .22s cubic-bezier(.2,.9,.3,1);max-width:44rem;text-align:center}
+.toast.on{transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div class="proto"><b>Y · Branch from a turn</b><span>Eleven turns, two subjects. Hover any turn and press <b>⑂ Branch from here</b>: the new thread carries the parent turn, the sources that were in scope, and a breadcrumb — and the parent keeps a stub pointing at the child. Try <b>＋</b> in the rail to create the orphan the Citation Graph creates today, then fix it.</span></div>
+
+<div class="app">
+  <nav class="rail">
+    <button title="New thread" id="railNew">＋</button><button title="Home">⌂</button>
+    <button title="My Library">🔖</button><button title="History">⟲</button>
+    <div class="sep"></div><button title="Paper search">🔍</button><button title="Citation Graph">⁂</button>
+  </nav>
+
+  <div class="stage" id="stage">
+    <div class="mid">
+      <div class="thread-hd">
+        <span class="crumbs" id="crumbs"></span>
+        <button class="tgl" id="tTree">⑂ Threads <span class="n" id="ttCount">1</span></button>
+        <button class="tgl on" id="tRefs">References <span class="n" id="trCount">6</span></button>
+      </div>
+      <div class="frombar" id="frombar"></div>
+      <main class="thread" id="thread"></main>
+      <div class="ask">
+        <div class="box">
+          <input placeholder="Ask a follow-up in this thread…" id="askInput">
+          <button class="send" id="sendBtn">Search ↩</button>
+        </div>
+        <div class="hintline" id="hintline"></div>
+      </div>
+    </div>
+
+    <aside class="pane" id="treePane">
+      <div class="pane-hd"><b>⑂ Threads</b><span id="treeSub"></span>
+        <button class="x" id="closeTree" title="Close">✕</button></div>
+      <div class="pane-body" id="treeBody"></div>
+    </aside>
+
+    <aside class="pane" id="refsPane">
+      <div class="pane-hd"><b>References</b><span id="refSub"></span>
+        <button class="x" id="closeRefs" title="Close">✕</button></div>
+      <div class="qbar" id="qbar"></div>
+      <div class="pane-body" id="refsBody"></div>
+    </aside>
+  </div>
+</div>
+
+<div class="sheet" id="sheet"><div class="card2" id="sheetCard"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── the six papers captured from the real CRISPR off-target thread ───────────
+   No paper outside this set exists here. A direction that needs more papers is
+   a direction we cannot honestly prototype, so it does not get faked. */
+const P=[
+ {n:"Wienert 2022",t:"CRISPR nuclease off-target activity and mitigation strategies",m:"2022 · 46 cites · Frontiers in Genome Editing",
+  k:["mitigat","guide","fidelity","off-target","nuclease","strateg","overview","open question"]},
+ {n:"Höijer 2021",t:"CRISPR-Cas9 induces large structural variants at on- and off-target sites",m:"2021 · 149 cites · Nature Communications",
+  k:["long-read","structural","variant","deletion","large","detect","assay","indel","sequenc"]},
+ {n:"Cancellieri 2022",t:"Human genetic diversity alters off-target outcomes of therapeutic gene editing",m:"2022 · 98 cites · Nature Genetics",
+  k:["diversity","population","genetic","variation","individual","ancestry","reference genome","risk"]},
+ {n:"Kalter 2025",t:"Off-target effects in CRISPR-Cas genome editing for human therapeutics",m:"2025 · 56 cites · Molecular Therapy Nucleic Acids",
+  k:["detect","therapeut","standard","method","survey","clinical","human","off-target"]},
+ {n:"Angelini Stewart 2025",t:"Measurement and clinical interpretation of CRISPR off-targets",m:"2025 · 6 cites · Nature Genetics",
+  k:["clinical","monitor","interpret","measure","patient","follow-up","after","regulat"]},
+ {n:"Huang 2022",t:"In vivo delivery of CRISPR-Cas9 genome editing components",m:"2022 · 39 cites · Biomaterials",
+  k:["deliver","vivo","lnp","nanoparticle","lipid","viral","aav","tropism","liver","vector"]}
+];
+
+/* Turn 1 is the captured thread: real query, real funnel, real ranks.
+   Turns 2–11 are keyword-matched over the same six papers; their ranks are
+   computed from that match at boot, never hand-written, and their funnel line
+   says so rather than borrowing turn 1's 32.8M. */
+const REAL={q:"What are the open questions in CRISPR off-target effects for in vivo therapies?",
+  title:"Open Questions in CRISPR Off-Target Effects for In Vivo Therapies",
+  funnel:"32.8M retrieved · 100 eligible · 20 included",
+  refs:[{p:0,rank:1},{p:1,rank:2},{p:3,rank:3},{p:2,rank:4},{p:4,rank:9},{p:5,rank:12}],
+  cites:[0,3,1,2,4,5],
+  paras:["Several unresolved questions persist across detection, biological variability, structural variants, and clinical monitoring [[0]] [[3]].",
+    "Large-scale aberrations remain far harder to detect than small indels using current workflows [[1]].",
+    "Human genetic diversity is an under-explored confound [[2]].",
+    "There is no consensus on post-delivery monitoring [[4]].",
+    "Delivery remains the rate-limiting step for in vivo work [[5]]."]};
+
+const SEED=[
+ {q:"How do long-read methods detect structural variants that short-read assays miss?",
+  title:"Long-read detection of structural variants",cites:[1,3],
+  paras:["Long-read sequencing recovers large deletions and rearrangements at on- and off-target sites that indel-focused short-read workflows systematically miss [[1]].",
+   "Surveys of therapeutic detection methods place long-read approaches outside the current standard set, which is part of why the standards disagree [[3]]."]},
+ {q:"Do detection standards agree on what counts as an off-target, and how is that measured clinically?",
+  title:"Whether detection standards agree",cites:[3,4,0],
+  paras:["They do not. Current standards disagree on what counts as detected, which makes cross-study comparison unreliable [[3]].",
+   "A framework for clinical interpretation has been proposed above the measurement layer, but it assumes the measurement is settled [[4]].",
+   "The mitigation literature treats the same disagreement as a guide-design problem rather than a measurement one [[0]]."]},
+ {q:"Which guide design changes reduce off-target activity the most, and which mitigation strategies actually work?",
+  title:"Guide design and mitigation strategies",cites:[0,3],
+  paras:["High-fidelity nuclease variants and guide redesign are the two mitigations with the most support behind them [[0]].",
+   "For therapeutic use, mitigation is judged against detection methods that themselves do not agree [[3]]."]},
+ {q:"How large are the deletions that indel-focused assays under-report, and do standard mitigation strategies address them?",
+  title:"The size of what indel assays miss",cites:[1,0],
+  paras:["Large deletions and rearrangements appear at on- and off-target sites, outside the window an indel-calling assay inspects [[1]].",
+   "Mitigations aimed at nuclease fidelity do not obviously address rearrangements, because the mechanism is different [[0]]."]},
+ {q:"Is there a single assay that catches both small indels and large rearrangements, and is it a standard method yet?",
+  title:"One assay for indels and rearrangements",cites:[1,3],
+  paras:["Nothing that came back claims to do both. Long-read sequencing covers the large events [[1]]; the therapeutic detection surveys cover the small ones and name no combined standard [[3]].",
+   "This is the weakest result in the thread — two papers, neither answering the question directly. Treat it as an open gap, not a finding."]},
+ {q:"Does human genetic diversity change the off-target risk for an individual patient?",
+  title:"Genetic diversity and individual risk",cites:[2,3,4],
+  paras:["Yes. Individual genetic variation changes the off-target landscape, so an analysis run against the reference genome under-reports risk for anyone who is not the reference [[2]].",
+   "Therapeutic detection surveys do not currently build this in [[3]].",
+   "The clinical interpretation framework treats it as a per-patient input rather than a population correction [[4]]."]},
+ {q:"What should be monitored in a patient after in vivo delivery?",
+  title:"Post-delivery monitoring",cites:[4,5],
+  paras:["There is no consensus. The clearest proposal is a framework for interpreting off-target measurements clinically, including what to monitor after delivery [[4]].",
+   "What can be monitored depends on where the editor went, and that is set by the delivery vehicle [[5]]."]},
+ {q:"How does the choice of viral vector or lipid nanoparticle constrain which tissue is edited in vivo, and what does that mean for monitoring after delivery?",
+  title:"Vector choice and tissue tropism",cites:[5,4],
+  paras:["Viral and lipid nanoparticle delivery impose different tropism constraints, so the vehicle largely decides which tissue is exposed [[5]].",
+   "That puts monitoring downstream of delivery rather than parallel to it [[4]]."]},
+ {q:"Is a reference genome analysis enough for a clinical trial population, or does ancestry change the answer?",
+  title:"Reference genome versus trial population",cites:[2,3,4],
+  paras:["Ancestry changes the answer. A reference-genome analysis under-reports off-target risk across a diverse population [[2]].",
+   "Neither the detection surveys [[3]] nor the clinical interpretation framework [[4]] currently require a population-matched analysis."]},
+ {q:"What follow-up period do regulators expect after liver-directed editing?",
+  title:"Follow-up after liver-directed editing",cites:[4,5],
+  paras:["Nothing in these six papers states a regulatory follow-up period. The closest is a framework for what to monitor, which stops short of naming a duration [[4]].",
+   "Liver-directed delivery is discussed as a tropism question rather than a follow-up one [[5]].",
+   "This is a gap in the corpus rather than a finding — worth a search outside it."]}
+];
+
+/* ── retrieval over the captured corpus ─────────────────────────────────── */
+function score(text){
+  const q=text.toLowerCase();
+  return P.map((p,i)=>({i,s:p.k.reduce((a,k)=>a+(q.includes(k)?3:0),0)
+    +p.t.toLowerCase().split(/\W+/).filter(w=>w.length>4&&q.includes(w)).length}));
+}
+/* refs are whatever the match returns, plus anything the answer actually cites —
+   ranked by that same score, so a rank is never chosen by hand */
+function derive(text,cites){
+  const sc=score(text);
+  const keep=sc.filter(x=>x.s>0||cites.includes(x.i));
+  keep.sort((a,b)=>b.s-a.s||a.i-b.i);
+  return keep.map((x,k)=>({p:x.i,rank:k+1}));
+}
+function mkTurn(s){
+  const refs=derive(s.q,s.cites);
+  return {q:s.q,title:s.title,cites:s.cites.slice(),refs,
+    funnel:'keyword-matched over 6 captured papers · '+refs.length+' included',derived:true,
+    paras:s.paras.slice()};
+}
+
+/* ── threads ─────────────────────────────────────────────────────────────── */
+let THREADS=[], cur=0, seq=1, activeQ=0, showTree=false, showRefs=true, brOpen=null;
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');
+  clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),3400)}
+const T=()=>THREADS[cur];
+const byId=id=>THREADS.find(t=>t.id===id);
+const kidsOf=id=>THREADS.filter(t=>t.parent===id);
+
+/* recurrence is per thread: how many of THIS thread's searches returned the paper.
+   Earlier prototypes drew one dot per search, which worked at three searches and
+   lies at eleven — three filled dots would read the same for 3-of-11 and 11-of-11.
+   So the dots are a five-slot proportion and the fraction beside them is the fact. */
+function recurrence(th,i){return th.turns.filter(t=>t.refs.some(r=>r.p===i)).length}
+function dotsFor(rec,tot){
+  if(!tot) return '○○○○○';
+  const f=rec?Math.max(1,Math.round(rec/tot*5)):0;
+  return '●'.repeat(f)+'○'.repeat(5-f);
+}
+function provText(th,qi,i){
+  const rec=recurrence(th,i),tot=th.turns.length,r=th.turns[qi].refs.find(r=>r.p===i);
+  return {dots:dotsFor(rec,tot),
+    rest:(tot===1?'this search':rec+' of '+tot+' searches')+(r?' · ranked #'+r.rank:'')};
+}
+function unionProv(th,i){
+  const rec=recurrence(th,i),tot=th.turns.length;
+  return {dots:dotsFor(rec,tot),rest:tot===1?'this search':rec+' of '+tot+' searches'};
+}
+
+/* ── layout ──────────────────────────────────────────────────────────────── */
+function layout(){
+  const cols=['1fr'];
+  if(showTree) cols.push('17rem');
+  if(showRefs) cols.push('20rem');
+  $('stage').style.gridTemplateColumns=cols.join(' ');
+  $('treePane').style.display=showTree?'':'none';
+  $('refsPane').style.display=showRefs?'':'none';
+  $('tTree').classList.toggle('on',showTree);
+  $('tRefs').classList.toggle('on',showRefs);
+}
+$('tTree').addEventListener('click',()=>{showTree=!showTree;layout();if(showTree)renderTree()});
+$('tRefs').addEventListener('click',()=>{showRefs=!showRefs;layout()});
+$('closeTree').addEventListener('click',()=>{showTree=false;layout()});
+$('closeRefs').addEventListener('click',()=>{showRefs=false;layout()});
+
+/* ── the thread ──────────────────────────────────────────────────────────── */
+function fillCites(html){
+  return html.replace(/\[\[(\d+)\]\]/g,(_,i)=>'<span class="cite" title="'+esc(P[+i].t)+'">'+P[+i].n.toUpperCase()+'</span>');
+}
+function renderCrumbs(){
+  const c=$('crumbs'); c.innerHTML='';
+  const chain=[]; let t=T();
+  while(t){chain.unshift(t); t=t.parent!=null?byId(t.parent):null}
+  chain.forEach((th,k)=>{
+    if(k) {const s=document.createElement('span'); s.className='sl'; s.textContent='/'; c.appendChild(s)}
+    if(k===chain.length-1){const b=document.createElement('span'); b.className='here'; b.textContent=th.name; c.appendChild(b)}
+    else{const a=document.createElement('a'); a.textContent=th.name;
+      a.addEventListener('click',()=>open(THREADS.indexOf(th))); c.appendChild(a)}
+  });
+}
+function renderFrom(){
+  const th=T(), fb=$('frombar');
+  fb.classList.remove('on','orphan'); fb.innerHTML='';
+  if(th.parent==null && !th.root){
+    /* the orphan you can create on purpose, so the cost is visible */
+    fb.classList.add('on','orphan');
+    fb.innerHTML='<div class="l1"><span>⚠ no parent — nothing links back to where this came from</span>'+
+      '<a id="fixOrphan">give it a parent ›</a></div>'+
+      '<div class="qt">This is what asking from the Citation Graph does today: the work leaves the thread it '+
+      'belonged to and the trail is lost. Verified in research/screens/13 → 14.</div>';
+    $('fixOrphan').addEventListener('click',()=>openNewSheet(true));
+    return;
+  }
+  if(th.parent==null) return;
+  const p=byId(th.parent), t=p.turns[th.fromTurn];
+  fb.classList.add('on');
+  fb.innerHTML='<div class="l1"><span>↰ branched from turn '+(th.fromTurn+1)+' of</span>'+
+    '<a id="openPar"></a><span>· '+th.carried.length+' sources carried into scope</span></div>'+
+    '<div class="qt"></div>';
+  $('openPar').textContent=p.name;
+  fb.querySelector('.qt').textContent='“'+t.q+'”';
+  $('openPar').addEventListener('click',()=>{open(THREADS.indexOf(p));
+    setTimeout(()=>{const el=$('thread').querySelector('[data-turn="'+th.fromTurn+'"]');
+      if(el) el.scrollIntoView({block:'center',behavior:'smooth'})},60)});
+}
+function renderThread(){
+  const th=T(), el=$('thread'); el.innerHTML='';
+  th.turns.forEach((t,ti)=>{
+    const d=document.createElement('div'); d.className='turn'; d.dataset.turn=ti;
+    const q=document.createElement('div'); q.className='q'; q.textContent=t.q;
+    const f=document.createElement('div'); f.className='funnel'+(t.derived?' derived':''); f.textContent=t.funnel;
+    const a=document.createElement('div'); a.className='ans';
+    a.innerHTML='<div class="aTitle">'+esc(t.title)+'</div>'+t.paras.map(p=>'<p>'+fillCites(esc(p))+'</p>').join('');
+    d.append(q,f,a);
+    const foot=document.createElement('div'); foot.className='turnfoot';
+    const n=document.createElement('span'); n.className='tn'; n.textContent='turn '+(ti+1);
+    const b=document.createElement('button'); b.className='brbtn'; b.textContent='⑂ Branch from here';
+    b.addEventListener('click',()=>openBranch(ti));
+    foot.append(n,b); d.appendChild(foot);
+    if(brOpen===ti) d.appendChild(branchForm(ti));
+    kidsOf(th.id).filter(k=>k.fromTurn===ti).forEach(k=>d.appendChild(stub(k)));
+    el.appendChild(d);
+  });
+  if(!th.turns.length){
+    el.innerHTML='<div class="funnel">Nothing asked in this thread yet. It still knows where it came from.</div>';
+  }
+  el.scrollTop=el.scrollHeight;
+}
+function stub(k){
+  const d=document.createElement('div'); d.className='stub';
+  d.innerHTML='<span class="ic">⑂</span><b></b><span class="m"></span><a>open ›</a>';
+  d.querySelector('b').textContent=k.name;
+  d.querySelector('.m').textContent='branched from this turn · '+k.turns.length+(k.turns.length===1?' turn':' turns');
+  d.querySelector('a').addEventListener('click',()=>open(THREADS.indexOf(k)));
+  return d;
+}
+function branchForm(ti){
+  const th=T(), t=th.turns[ti], carried=t.refs.map(r=>r.p);
+  const d=document.createElement('div'); d.className='brform';
+  d.innerHTML='<div class="k">⑂ NEW THREAD FROM TURN '+(ti+1)+'</div>'+
+    '<input id="brQ" placeholder="What do you want to ask instead?">'+
+    '<div class="carries">carries <b>'+carried.length+' sources</b> that were in scope here · '+
+    'the parent turn is quoted at the top of the new thread · '+
+    '<b>this turn keeps a stub</b> pointing at it</div>'+
+    '<div class="acts"><button class="mini go" id="brGo">⑂ Branch</button>'+
+    '<button class="mini" id="brNo">Cancel</button></div>';
+  setTimeout(()=>{const i=$('brQ'); if(i) i.focus()},10);
+  d.querySelector('#brNo').addEventListener('click',()=>{brOpen=null;renderThread()});
+  d.querySelector('#brGo').addEventListener('click',()=>{
+    const v=$('brQ').value.trim();
+    if(!v){toast('A branch needs a question — otherwise it is just a copy');return}
+    doBranch(th.id,ti,v);
+  });
+  d.querySelector('#brQ').addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();d.querySelector('#brGo').click()}
+    if(e.key==='Escape'){brOpen=null;renderThread()}
+  });
+  return d;
+}
+function openBranch(ti){brOpen=brOpen===ti?null:ti;renderThread();
+  const el=$('thread').querySelector('[data-turn="'+ti+'"]');
+  if(el) el.scrollIntoView({block:'center',behavior:'smooth'})}
+
+/* ── branching ───────────────────────────────────────────────────────────── */
+function nameFor(q){
+  const s=q.trim().replace(/\?+$/,'');
+  const cut=s.split(/,| and | or /)[0];
+  const w=cut.split(/\s+/).slice(0,7).join(' ');
+  return w.charAt(0).toUpperCase()+w.slice(1);
+}
+function doBranch(parentId,ti,question){
+  const p=byId(parentId), carried=p.turns[ti].refs.map(r=>r.p);
+  const th={id:seq++,name:nameFor(question),parent:parentId,fromTurn:ti,carried,turns:[]};
+  THREADS.push(th); brOpen=null;
+  const idx=THREADS.length-1;
+  open(idx); ask(question,true);
+  toast('New thread ⑂ '+th.name+' — the parent keeps a stub at turn '+(ti+1)+', and this thread names its parent');
+}
+
+/* ── asking ──────────────────────────────────────────────────────────────── */
+function ask(text,silent){
+  const th=T();
+  const d=document.createElement('div'); d.className='turn';
+  const q=document.createElement('div'); q.className='q'; q.textContent=text;
+  const dots=document.createElement('div'); dots.className='funnel thinking';
+  dots.innerHTML='matching the 6 captured papers <i></i><i></i><i></i>';
+  d.append(q,dots); $('thread').appendChild(d); $('thread').scrollTop=$('thread').scrollHeight;
+  $('sendBtn').disabled=true;
+  setTimeout(()=>{
+    d.remove(); $('sendBtn').disabled=false;
+    const refs=derive(text,[]);
+    const top=refs.slice(0,3).map(r=>r.p);
+    const paras=[];
+    if(!top.length) paras.push('Nothing in the six captured papers matches that. In the real product this would be a '+
+      'retrieval over 32.8M papers; here the corpus is the six the thread actually returned, so a miss is a miss.');
+    else{
+      paras.push('The strongest match in what is here is [['+top[0]+']]'+(top[1]!=null?', with [['+top[1]+']] alongside it':'')+'.');
+      if(top[2]!=null) paras.push('[['+top[2]+']] came back lower. Treat it as a lead rather than support.');
+    }
+    th.turns.push({q:text,title:text.trim().replace(/\?+$/,'').replace(/^./,c=>c.toUpperCase()),
+      cites:top,refs,funnel:'keyword-matched over 6 captured papers · '+refs.length+' included',derived:true,paras});
+    activeQ=th.turns.length-1;
+    renderThread(); renderRefs(); renderTree();
+  },600);
+}
+$('sendBtn').addEventListener('click',()=>{const v=$('askInput').value.trim();
+  if(!v)return; $('askInput').value=''; ask(v)});
+$('askInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('sendBtn').click()}});
+
+/* ── references, per query, plus what the branch carried ─────────────────── */
+function renderRefs(){
+  const th=T(), qbar=$('qbar'); qbar.innerHTML='';
+  th.turns.forEach((t,i)=>{
+    const b=document.createElement('button'); b.className='qb'+(activeQ===i?' on':'');
+    b.textContent='Q'+(i+1)+' · '+t.refs.length; b.title=t.q;
+    b.addEventListener('click',()=>{activeQ=i;renderRefs()});
+    qbar.appendChild(b);
+  });
+  const union=[...new Set(th.turns.flatMap(t=>t.refs.map(r=>r.p)))];
+  if(th.turns.length){
+    const all=document.createElement('button'); all.className='qb'+(activeQ==='all'?' on':'');
+    all.textContent='All cited · '+union.length;
+    all.addEventListener('click',()=>{activeQ='all';renderRefs()});
+    qbar.appendChild(all);
+  }
+  if(th.carried&&th.carried.length){
+    const c=document.createElement('button'); c.className='qb carr'+(activeQ==='carr'?' on':'');
+    c.textContent='Carried in · '+th.carried.length;
+    c.title='Sources that were in scope on the parent turn this thread branched from';
+    c.addEventListener('click',()=>{activeQ='carr';renderRefs()});
+    qbar.appendChild(c);
+  }
+  if(activeQ!=='carr'&&activeQ!=='all'&&!th.turns[activeQ]) activeQ=th.carried&&th.carried.length?'carr':0;
+
+  let list, sub;
+  if(activeQ==='carr'){list=th.carried.map(p=>({p}));sub='carried from the parent turn'}
+  else if(activeQ==='all'){list=union.map(p=>({p})).sort((a,b)=>recurrence(th,b.p)-recurrence(th,a.p));
+    sub='union · no single rank'}
+  else {list=th.turns[activeQ]?th.turns[activeQ].refs:[]; sub='query '+(activeQ+1)}
+  $('refSub').textContent=sub;
+  $('trCount').textContent=union.length||(th.carried?th.carried.length:0);
+
+  const body=$('refsBody'); body.innerHTML='';
+  if(!list.length){body.innerHTML='<div class="funnel">Nothing here yet.</div>';return}
+  list.forEach(({p:i})=>{
+    const d=document.createElement('div'); d.className='src';
+    d.innerHTML='<h3></h3><div class="m"></div><div class="p"><span class="dots"></span><span class="pd"></span></div>'+
+      '<div class="carried"></div>';
+    d.querySelector('h3').textContent=P[i].t;
+    d.querySelector('.m').textContent=P[i].m;
+    if(activeQ==='carr'){
+      /* provenance is per (paper, query). A carried source has no rank in THIS
+         thread yet, so it is not given one — it is given its parent's. */
+      const p=byId(th.parent), pv=provText(p,th.fromTurn,i);
+      d.querySelector('.dots').textContent=pv.dots;
+      d.querySelector('.pd').textContent=pv.rest+' · in '+p.name;
+      d.classList.add('carr');
+      d.querySelector('.carried').textContent='↰ carried in from turn '+(th.fromTurn+1)+' of the parent';
+    } else {
+      const pv=activeQ==='all'?unionProv(th,i):provText(th,activeQ,i);
+      d.querySelector('.dots').textContent=pv.dots;
+      d.querySelector('.pd').textContent=pv.rest;
+      if(th.carried&&th.carried.includes(i)){d.classList.add('carr');
+        d.querySelector('.carried').textContent='↰ also carried in from the parent'}
+    }
+    body.appendChild(d);
+  });
+}
+
+/* ── the thread tree ─────────────────────────────────────────────────────── */
+function renderTree(){
+  const body=$('treeBody'); body.innerHTML='';
+  const orphans=THREADS.filter(t=>t.parent==null&&!t.root);
+  const draw=(th,into)=>{
+    const d=document.createElement('div');
+    const n=document.createElement('div');
+    n.className='tnode'+(THREADS[cur]===th?' on':'')+(th.parent==null&&!th.root?' orph':'');
+    n.innerHTML='<div class="nm"><i>'+(th.root?'⌂':(th.parent==null?'⚠':'↳'))+'</i><span></span></div><div class="m"></div>';
+    n.querySelector('span').textContent=th.name;
+    n.querySelector('.m').textContent=th.turns.length+(th.turns.length===1?' turn':' turns')+
+      (th.parent!=null?' · from turn '+(th.fromTurn+1):(th.root?'':' · no parent'));
+    n.addEventListener('click',()=>open(THREADS.indexOf(th)));
+    d.appendChild(n);
+    const ks=kidsOf(th.id);
+    if(ks.length){const w=document.createElement('div'); w.className='kids';
+      ks.forEach(k=>draw(k,w)); d.appendChild(w)}
+    into.appendChild(d);
+  };
+  THREADS.filter(t=>t.root).forEach(t=>draw(t,body));
+  orphans.forEach(t=>draw(t,body));
+  const note=document.createElement('div'); note.className='treenote';
+  note.textContent=orphans.length
+    ? orphans.length+' thread'+(orphans.length===1?'':'s')+' with no parent. Open one to see what that costs.'
+    : 'Every thread here names the turn it came from, and every parent turn keeps a stub. Neither half can be reached without seeing the other.';
+  body.appendChild(note);
+  $('ttCount').textContent=THREADS.length;
+  $('treeSub').textContent=THREADS.length+(THREADS.length===1?' thread':' threads');
+}
+
+/* ── the orphan, on purpose ──────────────────────────────────────────────── */
+function openNewSheet(fixing){
+  const th=T();
+  const c=$('sheetCard');
+  if(fixing){
+    c.innerHTML='<h2>Give this thread a parent</h2>'+
+      '<div class="sub">Pick the turn it should have branched from. Re-parenting is the whole repair: '+
+      'the thread gains a breadcrumb, and that turn gains a stub.</div><div id="pickWrap"></div>'+
+      '<span class="close" id="shClose">Leave it orphaned</span>';
+    const w=c.querySelector('#pickWrap');
+    THREADS.filter(t=>t!==th&&(t.root||t.parent!=null)).forEach(p=>{
+      p.turns.forEach((t,ti)=>{
+        const o=document.createElement('div'); o.className='opt';
+        o.innerHTML='<div class="t"></div><div class="d"></div>';
+        o.querySelector('.t').textContent=p.name+' · turn '+(ti+1);
+        o.querySelector('.d').textContent=t.q;
+        o.addEventListener('click',()=>{
+          th.parent=p.id; th.fromTurn=ti; th.carried=t.refs.map(r=>r.p);
+          $('sheet').classList.remove('on'); render();
+          toast('Re-parented. The orphan now names turn '+(ti+1)+' of '+p.name+', and that turn names it back.');
+        });
+        w.appendChild(o);
+      });
+    });
+  } else {
+    c.innerHTML='<h2>New thread — where does it come from?</h2>'+
+      '<div class="sub">Every thread in this prototype has to answer that question, because a thread that '+
+      'cannot is the bug this whole exploration is arguing against.</div>'+
+      '<div class="opt" id="oBranch"><div class="t">⑂ Branch from a turn in “'+esc(th.name)+'”</div>'+
+      '<div class="d">Closes this and drops you on the turn list — hover a turn and press <b style="color:inherit">⑂ Branch from here</b>. '+
+      'The new thread carries the parent turn and its sources; the parent keeps a stub.</div></div>'+
+      '<div class="opt bad" id="oOrphan"><div class="t">Start from nothing</div>'+
+      '<div class="d">What asking from the Citation Graph does today. <b>Verified: no backlink, no breadcrumb, '+
+      'no way back.</b> Build it here and see what it costs.</div></div>'+
+      '<span class="close" id="shClose">Cancel</span>';
+    c.querySelector('#oBranch').addEventListener('click',()=>{
+      $('sheet').classList.remove('on');
+      toast('Hover any turn and press ⑂ Branch from here');
+      const el=$('thread').querySelector('.turn'); if(el) el.scrollIntoView({block:'start',behavior:'smooth'});
+    });
+    c.querySelector('#oOrphan').addEventListener('click',()=>{
+      const t={id:seq++,name:'Untitled thread',parent:null,fromTurn:null,carried:[],turns:[]};
+      THREADS.push(t); $('sheet').classList.remove('on');
+      open(THREADS.length-1); showTree=true; layout(); renderTree();
+      ask('What follow-up period do regulators expect after liver-directed editing?');
+      toast('Orphan created. It answers the question — and nothing in the product knows it exists.');
+    });
+  }
+  c.querySelector('#shClose').addEventListener('click',()=>$('sheet').classList.remove('on'));
+  $('sheet').classList.add('on');
+}
+$('railNew').addEventListener('click',()=>openNewSheet(false));
+$('sheet').addEventListener('click',e=>{if(e.target===$('sheet'))$('sheet').classList.remove('on')});
+
+/* ── open / render ───────────────────────────────────────────────────────── */
+function open(i){cur=i;brOpen=null;
+  const th=T(); activeQ=th.turns.length?th.turns.length-1:(th.carried.length?'carr':0);
+  render();}
+function render(){
+  renderCrumbs(); renderFrom(); renderThread(); renderRefs(); renderTree(); layout();
+  const th=T();
+  $('askInput').placeholder=th.parent!=null
+    ? 'Ask in ⑂ '+th.name+' — the parent stays linked…'
+    : 'Ask a follow-up in this thread…';
+  $('hintline').textContent=th.parent!=null
+    ? 'This thread carries '+th.carried.length+' sources from turn '+(th.fromTurn+1)+' of its parent, and the parent shows a stub at that turn.'
+    : 'Eleven turns. Turns 2–6 are about assays and standards; turns 7–11 are about monitoring and delivery. Branch turn 7 and watch both halves stay linked.';
+}
+
+/* ── boot ────────────────────────────────────────────────────────────────── */
+function boot(){
+  const root={id:seq++,name:'CRISPR Off Target Effects',parent:null,root:true,fromTurn:null,carried:[],
+    turns:[{q:REAL.q,title:REAL.title,funnel:REAL.funnel,refs:REAL.refs.slice(),cites:REAL.cites.slice(),
+            paras:REAL.paras.slice()}].concat(SEED.map(mkTurn))};
+  THREADS=[root]; cur=0; activeQ=root.turns.length-1;
+  /* self-check: an answer may never cite a paper the search did not return */
+  THREADS.forEach(th=>th.turns.forEach((t,i)=>t.cites.forEach(c=>{
+    if(!t.refs.some(r=>r.p===c)) console.error('turn '+(i+1)+' cites a paper it did not retrieve: '+P[c].n);
+  })));
+  render();
+}
+boot();
+</script>
+</body>
+</html>
