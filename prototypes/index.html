@@ -80,8 +80,40 @@ footer{margin-top:var(--s-3xl);border-top:1px solid var(--bd);padding-top:var(--
   <p class="lede">Consensus remembers papers. It doesn’t remember research. Everything below runs on
   real captured data and Consensus’s own extracted design tokens. <b>Newest work is always at the top.</b></p>
 
-  <a class="latest" href="option-26-gap.html">
-    <span class="k">LATEST · TRACK A · ROUND 17</span>
+  <a class="latest" href="option-28-recourse.html">
+    <span class="k">LATEST · TRACK A · ROUND 18 · START HERE</span>
+    <h2>AB · Why this one, and what if it’s wrong</h2>
+    <p>Every reference explains itself in one line, and every reason in that explanation can be
+    argued with. Press <b>why ›</b>, then <b>✕ not this</b> on the part that is wrong. You never
+    have to phrase the correction: the sub-query that found the paper is already a list of terms,
+    so you point at <b>delivery</b> and the prototype shows what dropping it costs (which search
+    gets rewritten, which references leave, which claim is withdrawn) before you commit. Two kinds
+    of wrong are kept apart, because they teach different things: <b>wrong paper</b> reshapes the
+    search, <b>right paper, wrong claim</b> leaves it alone. What Consensus records sits at the
+    bottom of the pane, in the exact words it would be recorded in.</p>
+    <p class="new">the positive signal is already free — keeping or citing a paper is a
+    confirmation, so only the correction needs a control · free text is offered last, and admits
+    that it changes nothing until a person reads it</p>
+    <span class="go">Open → &nbsp;·&nbsp; the reasoning: research/RELEVANCE.md</span>
+  </a>
+
+  <a class="latest" href="option-27-why.html" style="border-width:1px">
+    <span class="k">TRACK A · ROUND 18</span>
+    <h2>AA · Why this one</h2>
+    <p>The glance on its own, in three densities so the trade-off is visible: <b>a line</b> under
+    every reference, <b>a panel on hover</b>, or both. The line says what the paper did for you
+    (<em>backs clinical monitoring · 11 passages · search 2</em>); the panel says the four things
+    behind it. All of it is real: the three sub-queries with their pool sizes are the ones
+    Consensus actually ran, and the passage counts are the product’s own supporting-quote counts.
+    <b>Why already exists — it lives in the agent trace, one level up, aggregated across twenty
+    papers and attached to none of them.</b> This moves it onto the paper.</p>
+    <p class="new">hovering a reference lights the search that found it, up in the trace, and the
+    sentence it backs, down in the answer</p>
+    <span class="go">Open → &nbsp;·&nbsp; the reasoning: research/RELEVANCE.md</span>
+  </a>
+
+  <a class="latest" href="option-26-gap.html" style="border-width:1px">
+    <span class="k">TRACK A · ROUND 17</span>
     <h2>Z · What isn’t there</h2>
     <p>References regrouped by <b>the open question each paper answers</b> instead of by rank, so
     a question being held up by one paper stops being invisible. Every group carries two numbers
@@ -178,15 +210,36 @@ footer{margin-top:var(--s-3xl);border-top:1px solid var(--bd);padding-top:var(--
   </a>
 
   <h3 class="sec">Every round, newest first</h3>
-  <p class="secsub">Seventeen rounds. Each row is a working prototype; the line after the name is what
+  <p class="secsub">Eighteen rounds. Each row is a working prototype; the line after the name is what
   it gives and what it costs.</p>
+
+  <section class="round">
+    <div class="rhd"><span class="rn">ROUND 18</span>
+      <span class="rq">Why was I given this source, and what if it’s wrong?
+        <em>track A · relevance</em></span></div>
+    <a class="row" href="option-28-recourse.html">
+      <span class="k">AB</span><span class="nm">Why + recourse<span class="pill">latest</span></span>
+      <span class="ds"><b>Gives</b> a contestable explanation: reject the reason, not the paper,
+        and the search rewrites itself with the cost shown first. <b>Costs</b> it can only offer
+        the terms the search already contains, so a user whose real objection is elsewhere still
+        lands in the free-text box.</span>
+      <span class="go">Open →</span>
+    </a>
+    <a class="row" href="option-27-why.html">
+      <span class="k">AA</span><span class="nm">Why this one</span>
+      <span class="ds"><b>Gives</b> one line per source that answers “why am I looking at this”,
+        with a four-reason panel behind it, all of it already computed by the agent trace.
+        <b>Costs</b> a line on every card in a list that is already dense.</span>
+      <span class="go">Open →</span>
+    </a>
+  </section>
 
   <section class="round">
     <div class="rhd"><span class="rn">ROUND 17</span>
       <span class="rq">Which of these twenty papers actually matter, and what is missing?
         <em>track A · relevance</em></span></div>
     <a class="row" href="option-26-gap.html">
-      <span class="k">Z</span><span class="nm">What isn’t there<span class="pill">latest</span></span>
+      <span class="k">Z</span><span class="nm">What isn’t there</span>
       <span class="ds"><b>Gives</b> References grouped by open question, four states from
         <b>ok</b> to <b>gap</b>, and a search that tells a thesis gap from a retrieval miss from an
         under-citation. <b>Costs</b> which question a paper answers is a judgement, so a wrong
@@ -206,7 +259,7 @@ footer{margin-top:var(--s-3xl);border-top:1px solid var(--bd);padding-top:var(--
     <div class="rhd"><span class="rn">ROUND 16</span>
       <span class="rq">The same thing, but you drive <em>start here</em></span></div>
     <a class="row" href="option-24-app.html">
-      <span class="k">X</span><span class="nm">Working prototype<span class="pill">latest</span></span>
+      <span class="k">X</span><span class="nm">Working prototype</span>
       <span class="ds"><b>Gives</b> a real app: live search, panels that open and close, live
         recurrence, everything clickable. <b>Costs</b> the corpus is six papers, so search matches
         by keyword rather than actually retrieving.</span>

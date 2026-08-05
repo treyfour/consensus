@@ -49,6 +49,7 @@ instead of clicking. Before any claim goes in the deck, it belongs in one of the
 | **The answer embeds a generated “Evidence Coverage Across Key Open Questions” matrix — open questions × dimensions, counts in the cells, and a literal `GAP` cell** | **Verified** — added 2026-08-04, Track A. Anyone proposing gap detection must name this first | `screens/03`, `screens/05` |
 | Whether that matrix's cells are clickable | **UNKNOWN** — no Pro messages left to find out | — |
 | A reference carries a per-(paper, query) `28 SUPPORTING QUOTES` count | **Verified** | `screens/05` |
+| **The agent trace holds the three literal sub-queries with pool sizes (`31.7M`, `656.6K`, `442.8K`)** — so Consensus already computes *why a paper is here*, aggregated one level up and attached to no paper | **Verified** — added 2026-08-04, Track A. This is what makes a per-source “why” real rather than invented | `screens/04` |
 | References are per-query, with an "All cited papers" union | **Verified** | `screens/05`, `06`, `07` |
 | The union carries no origin, rank or recurrence per paper | **Verified** | `screens/07` |
 | Table view is an Elicit-style matrix, Pro-gated | **Verified** | `screens/06`, `08` |
@@ -73,8 +74,10 @@ instead of clicking. Before any claim goes in the deck, it belongs in one of the
 - Five prototypes + index: `prototypes/option-{1..5}-*.html`, `prototypes/index.html`
 - Journey diagram: `prototypes/journey.html` (includes the brief's scope and scoring)
 - Research: `AUDIT.md`, `COMPETITIVE.md`, `BUILD.md`, `PLAN.md`, `LOOP.md`, `RELEVANCE.md`, this file
-- Track A (`explore/relevance`, round 17): `option-25-carry.html`, `option-26-gap.html`,
-  reasoning in `RELEVANCE.md`
+- Track A (`explore/relevance`): round 17 `option-25-carry.html`, `option-26-gap.html`;
+  **round 18 `option-27-why.html`, `option-28-recourse.html`** — per-source “why this one”
+  and recourse when it is wrong. Reasoning for all four in `RELEVANCE.md`; round 18 is the
+  one to read
 - Design tokens: `research/cdl-tokens.css` (145 `--cdl-*`, both themes, from the live DOM)
 - 20+ screenshots in `research/screens/`
 
