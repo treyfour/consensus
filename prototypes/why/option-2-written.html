@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>2 · Written with the answer</title>
+<style>
+:root{
+--accent:#068ef1;--accent-emph:#006fce;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
+--bg:#fff;--mist:#fafafa;--faint:#f4f4f5;--subtle:#e4e4e7;
+--fg:#18181b;--muted:#71717b;--bd:#e4e4e7;--bd-emph:#d4d4d8;
+--pos:#148d74;--pos-bg:#eefaf6;--warn:#a65f00;--paper:#fffcf0;--paper-bd:#ece0bd;
+--r-xs:.25rem;--r-sm:.5rem;--r-md:.75rem;
+--s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;
+--t-2xs:.69rem;--t-xs:.81rem;--t-sm:.94rem;--t-base:1rem;--t-lg:1.13rem;
+--sans:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+--mono:"Reddit Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(--t-base);-webkit-font-smoothing:antialiased}
+.hd{background:var(--fg);color:#fff;padding:var(--s-sm) var(--s-md)}
+.hd b{font-size:var(--t-sm)}
+.hd p{color:#a1a1aa;font-size:var(--t-xs);line-height:1.55;margin-top:2px;max-width:64rem}
+.hd .cost{display:inline-block;font-family:var(--mono);font-size:var(--t-2xs);background:#ffffff1f;
+  border-radius:625rem;padding:1px var(--s-xs);margin-top:var(--s-xs)}
+.hd .cost.zero{background:var(--pos);color:#fff}
+.hd .cost.some{background:var(--warn);color:#fff}
+.wrap{display:grid;grid-template-columns:1fr 24rem;height:calc(100vh - 78px);overflow:hidden}
+.wrap>*{min-height:0}
+
+/* the thread, kept short — it is context, not the subject */
+.thread{overflow-y:auto;padding:var(--s-xl) var(--s-2xl);border-right:1px solid var(--bd)}
+.inner{max-width:40rem;margin:0 auto}
+.q{background:var(--accent-subtle);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);
+  font-size:var(--t-sm);max-width:24rem;margin-left:auto}
+.funnel{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin:var(--s-lg) 0 var(--s-sm)}
+h1{font-size:var(--t-lg);letter-spacing:-.01em;margin-bottom:var(--s-sm)}
+.s{font-size:var(--t-sm);line-height:1.7;margin-bottom:var(--s-sm);max-width:36rem;
+  padding-left:var(--s-xs);border-left:2px solid transparent;transition:background .12s,border-color .12s}
+.s.lit{border-left-color:var(--accent);background:var(--accent-subtle)}
+.cite{font-family:var(--mono);font-size:var(--t-2xs);background:var(--faint);border-radius:var(--r-xs);
+  padding:1px 5px;display:inline-block}
+
+/* references: the list as it is today */
+.pane{display:flex;flex-direction:column;overflow:hidden}
+.pane-hd{display:flex;align-items:baseline;gap:var(--s-xs);padding:var(--s-sm) var(--s-md);
+  border-bottom:1px solid var(--bd);flex:none}
+.pane-hd b{font-size:var(--t-sm)}
+.pane-hd span{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-left:auto}
+.list{flex:1;overflow-y:auto;padding:var(--s-xs) var(--s-sm) var(--s-2xl)}
+.row{border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-sm);margin-bottom:var(--s-xs);
+  cursor:default;transition:border-color .12s}
+.row:hover{border-color:var(--accent-bd);background:var(--accent-subtle)}
+.row h3{font-size:var(--t-xs);font-weight:500;line-height:1.35}
+.row .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs)}
+
+/* the existing hover card. Everything above the rule is what it shows today. */
+.card{position:fixed;z-index:60;width:23rem;background:#fff;border:1px solid var(--bd);
+  border-radius:var(--r-md);box-shadow:0 14px 34px #0000002e;padding:var(--s-sm) var(--s-md);display:none}
+.card.on{display:block}
+.card h4{font-size:var(--t-xs);font-weight:500;line-height:1.4}
+.card .meta{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs)}
+.card .ab{font-size:var(--t-2xs);line-height:1.55;margin-top:var(--s-xs);color:var(--muted)}
+.card .chips{display:flex;gap:var(--s-2xs);margin-top:var(--s-xs);flex-wrap:wrap}
+.card .ch{font-family:var(--mono);font-size:var(--t-2xs);border:1px solid var(--bd);border-radius:625rem;
+  padding:0 var(--s-xs);color:var(--muted)}
+
+/* ── the addition ─────────────────────────────────────────────── */
+/* the label carries the job now: "why" alone did not say whose reason it was,
+   or that it is a reason at all. It gets its own line because it no longer fits
+   beside the quote. */
+.why{margin-top:var(--s-xs);border-top:1px solid var(--bd);padding-top:var(--s-xs)}
+.why .k{display:block;font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);
+  letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
+.why .v{font-size:var(--t-2xs);line-height:1.55}
+.why .v em{font-style:normal;color:var(--accent-emph)}
+.why .v q{font-style:italic}
+.why .tag{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);display:block;margin-top:2px}
+.shim{height:.62rem;border-radius:625rem;background:linear-gradient(90deg,var(--faint),var(--subtle),var(--faint));
+  background-size:200% 100%;animation:sh 1.1s linear infinite;margin-bottom:4px}
+.shim.b{width:72%}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.note{position:fixed;left:0;right:0;bottom:0;background:var(--mist);border-top:1px solid var(--bd);
+  font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);padding:var(--s-2xs) var(--s-md);line-height:1.5}
+</style>
+</head>
+<body>
+<div class="hd"><b>2 · Written with the answer</b><p>When the model writes the answer it also emits one short clause per source, in the same completion. Twenty one-liners for a couple of hundred extra output tokens on a call that was already happening.</p><span class="cost some">~200 output tokens, on an existing call</span></div>
+
+<div class="wrap">
+  <main class="thread">
+    <div class="inner">
+      <div class="q">What are the open questions in CRISPR off-target effects for in vivo therapies?</div>
+      <div class="funnel">32.8M retrieved · 100 eligible · 20 included</div>
+      <h1>Open Questions in CRISPR Off-Target Effects for In Vivo Therapies</h1>
+      <div id="ans"></div>
+    </div>
+  </main>
+  <aside class="pane">
+    <div class="pane-hd"><b>References</b><span>20 included · 6 cited</span></div>
+    <div class="list" id="list"></div>
+  </aside>
+</div>
+<div class="card" id="card"></div>
+<div class="note">Real data: six papers, three sub-queries and the funnel captured from the live CRISPR
+thread. Passage counts are the product’s own for Wienert (27); the other five are illustrative.</div>
+
+<script>
+const SQ=["CRISPR off-target effects in vivo therapies",
+          "CRISPR off-target editing, genome-wide off-target profiling",
+          "CRISPR nuclease specificity, delivery, immunogenicity"];
+const P=[{"n": "Wienert 2022", "t": "CRISPR nuclease off-target activity and mitigation strategies", "a": "B. Wienert", "y": 2022, "c": 46, "j": "Frontiers in Genome Editing", "type": "LITERATURE REVIEW", "sq": 2, "q": 27, "ab": "Reviews the sources of Cas9 off-target activity and the mitigation strategies available, from guide design through high-fidelity variants.", "passage": "large-scale aberrations have recently been reported… these are more difficult to detect using current workflows, indicating a major unmet need", "why2": "Framed the open questions your answer opens with.", "why3": "A review of off-target activity and mitigation. You asked what is unresolved, and this is where the answer's “unmet need” framing comes from."}, {"n": "Höijer 2021", "t": "CRISPR-Cas9 induces large structural variants at on- and off-target sites", "a": "I. Höijer", "y": 2021, "c": 149, "j": "Nature Communications", "type": "PRIMARY RESEARCH", "sq": 1, "q": 19, "ab": "Long-read sequencing reveals large deletions and rearrangements that short-read, indel-focused assays systematically miss.", "passage": "long-read sequencing reveals large deletions and rearrangements that short-read, indel-focused assays systematically miss", "why2": "The evidence that large rearrangements go undetected.", "why3": "You asked about in vivo therapies. This is the primary evidence that short-read assays miss the large events, using long reads."}, {"n": "Cancellieri 2022", "t": "Human genetic diversity alters off-target outcomes of therapeutic gene editing", "a": "S. Cancellieri", "y": 2022, "c": 98, "j": "Nature Genetics", "type": "PRIMARY RESEARCH", "sq": 1, "q": 14, "ab": "Shows that individual genetic variation changes the off-target landscape, so a reference-genome analysis under-reports risk.", "passage": "individual genetic variation changes the off-target landscape, so a reference-genome analysis under-reports risk", "why2": "The only paper here on population variation.", "why3": "Directly on the “biological variability” your question names: it shows a reference-genome analysis under-reports risk for individuals."}, {"n": "Kalter 2025", "t": "Off-target effects in CRISPR-Cas genome editing for human therapeutics", "a": "N. Kalter", "y": 2025, "c": 56, "j": "Molecular Therapy Nucleic Acids", "type": "LITERATURE REVIEW", "sq": 1, "q": 23, "ab": "Surveys detection methods for therapeutic editing and argues current standards do not agree on what counts as detected.", "passage": "current standards do not agree on what counts as detected", "why2": "Surveyed the detection standards your question asks about.", "why3": "Closest match to your question. It surveys detection methods for therapeutic editing and argues the standards disagree."}, {"n": "Angelini Stewart 2025", "t": "Measurement and clinical interpretation of CRISPR off-targets", "a": "A. Angelini Stewart", "y": 2025, "c": 6, "j": "Nature Genetics", "type": "LITERATURE REVIEW", "sq": 1, "q": 11, "ab": "Proposes a framework for interpreting off-target measurements clinically, including what to monitor after delivery.", "passage": "a framework for interpreting off-target measurements clinically, including what to monitor after delivery", "why2": "Covers post-delivery monitoring, which nothing else here does.", "why3": "Answers the monitoring half of your question: what to measure clinically once an edit has been delivered."}, {"n": "Huang 2022", "t": "In vivo delivery of CRISPR-Cas9 genome editing components", "a": "K. Huang", "y": 2022, "c": 39, "j": "Biomaterials", "type": "LITERATURE REVIEW", "sq": 2, "q": 8, "ab": "Compares viral and lipid nanoparticle delivery for in vivo editing, and the tropism constraints each imposes.", "passage": "compares viral and lipid nanoparticle delivery for in vivo editing, and the tropism constraints each imposes", "why2": "Delivery, which your question names but the other five barely touch.", "why3": "Only on delivery. Relevant to the “in vivo” half of your question, and not to off-target effects at all."}];
+const A=[{"s": "Several unresolved questions persist across detection, biological variability, structural variants, and clinical monitoring.", "srcs": [0, 3]}, {"s": "Large rearrangements are systematically harder to detect than small indels.", "srcs": [1]}, {"s": "Individual genetic variation shifts the off-target landscape away from the reference genome.", "srcs": [2]}, {"s": "Nothing settles what should be monitored once an edit reaches a patient.", "srcs": [4]}, {"s": "Delivery remains the rate-limiting step for in vivo editing.", "srcs": [5]}];
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+
+$('ans').innerHTML=A.map((a,k)=>'<p class="s" data-s="'+k+'">'+esc(a.s)+' '+
+  a.srcs.map(i=>'<span class="cite">'+P[i].n.toUpperCase()+'</span>').join(' ')+'</p>').join('');
+
+$('list').innerHTML=P.map((p,i)=>'<div class="row" data-p="'+i+'"><h3>'+esc(p.t)+'</h3>'+
+  '<div class="m">'+esc(p.a)+' · '+p.y+' · '+p.c+' cites · '+esc(p.j)+'</div></div>').join('');
+
+const card=$('card');
+function base(i){
+  const p=P[i];
+  return '<h4>'+esc(p.t)+'</h4>'+
+    '<div class="meta">'+esc(p.a)+' · '+p.y+' · '+p.c+' citations · '+esc(p.j)+'</div>'+
+    '<div class="ab">'+esc(p.ab)+'</div>'+
+    '<div class="chips"><span class="ch">'+esc(p.type)+'</span><span class="ch">INDEXED</span>'+
+    '<span class="ch">FULL TEXT</span></div>';
+}
+function place(row){
+  const r=row.getBoundingClientRect(), h=card.offsetHeight, w=card.offsetWidth;
+  card.style.left=Math.max(8,r.left-w-12)+'px';
+  card.style.top=Math.max(84,Math.min(r.top,window.innerHeight-h-28))+'px';
+}
+function lit(i){
+  document.querySelectorAll('.s').forEach(el=>el.classList.toggle('lit',
+    i!=null&&A[+el.dataset.s].srcs.includes(i)));
+}
+
+function show(i,row){
+  card.innerHTML=base(i)+
+    '<div class="why"><span class="k">Why this paper</span><span class="v">'+esc(P[i].why2)+'</span></div>';
+  place(row); lit(i);
+}
+
+document.querySelectorAll('.row').forEach(row=>{
+  const i=+row.dataset.p;
+  row.addEventListener('mouseenter',()=>{card.classList.add('on');show(i,row)});
+  row.addEventListener('mouseleave',()=>{card.classList.remove('on');lit(null)});
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Why this source — five directions</title>
+<style>
+:root{
+--accent:#068ef1;--accent-emph:#006fce;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
+--bg:#fff;--mist:#fafafa;--faint:#f4f4f5;
+--fg:#18181b;--muted:#71717b;--bd:#e4e4e7;--bd-emph:#d4d4d8;--pos:#148d74;--warn:#a65f00;
+--s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;--s-3xl:2.5rem;
+--t-2xs:.69rem;--t-xs:.81rem;--t-sm:.94rem;--t-base:1rem;--t-lg:1.13rem;
+--sans:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+--mono:"Reddit Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--fg);background:var(--mist);padding:var(--s-2xl) var(--s-lg) var(--s-3xl);-webkit-font-smoothing:antialiased}
+.wrap{max-width:58rem;margin:0 auto}
+.eyebrow{font-family:var(--mono);font-size:var(--t-2xs);text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+h1{font-size:1.6rem;letter-spacing:-.015em;margin:var(--s-2xs) 0 var(--s-sm)}
+.lede{font-size:var(--t-sm);color:var(--muted);max-width:42rem;line-height:1.65}
+.lede b{color:var(--fg);font-weight:500}
+h2.sec{font-size:var(--t-base);margin:var(--s-2xl) 0 var(--s-sm)}
+
+.opt{display:block;background:var(--bg);border:1px solid var(--bd);border-radius:.75rem;
+  padding:var(--s-md) var(--s-lg);text-decoration:none;color:inherit;margin-bottom:var(--s-sm)}
+.opt:hover{border-color:var(--accent-bd);box-shadow:0 2px 14px #068ef114}
+.opt.pick{border:1.5px solid var(--accent);box-shadow:0 2px 14px #068ef114;margin-bottom:var(--s-xl)}
+.opt.pick h3{color:var(--accent-emph)}
+.opt .go{display:inline-block;margin-top:var(--s-sm);font-size:var(--t-xs);font-weight:500;color:var(--accent-emph)}
+.opt .top{display:flex;gap:var(--s-sm);align-items:baseline;flex-wrap:wrap}
+.opt h3{font-size:var(--t-base);font-weight:600}
+.cost{font-family:var(--mono);font-size:var(--t-2xs);border-radius:625rem;padding:1px .45rem;white-space:nowrap}
+.cost.zero{background:#eefaf6;color:var(--pos);border:1px solid #bfe6da}
+.cost.some{background:#fffcf0;color:var(--warn);border:1px solid #ece0bd}
+.opt p{font-size:var(--t-xs);color:var(--muted);line-height:1.6;margin-top:var(--s-2xs);max-width:44rem}
+.samp{font-family:var(--mono);font-size:var(--t-2xs);background:var(--faint);border-radius:.4rem;
+  padding:var(--s-xs) var(--s-sm);margin-top:var(--s-sm);line-height:1.6;color:var(--fg)}
+.samp b{color:var(--accent-emph);font-weight:400}
+.tr{display:grid;grid-template-columns:4.5rem 1fr;gap:var(--s-xs);margin-top:var(--s-sm);
+  font-size:var(--t-xs);line-height:1.55}
+.tr .l{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.tr .up{color:var(--fg)}
+.tr .dn{color:var(--muted)}
+footer{margin-top:var(--s-2xl);border-top:1px solid var(--bd);padding-top:var(--s-md);
+  font-size:var(--t-xs);color:var(--muted);line-height:1.65}
+footer b{color:var(--fg);font-weight:500}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Consensus · references · hover state</p>
+  <h1>Why is this source here?</h1>
+  <p class="lede">One line added to the source hover card that already exists. Nothing else changes:
+  no new panel, no new surface, no new noun. The five directions differ in <b>where that line comes
+  from and what it costs to produce</b>, because at twenty sources a result set that is cheap and one
+  that is not are different products.</p>
+
+  <a class="opt pick" href="option-4-flag.html">
+    <div class="top"><h3>Chosen · 4, plus a one-click flag</h3><span class="cost zero">one click · optional detail</span></div>
+    <p><b>Option 4 with a way to say we got it wrong.</b> One click on <b>⚑ not relevant</b> records
+    it and is finished. Everything after that is optional: five reasons you can tap, a free-text
+    box, or nothing at all. The card says <em>already recorded either way</em>, and there is an undo
+    at every step.</p>
+    <p>The pairing matters. Because the card already showed you the <em>passage</em> it picked, a
+    bare “no” is not a vague thumbs-down — it says <em>that passage did not justify this paper for
+    my question</em>, against a known query, rank, sub-query and quote. The record is specific
+    before the user types anything, which is what makes one click enough.</p>
+    <div class="samp">query&nbsp; “What are the open questions in CRISPR off-ta…”<br>
+      paper&nbsp; <b>Huang 2022</b> · rank #12 · from search 3 of 3<br>
+      shown as why&nbsp; “compares viral and lipid nanoparticle delivery for in vivo…”<br>
+      verdict&nbsp; <b>not relevant</b> · Not about my question · “I meant off-target detection, not delivery”</div>
+    <div class="tr"><span class="l">for</span><span class="up">One click is the whole requirement; detail is opt-in and never blocks. Separates <em>right paper, wrong quote</em> from a retrieval mistake, which are fixed in different places.</span>
+      <span class="l">against</span><span class="dn">A flag inside a hover card needs a grace period so the card survives the mouse travel, and hover is a poor home for anything on touch.</span></div>
+    <span class="go">Open →</span>
+  </a>
+
+  <h2 class="sec">The five it came from</h2>
+
+  <a class="opt" href="option-1-assembled.html">
+    <div class="top"><h3>1 · Assembled</h3><span class="cost zero">zero extra compute</span></div>
+    <p>Built by string templating from what the pipeline already emitted: which of the three
+    sub-queries retrieved the paper, how many passages matched, whether the answer cited it.</p>
+    <div class="samp">why&nbsp; <b>Cited in the answer</b> · 23 passages matched<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;from search 2 of 3: “CRISPR off-target editing, genome-wide off-target profiling”</div>
+    <div class="tr"><span class="l">for</span><span class="up">Free, instant, identical every time, and impossible to hallucinate.</span>
+      <span class="l">against</span><span class="dn">Mechanical. It says where the paper came from, not what it contributes.</span></div>
+  </a>
+
+  <a class="opt" href="option-2-written.html">
+    <div class="top"><h3>2 · Written with the answer</h3><span class="cost some">~200 output tokens, on an existing call</span></div>
+    <p>The model that writes the answer also emits one short clause per source, in the same
+    completion. Twenty one-liners for a couple of hundred extra output tokens on a call that was
+    already happening.</p>
+    <div class="samp">why&nbsp; Surveyed the detection standards your question asks about.</div>
+    <div class="tr"><span class="l">for</span><span class="up">Reads like a person wrote it, and it is about the question rather than the plumbing. The cheapest way to get real language.</span>
+      <span class="l">against</span><span class="dn">Written before anyone hovers, so most of it is never read. Adds latency to the answer, and can be wrong with no way to tell.</span></div>
+  </a>
+
+  <a class="opt" href="option-3-on-demand.html">
+    <div class="top"><h3>3 · Written on hover</h3><span class="cost some">one small call per hovered paper</span></div>
+    <p>Nothing is precomputed. Hovering asks for one sentence about this paper against this
+    question, then caches it. Cost follows curiosity rather than result-set size.</p>
+    <div class="samp">why&nbsp; Closest match to your question. It surveys detection methods for therapeutic
+    editing and argues the standards disagree.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;written just now, for your question</div>
+    <div class="tr"><span class="l">for</span><span class="up">The richest answer, and you only pay for papers someone actually looked at. On a twenty-source list that is usually three or four.</span>
+      <span class="l">against</span><span class="dn">A spinner inside a hover is a bad place to wait. Hover is a glance; 600ms is not a glance.</span></div>
+  </a>
+
+  <a class="opt" href="option-4-own-words.html">
+    <div class="top"><h3>4 · In the paper’s own words</h3><span class="cost zero">zero extra compute</span></div>
+    <p>Nothing is generated. Retrieval already scored every passage in the paper against the query,
+    so the top-scoring one is shown verbatim.</p>
+    <div class="samp">why&nbsp; <b>“current standards do not agree on what counts as detected”</b><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;best of 23 matched passages · the paper’s words, not ours</div>
+    <div class="tr"><span class="l">for</span><span class="up">Free, and the only option that cannot hallucinate, because it is quoting. It also shows the researcher the actual evidence rather than a summary of it.</span>
+      <span class="l">against</span><span class="dn">A passage is not an explanation. Sometimes the best-matching sentence is a methods aside, and length is not controllable.</span></div>
+  </a>
+
+  <a class="opt" href="option-5-points.html">
+    <div class="top"><h3>5 · Points at the answer</h3><span class="cost zero">zero extra compute</span></div>
+    <p>No new sentence anywhere. Hovering a reference highlights the sentence in the answer it holds
+    up, and the card says how many.</p>
+    <div class="samp">why&nbsp; ← Highlighted: the sentence this paper holds up.</div>
+    <div class="tr"><span class="l">for</span><span class="up">Adds no words to a dense screen, and answers “why” with something the user already read and trusts. Also the only one that says <em>read, not cited</em> honestly.</span>
+      <span class="l">against</span><span class="dn">Says nothing about the eight papers of twenty the answer never cites, which are exactly the ones a researcher is unsure about.</span></div>
+  </a>
+
+  <footer>
+    <b>Decided:</b> <b>4</b>, with a fallback to <b>1</b> where no passage scored well.
+    It is free, it cannot be wrong, it shows evidence rather than a summary of evidence, and it needs
+    no new pipeline stage. <b>2</b> is the one to test against it if the quote turns out to read
+    badly at a glance; it is the cheapest way to get language that sounds like an explanation.
+    <b>3</b> is the one to avoid first: it puts a spinner inside a hover, which is the one place a
+    user will not wait.<br><br>
+    Real data throughout: six papers, three sub-queries and the funnel captured from the live CRISPR
+    thread. Passage counts are the product’s own for Wienert (27); the other five are illustrative.
+  </footer>
+</div>
+</body>
+</html>
