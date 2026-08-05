@@ -29,6 +29,12 @@ body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(
 .hd p{color:#a1a1aa;font-size:var(--t-xs);line-height:1.55;margin-top:2px;max-width:68rem}
 .hd .tag{display:inline-block;font-family:var(--mono);font-size:var(--t-2xs);background:var(--pos);
   color:#fff;border-radius:625rem;padding:1px var(--s-xs);margin-top:var(--s-xs)}
+.lbls{margin-top:var(--s-xs);display:flex;gap:var(--s-2xs);align-items:baseline;flex-wrap:wrap}
+.lbls .c{font-family:var(--mono);font-size:var(--t-2xs);color:#a1a1aa}
+.lbls button{font-family:var(--mono);font-size:var(--t-2xs);background:#ffffff1f;border:0;color:#fff;
+  border-radius:625rem;padding:1px .45rem;cursor:pointer}
+.lbls button:hover{background:#ffffff36}
+.lbls button.on{background:#fff;color:#18181b}
 .wrap{display:grid;grid-template-columns:1fr 24rem;height:calc(100vh - 92px);overflow:hidden}
 .wrap>*{min-height:0}
 
@@ -106,17 +112,18 @@ h1{font-size:var(--t-lg);letter-spacing:-.01em;margin-bottom:var(--s-sm)}
    or that it is a reason at all. It gets its own line because it no longer fits
    beside the quote. */
 .why{margin-top:var(--s-xs);border-top:1px solid var(--bd);padding-top:var(--s-xs)}
-.why .k{display:block;font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);
+.why .k{display:block;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);
   letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
 .why .v{font-size:var(--t-2xs);line-height:1.55}
 .why .v q{font-style:italic}
 .why .tag{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);display:block;margin-top:2px}
 
 /* the ask. A question, in the product's voice, never a verdict. */
-.act{margin-top:var(--s-xs);border-top:1px dashed var(--bd);padding-top:var(--s-xs)}
-.softbtn{font-family:inherit;font-size:var(--t-2xs);color:var(--accent-emph);background:none;border:0;
+.act{margin-top:var(--s-xs);border-top:1px dashed var(--bd);padding-top:var(--s-xs);
+  display:flex;justify-content:flex-end}
+.softbtn{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);background:none;border:0;
   cursor:pointer;padding:2px 0}
-.softbtn:hover{text-decoration:underline}
+.softbtn:hover{color:var(--fg);text-decoration:underline}
 .step{margin-top:var(--s-xs)}
 .step .qn{font-size:var(--t-xs);font-weight:500;line-height:1.45}
 .step .hint{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:2px}
@@ -150,7 +157,8 @@ h1{font-size:var(--t-lg);letter-spacing:-.01em;margin-bottom:var(--s-sm)}
 </style>
 </head>
 <body>
-<div class="hd"><b>__NAME__</b><p>__DESC__</p><span class="tag">__TAG__</span></div>
+<div class="hd"><b>__NAME__</b><p>__DESC__</p><span class="tag">__TAG__</span>
+  <div class="lbls" id="lbls"><span class="c">label:</span></div></div>
 
 <div class="wrap">
   <div class="mid">
@@ -181,6 +189,10 @@ thread. Nothing here is ever deleted — set-aside is reversible in one click.</
 <script>
 const P=__P__, A=__A__;
 const BASE="What are the open questions in CRISPR off-target effects for in vivo therapies?";
+/* four concise labels. The block needs to say whose reason it is without becoming
+   a sentence — a label that has to be read is a label that has failed. */
+const LABELS=["Why we selected this","Why this came up","Selected because","Why this one"];
+let labelIx=0;
 /* goals, not faults. The first is specific to the paper that missed; the rest are
    the two redirections that come up most on any question. */
 function goals(i){
@@ -211,10 +223,9 @@ function base(i){
     '<div class="ab">'+esc(p.ab)+'</div>'+
     '<div class="chips"><span class="ch">'+esc(p.type)+'</span><span class="ch">INDEXED</span>'+
     '<span class="ch">FULL TEXT</span></div>'+
-    '<div class="why"><span class="k">Why this paper was chosen</span><span class="v"><q>'+
+    '<div class="why"><span class="k">'+esc(LABELS[labelIx])+'</span><span class="v"><q>'+
     esc(p.passage)+'</q>'+
-    '<span class="tag">the line that matched your question most closely, of '+p.q+
-    ' that matched · quoted from the paper, not written by us</span></span></div>';
+    '<span class="tag">the closest of '+p.q+' matching lines · the paper’s own words</span></span></div>';
 }
 function place(row){
   const r=row.getBoundingClientRect(), h=card.offsetHeight, w=card.offsetWidth;
@@ -312,6 +323,12 @@ function rowHtml(i,isAside){
     '<h3>'+esc(p.t)+'</h3><div class="m">'+esc(p.a)+' · '+p.y+' · '+p.c+' cites · '+esc(p.j)+'</div>'+
     (isAside?'<span class="back">put it back</span>':'')+'</div>';
 }
+LABELS.forEach((l,k)=>{const b=document.createElement('button');
+  b.textContent=l; b.className=k===labelIx?'on':'';
+  b.addEventListener('click',()=>{labelIx=k;
+    document.querySelectorAll('#lbls button').forEach((x,j)=>x.classList.toggle('on',j===k));
+    if(openOn!=null&&card.classList.contains('on')) show(openOn,rowOf(openOn));});
+  $('lbls').appendChild(b)});
 $('send').addEventListener('click',()=>{const v=$('in').value.trim(); if(v)toast('Searching: “'+esc(v)+'”')});
 $('in').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=$('in').value.trim();
   if(v)toast('Searching: “'+esc(v)+'”')}});
@@ -376,7 +393,7 @@ function cardExtra(i){
       'font-size:.69rem;padding:5px .5rem;margin-top:.5rem">'+
       '<div class="two"><button class="go" id="here">Search this thread</button>'+
       '<button id="fresh">Start a new chat</button><button class="later" id="later">not now</button></div></div>';
-  return '<div class="act"><button class="softbtn" id="nq">Not quite what you needed? →</button></div>';
+  return '<div class="act"><button class="softbtn" id="nq">not what you needed?</button></div>';
 }
 function wireCard(i){
   const nq=card.querySelector('#nq');
@@ -402,7 +419,7 @@ function init(){card._stage=null}
         "because one miss in twenty is normal and three is a signal. Set aside three to see it.",
    js=r"""
 function cardExtra(i){
-  return '<div class="act"><button class="softbtn" id="sa">Set aside — not what I need</button></div>';
+  return '<div class="act"><button class="softbtn" id="sa">set aside</button></div>';
 }
 function wireCard(i){
   const b=card.querySelector('#sa');
@@ -498,7 +515,7 @@ function cardExtra(i){
           'would drop '+drop+' of 6, keep '+kp.length+'</span></button>'}).join('')+
       '</div><div id="nsug2"></div></div>';
   }
-  return '<div class="act"><button class="softbtn" id="nq">Not quite? Narrow the search →</button></div>';
+  return '<div class="act"><button class="softbtn" id="nq">narrow the search</button></div>';
 }
 function wireCard(i){
   const nq=card.querySelector('#nq');

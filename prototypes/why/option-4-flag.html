@@ -70,7 +70,7 @@ h1{font-size:var(--t-lg);letter-spacing:-.01em;margin-bottom:var(--s-sm)}
 
 /* ── the why line: option 4, the paper's own matched passage ──── */
 .why{margin-top:var(--s-xs);border-top:1px solid var(--bd);padding-top:var(--s-xs)}
-.why .k{display:block;font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);
+.why .k{display:block;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);
   letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
 .why .v{font-size:var(--t-2xs);line-height:1.55}
 .why .v q{font-style:italic}
@@ -239,9 +239,8 @@ function base(i){
 function show(i,row){
   openOn=i; card.classList.add('on');
   card.innerHTML=base(i)+
-    '<div class="why"><span class="k">Why this paper was chosen</span><span class="v"><q>'+esc(P[i].passage)+'</q>'+
-    '<span class="tag">the line that matched your question most closely, of '+P[i].q+
-    ' that matched · quoted from the paper, not written by us</span></span></div>'+
+    '<div class="why"><span class="k">Why we selected this</span><span class="v"><q>'+esc(P[i].passage)+'</q>'+
+    '<span class="tag">the closest of '+P[i].q+' matching lines · the paper’s own words</span></span></div>'+
     (flags[i]?doneBlock(i):'<div class="act"><button class="flag">⚑ not relevant</button></div>');
   wire(i); place(row); lit(i);
 }

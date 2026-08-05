@@ -79,7 +79,7 @@ h1{font-size:var(--t-lg);letter-spacing:-.01em;margin-bottom:var(--s-sm)}
    or that it is a reason at all. It gets its own line because it no longer fits
    beside the quote. */
 .why{margin-top:var(--s-xs);border-top:1px solid var(--bd);padding-top:var(--s-xs)}
-.why .k{display:block;font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);
+.why .k{display:block;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);
   letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
 .why .v{font-size:var(--t-2xs);line-height:1.55}
 .why .v em{font-style:normal;color:var(--accent-emph)}
@@ -221,7 +221,7 @@ OPTIONS = [
 function show(i,row){
   const p=P[i], used=A.some(a=>a.srcs.includes(i));
   card.innerHTML=base(i)+
-    '<div class="why"><span class="k">Why this paper was chosen</span><span class="v">'+
+    '<div class="why"><span class="k">Why we selected this</span><span class="v">'+
     (used?'<em>Cited in the answer</em>':'<em>Read, not cited</em>')+' · '+p.q+' passages matched'+
     '<span class="tag">from search '+(p.sq+1)+' of 3: “'+esc(SQ[p.sq])+'”</span></span></div>';
   place(row); lit(i);
@@ -232,7 +232,7 @@ function show(i,row){
    js=r"""
 function show(i,row){
   card.innerHTML=base(i)+
-    '<div class="why"><span class="k">Why this paper was chosen</span><span class="v">'+esc(P[i].why2)+'</span></div>';
+    '<div class="why"><span class="k">Why we selected this</span><span class="v">'+esc(P[i].why2)+'</span></div>';
   place(row); lit(i);
 }"""),
  dict(slug="on-demand", name="3 · Written on hover",
@@ -242,11 +242,11 @@ function show(i,row){
 const cache={};
 function show(i,row){
   if(cache[i]){
-    card.innerHTML=base(i)+'<div class="why"><span class="k">Why this paper was chosen</span><span class="v">'+
+    card.innerHTML=base(i)+'<div class="why"><span class="k">Why we selected this</span><span class="v">'+
       esc(cache[i])+'<span class="tag">from cache · asked once</span></span></div>';
     place(row); lit(i); return;
   }
-  card.innerHTML=base(i)+'<div class="why"><span class="k">Why this paper was chosen</span><span class="v">'+
+  card.innerHTML=base(i)+'<div class="why"><span class="k">Why we selected this</span><span class="v">'+
     '<div class="shim"></div><div class="shim b"></div>'+
     '<span class="tag">asking about this paper…</span></span></div>';
   place(row); lit(i);
@@ -254,7 +254,7 @@ function show(i,row){
   show._t=setTimeout(()=>{
     if(!card.classList.contains('on')) return;
     cache[i]=P[i].why3;
-    card.innerHTML=base(i)+'<div class="why"><span class="k">Why this paper was chosen</span><span class="v">'+
+    card.innerHTML=base(i)+'<div class="why"><span class="k">Why we selected this</span><span class="v">'+
       esc(P[i].why3)+'<span class="tag">written just now, for your question</span></span></div>';
     place(row);
   },620);
@@ -265,9 +265,8 @@ function show(i,row){
    js=r"""
 function show(i,row){
   card.innerHTML=base(i)+
-    '<div class="why"><span class="k">Why this paper was chosen</span><span class="v"><q>'+esc(P[i].passage)+'</q>'+
-    '<span class="tag">the line that matched your question most closely, of '+P[i].q+
-    ' that matched · quoted from the paper, not written by us</span></span></div>';
+    '<div class="why"><span class="k">Why we selected this</span><span class="v"><q>'+esc(P[i].passage)+'</q>'+
+    '<span class="tag">the closest of '+P[i].q+' matching lines · the paper’s own words</span></span></div>';
   place(row); lit(i);
 }"""),
  dict(slug="points", name="5 · Points at the answer",
@@ -277,7 +276,7 @@ function show(i,row){
 function show(i,row){
   const n=A.filter(a=>a.srcs.includes(i)).length;
   card.innerHTML=base(i)+
-    '<div class="why"><span class="k">Why this paper was chosen</span><span class="v">'+
+    '<div class="why"><span class="k">Why we selected this</span><span class="v">'+
     (n?'← Highlighted: the '+(n===1?'sentence':n+' sentences')+' this paper holds up.'
       :'← Nothing. It was read for this question and never cited.')+'</span></div>';
   place(row); lit(i);

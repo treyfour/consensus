@@ -22,6 +22,12 @@ body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(
 .hd p{color:#a1a1aa;font-size:var(--t-xs);line-height:1.55;margin-top:2px;max-width:68rem}
 .hd .tag{display:inline-block;font-family:var(--mono);font-size:var(--t-2xs);background:var(--pos);
   color:#fff;border-radius:625rem;padding:1px var(--s-xs);margin-top:var(--s-xs)}
+.lbls{margin-top:var(--s-xs);display:flex;gap:var(--s-2xs);align-items:baseline;flex-wrap:wrap}
+.lbls .c{font-family:var(--mono);font-size:var(--t-2xs);color:#a1a1aa}
+.lbls button{font-family:var(--mono);font-size:var(--t-2xs);background:#ffffff1f;border:0;color:#fff;
+  border-radius:625rem;padding:1px .45rem;cursor:pointer}
+.lbls button:hover{background:#ffffff36}
+.lbls button.on{background:#fff;color:#18181b}
 .wrap{display:grid;grid-template-columns:1fr 24rem;height:calc(100vh - 92px);overflow:hidden}
 .wrap>*{min-height:0}
 
@@ -99,17 +105,18 @@ h1{font-size:var(--t-lg);letter-spacing:-.01em;margin-bottom:var(--s-sm)}
    or that it is a reason at all. It gets its own line because it no longer fits
    beside the quote. */
 .why{margin-top:var(--s-xs);border-top:1px solid var(--bd);padding-top:var(--s-xs)}
-.why .k{display:block;font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);
+.why .k{display:block;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);
   letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
 .why .v{font-size:var(--t-2xs);line-height:1.55}
 .why .v q{font-style:italic}
 .why .tag{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);display:block;margin-top:2px}
 
 /* the ask. A question, in the product's voice, never a verdict. */
-.act{margin-top:var(--s-xs);border-top:1px dashed var(--bd);padding-top:var(--s-xs)}
-.softbtn{font-family:inherit;font-size:var(--t-2xs);color:var(--accent-emph);background:none;border:0;
+.act{margin-top:var(--s-xs);border-top:1px dashed var(--bd);padding-top:var(--s-xs);
+  display:flex;justify-content:flex-end}
+.softbtn{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);background:none;border:0;
   cursor:pointer;padding:2px 0}
-.softbtn:hover{text-decoration:underline}
+.softbtn:hover{color:var(--fg);text-decoration:underline}
 .step{margin-top:var(--s-xs)}
 .step .qn{font-size:var(--t-xs);font-weight:500;line-height:1.45}
 .step .hint{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:2px}
@@ -143,7 +150,8 @@ h1{font-size:var(--t-lg);letter-spacing:-.01em;margin-bottom:var(--s-sm)}
 </style>
 </head>
 <body>
-<div class="hd"><b>B · Set aside first, ask later</b><p>The click does something useful for the user rather than something for us: <b>Set aside</b> moves the paper into a collapsed group, reversibly. No dialog, no questions. Only once <b>three</b> have been set aside does a gentle line appear offering a different angle, because one miss in twenty is normal and three is a signal. Set aside three to see it.</p><span class="tag">one is tidying · three is a pattern</span></div>
+<div class="hd"><b>B · Set aside first, ask later</b><p>The click does something useful for the user rather than something for us: <b>Set aside</b> moves the paper into a collapsed group, reversibly. No dialog, no questions. Only once <b>three</b> have been set aside does a gentle line appear offering a different angle, because one miss in twenty is normal and three is a signal. Set aside three to see it.</p><span class="tag">one is tidying · three is a pattern</span>
+  <div class="lbls" id="lbls"><span class="c">label:</span></div></div>
 
 <div class="wrap">
   <div class="mid">
@@ -174,6 +182,10 @@ thread. Nothing here is ever deleted — set-aside is reversible in one click.</
 <script>
 const P=[{"n": "Wienert 2022", "t": "CRISPR nuclease off-target activity and mitigation strategies", "a": "B. Wienert", "y": 2022, "c": 46, "j": "Frontiers in Genome Editing", "type": "LITERATURE REVIEW", "q": 27, "topic": "mitigation strategies", "ab": "Reviews the sources of Cas9 off-target activity and the mitigation strategies available, from guide design through high-fidelity variants.", "passage": "large-scale aberrations have recently been reported… these are more difficult to detect using current workflows, indicating a major unmet need"}, {"n": "Höijer 2021", "t": "CRISPR-Cas9 induces large structural variants at on- and off-target sites", "a": "I. Höijer", "y": 2021, "c": 149, "j": "Nature Communications", "type": "PRIMARY RESEARCH", "q": 19, "topic": "structural variants", "ab": "Long-read sequencing reveals large deletions and rearrangements that short-read, indel-focused assays systematically miss.", "passage": "long-read sequencing reveals large deletions and rearrangements that short-read, indel-focused assays systematically miss"}, {"n": "Cancellieri 2022", "t": "Human genetic diversity alters off-target outcomes of therapeutic gene editing", "a": "S. Cancellieri", "y": 2022, "c": 98, "j": "Nature Genetics", "type": "PRIMARY RESEARCH", "q": 14, "topic": "population genetics", "ab": "Shows that individual genetic variation changes the off-target landscape, so a reference-genome analysis under-reports risk.", "passage": "individual genetic variation changes the off-target landscape, so a reference-genome analysis under-reports risk"}, {"n": "Kalter 2025", "t": "Off-target effects in CRISPR-Cas genome editing for human therapeutics", "a": "N. Kalter", "y": 2025, "c": 56, "j": "Molecular Therapy Nucleic Acids", "type": "LITERATURE REVIEW", "q": 23, "topic": "detection standards", "ab": "Surveys detection methods for therapeutic editing and argues current standards do not agree on what counts as detected.", "passage": "current standards do not agree on what counts as detected"}, {"n": "Angelini Stewart 2025", "t": "Measurement and clinical interpretation of CRISPR off-targets", "a": "A. Angelini Stewart", "y": 2025, "c": 6, "j": "Nature Genetics", "type": "LITERATURE REVIEW", "q": 11, "topic": "clinical interpretation", "ab": "Proposes a framework for interpreting off-target measurements clinically, including what to monitor after delivery.", "passage": "a framework for interpreting off-target measurements clinically, including what to monitor after delivery"}, {"n": "Huang 2022", "t": "In vivo delivery of CRISPR-Cas9 genome editing components", "a": "K. Huang", "y": 2022, "c": 39, "j": "Biomaterials", "type": "LITERATURE REVIEW", "q": 8, "topic": "delivery", "ab": "Compares viral and lipid nanoparticle delivery for in vivo editing, and the tropism constraints each imposes.", "passage": "compares viral and lipid nanoparticle delivery for in vivo editing, and the tropism constraints each imposes"}], A=[{"s": "Several unresolved questions persist across detection, biological variability, structural variants, and clinical monitoring.", "srcs": [0, 3]}, {"s": "Large rearrangements are systematically harder to detect than small indels.", "srcs": [1]}, {"s": "Individual genetic variation shifts the off-target landscape away from the reference genome.", "srcs": [2]}, {"s": "Nothing settles what should be monitored once an edit reaches a patient.", "srcs": [4]}, {"s": "Delivery remains the rate-limiting step for in vivo editing.", "srcs": [5]}];
 const BASE="What are the open questions in CRISPR off-target effects for in vivo therapies?";
+/* four concise labels. The block needs to say whose reason it is without becoming
+   a sentence — a label that has to be read is a label that has failed. */
+const LABELS=["Why we selected this","Why this came up","Selected because","Why this one"];
+let labelIx=0;
 /* goals, not faults. The first is specific to the paper that missed; the rest are
    the two redirections that come up most on any question. */
 function goals(i){
@@ -204,10 +216,9 @@ function base(i){
     '<div class="ab">'+esc(p.ab)+'</div>'+
     '<div class="chips"><span class="ch">'+esc(p.type)+'</span><span class="ch">INDEXED</span>'+
     '<span class="ch">FULL TEXT</span></div>'+
-    '<div class="why"><span class="k">Why this paper was chosen</span><span class="v"><q>'+
+    '<div class="why"><span class="k">'+esc(LABELS[labelIx])+'</span><span class="v"><q>'+
     esc(p.passage)+'</q>'+
-    '<span class="tag">the line that matched your question most closely, of '+p.q+
-    ' that matched · quoted from the paper, not written by us</span></span></div>';
+    '<span class="tag">the closest of '+p.q+' matching lines · the paper’s own words</span></span></div>';
 }
 function place(row){
   const r=row.getBoundingClientRect(), h=card.offsetHeight, w=card.offsetWidth;
@@ -275,7 +286,7 @@ function wireGoals(i,onPick){
 }
 
 function cardExtra(i){
-  return '<div class="act"><button class="softbtn" id="sa">Set aside — not what I need</button></div>';
+  return '<div class="act"><button class="softbtn" id="sa">set aside</button></div>';
 }
 function wireCard(i){
   const b=card.querySelector('#sa');
@@ -343,6 +354,12 @@ function rowHtml(i,isAside){
     '<h3>'+esc(p.t)+'</h3><div class="m">'+esc(p.a)+' · '+p.y+' · '+p.c+' cites · '+esc(p.j)+'</div>'+
     (isAside?'<span class="back">put it back</span>':'')+'</div>';
 }
+LABELS.forEach((l,k)=>{const b=document.createElement('button');
+  b.textContent=l; b.className=k===labelIx?'on':'';
+  b.addEventListener('click',()=>{labelIx=k;
+    document.querySelectorAll('#lbls button').forEach((x,j)=>x.classList.toggle('on',j===k));
+    if(openOn!=null&&card.classList.contains('on')) show(openOn,rowOf(openOn));});
+  $('lbls').appendChild(b)});
 $('send').addEventListener('click',()=>{const v=$('in').value.trim(); if(v)toast('Searching: “'+esc(v)+'”')});
 $('in').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=$('in').value.trim();
   if(v)toast('Searching: “'+esc(v)+'”')}});
