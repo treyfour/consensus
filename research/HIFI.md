@@ -5,9 +5,13 @@ Consensus's actual shell. The lo-fi stays exactly as it is: it is the argument.
 This one is the argument wearing the product's clothes.
 
 The rule for this build was **their pattern wins, always**. Where our interaction
-and the shipped product disagreed, the product won and the bend is logged in §3.
+and the shipped product disagreed, the product won, and every bend is logged in §3.
 
-Proof: `node scripts/drive-hifi.mjs` — 97 assertions, console clean, walks all five
+There is exactly **one** deliberate exception, and it is §3.1: Notes is a second
+right-hand panel, where the product has only one. It is called out first, in full,
+with everything it cost.
+
+Proof: `node scripts/drive-hifi.mjs` — 104 assertions, console clean, walks all five
 acts end to end. Screenshots land in `/tmp` or `SHOTS=…`.
 
 ---
@@ -45,12 +49,13 @@ documented exceptions (§4).
 
 The concept adds one noun — the **note** — and nothing else.
 
-- **Notes is the third thing the drawer can be.** The product already swaps that
-  panel between References and the Paper detail. Notes joins them, opened from a
-  `Notes` button placed beside `References` in the thread header. Its header uses
-  the identical grammar References uses: `Notes / <the thread it belongs to> ⌄`,
-  where References reads `References / <the query> ⌄`. Its control row mirrors
-  `Results N` as `Cards N`.
+- **Notes is its own column, between the thread and the References drawer.** It
+  is opened from a `Notes` button placed beside `References` in the thread header,
+  and it borrows the drawer's grammar exactly: `Notes / <the thread it belongs to> ⌄`
+  against References' `References / <the query> ⌄`, and a control row that mirrors
+  `Results N` as `Cards N`. **It does not replace References** — see §3.1, which is
+  the one place this build deliberately extends the product's layout instead of
+  folding into it.
 - **WHY THIS PAPER** appears in exactly two places, both of which already existed:
   the reference hover card, and the head of the paper drawer's **Evidence (27)**
   tab. Evidence is the tab the product already fills with per-query matches; it
@@ -73,14 +78,33 @@ The concept adds one noun — the **note** — and nothing else.
 
 ## 3 · Where our interaction had to bend
 
-Ten places. In every one the product's pattern won.
+Ten places. The product's pattern won in nine of them. The first is the exception,
+and it is an extension rather than a bend, so it is stated as one.
 
-1. **Notes and References can never be on screen together.** The drawer holds one
-   thing. The lo-fi put them side by side, which made drag-to-keep trivial.
-   *Consequence:* the `Notes` **button** in the thread header is the drop target.
-   Holding a drag over it for 650ms springs the panel open so a drop can be placed
-   precisely (§4 — invented). Dropping straight onto the button keeps the drawer on
-   References and the toast offers `View`.
+1. **The one deliberate extension: a second panel.** Consensus has exactly one
+   right-hand panel, which swaps between References and the Paper detail. This build
+   adds a second column — Notes — to its left, so the layout is
+   `thread · Notes · References`.
+
+   This was built the other way first, with Notes as a third mode of the single
+   drawer, and it was wrong. The central move in the whole concept is *drag a
+   reference into a note*, and it cannot be shown when opening the destination
+   closes the source. Folding into the product's layout cost the thing the layout
+   was carrying.
+
+   *Consequences, all of them logged rather than hidden:*
+   - The thread column narrows to ~32rem with both panels open. The header answers
+     by **shedding its labels, never a control**: below 40rem the `Notes`,
+     `References` and `Share` pills become icon-only with their tooltips intact, and
+     the title truncates. Asserted — every control keeps a non-zero box.
+   - Notes carries a distinct sticky-note glyph so it is not mistaken for
+     References' document glyph at icon size.
+   - The `Notes` **button** stays a drop target for when the column is closed, and
+     springs it open if a drag rests on it for 650ms (§4 — invented). Dropping
+     straight onto the button keeps everything where it is and the toast offers
+     `View`.
+   - The Paper drawer's action bar had to lose two of its four icon buttons to fit
+     25rem. `Ask`, `＋ Add to note`, `Save ⌄`, quote, link and `PDF ↗` remain.
 2. **The lo-fi's floating action bar for reference selection is gone.** The product
    shows no floating bar in that panel (`screens/05`), and one would land on top of
    the composer. Selecting references now swaps the panel's own `Results N` row for
@@ -168,7 +192,8 @@ The rules in `research/LOOP.md` all still hold, and the driver still proves them
 
 - **Desktop only.** CDL defines `--cdl-breakpoint-tablet: 50rem` and
   `--cdl-breakpoint-desktop: 64rem`; this build targets 1440×900 and does not
-  implement either breakpoint.
+  implement either breakpoint. Three columns at once assume roughly 1360px or more;
+  the header condenses on the way down but the panels do not yet collapse.
 - **Light theme only.** Dark was explicitly out of scope. The token file carries a
   full dark ramp if it is ever wanted.
 - `Snapshot`, `Attachment` and `Metadata` in the paper drawer are labelled stubs.

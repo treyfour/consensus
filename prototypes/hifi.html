@@ -88,12 +88,17 @@ svg{display:block;flex:none}
 .stage{position:relative;overflow:hidden}
 .screen{position:absolute;inset:0;display:none}
 .screen.on{display:grid}
-#threadScreen{grid-template-columns:1fr auto}
+#threadScreen{grid-template-columns:1fr auto auto}
 #threadScreen>*{min-height:0;min-width:0}
 .mid{display:flex;flex-direction:column;min-height:0;position:relative}
 
 /* thread header — screens/03 */
-.thd{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-sm) var(--s-lg);flex:none}
+.thd{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-sm) var(--s-lg);flex:none;overflow:hidden}
+/* with three columns open the thread gets narrow, so the header sheds its
+   labels before it sheds a control — every button stays reachable */
+.thd.tight{padding-left:var(--s-md);padding-right:var(--s-md);gap:var(--s-2xs)}
+.thd.tight .pill .lb{display:none}
+.thd.tight .pill{padding:0 var(--s-xs)}
 .thd .ttl{font-size:var(--h-2xs);font-weight:var(--w-bold);white-space:nowrap;overflow:hidden;
   text-overflow:ellipsis;min-width:3rem}
 .thd .cnt{font-size:var(--t-sm);color:var(--muted)}
@@ -214,12 +219,22 @@ svg{display:block;flex:none}
 .blank span{font-size:var(--t-sm);color:var(--muted);line-height:var(--lh-sm)}
 .blank kbd{font-family:var(--mono);font-size:var(--t-2xs);background:var(--faint);border-radius:var(--r-xs);padding:1px 4px}
 
-/* ── the drawer: References · Paper · Notes ──────────────────────────────
-   The product has one right-hand drawer that swaps between References and the
-   Paper detail. Notes is a third thing it can be — same frame, same header
-   grammar, opened from the thread header beside References. */
-.drawer{width:28rem;border-left:1px solid var(--bd);display:none;flex-direction:column;min-height:0}
+/* ── the panels ──────────────────────────────────────────────────────────
+   The product's right-hand drawer swaps between References and the Paper
+   detail. Notes is a panel of its own, to the LEFT of that drawer, so a
+   reference can be dragged straight across into a card without either side
+   having to go away. Same frame, same header grammar. */
+.drawer{width:25rem;border-left:1px solid var(--bd);display:none;flex-direction:column;min-height:0}
 .drawer.on{display:flex}
+.notespane{width:20rem;border-left:1px solid var(--bd);display:none;flex-direction:column;min-height:0}
+.notespane.on{display:flex}
+.notespane .dhd{padding:var(--s-sm) var(--s-xs) var(--s-sm) var(--s-md);gap:var(--s-2xs)}
+.notespane .dhd .t{font-size:var(--t-lg)}
+.notespane .dswitch{flex:1;min-width:0;max-width:none}
+.notespane .dsub,.notespane .chips{padding-left:var(--s-md);padding-right:var(--s-md)}
+.notespane .dbody{padding-left:var(--s-md);padding-right:var(--s-md)}
+.notespane .ncomp{margin-left:var(--s-md);margin-right:var(--s-md)}
+.notespane.over{background:var(--accent-subtle)}
 .dhd{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-sm) var(--s-md) var(--s-sm) var(--s-lg);flex:none}
 .dhd .t{font-size:var(--h-2xs);font-weight:var(--w-bold);white-space:nowrap}
 .dhd .slash{color:var(--bd-emph)}
@@ -539,9 +554,9 @@ body.dragging .ref,body.dragging .card{cursor:grabbing}
           <span class="sp"></span>
           <button class="ghostbtn" title="Save thread"></button>
           <button class="ghostbtn" title="Thread settings"></button>
-          <button class="pill" id="btnNotes" title="Notes for this thread">Notes<span id="btnNotesN" style="color:var(--muted)"></span></button>
-          <button class="pill" id="btnRefs">References</button>
-          <button class="pill tint" id="btnShare">Share</button>
+          <button class="pill" id="btnNotes" title="Notes for this thread"><span class="lb">Notes</span><span id="btnNotesN" style="color:var(--muted)"></span></button>
+          <button class="pill" id="btnRefs" title="References"><span class="lb">References</span></button>
+          <button class="pill tint" id="btnShare" title="Share"><span class="lb">Share</span></button>
         </header>
 
         <div class="body" id="body"><div class="inner" id="thread"></div></div>
@@ -567,7 +582,34 @@ body.dragging .ref,body.dragging .card{cursor:grabbing}
         </div>
       </div>
 
-      <!-- ── the drawer: one frame, three modes ───────────────────────── -->
+      <!-- ── notes: its own column, to the left of the drawer ──────────── -->
+      <aside class="notespane" id="notesPane">
+        <header class="dhd">
+          <span class="t">Notes</span>
+          <span class="slash">/</span>
+          <button class="dswitch" id="nSwitch"><span id="nSwitchIco"></span><span class="grow" id="nSwitchLab"></span><span id="nSwitchChev"></span></button>
+          <button class="xbtn" id="nClose" title="Close notes"></button>
+        </header>
+        <div id="mNotes" style="display:flex;flex-direction:column;min-height:0;flex:1">
+          <div class="dsub"><span class="t">Cards</span><span class="n" id="cardN">0</span><span class="sp"></span>
+            <button class="pill sm" id="filterBtn">Filter</button>
+            <button class="pill sm" id="askNote">Ask <span id="askN">0</span></button>
+            <button class="ghostbtn" id="libBtn" title="Add this note to a collection"></button>
+          </div>
+          <div class="chips" id="chips"></div>
+          <div class="ncomp" id="ncomp">
+            <textarea id="cText" rows="1" placeholder="Write a note…"></textarea>
+            <div class="pins" id="cPins"></div>
+          </div>
+          <div class="dbody" id="notesBody">
+            <div id="noteList"></div>
+            <div class="tail" id="tail"></div>
+            <div class="hint" id="hint"></div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ── the drawer: References, or the Paper ───────────────────────── -->
       <aside class="drawer" id="drawer">
         <header class="dhd">
           <span class="t" id="dTitle">References</span>
@@ -604,24 +646,6 @@ body.dragging .ref,body.dragging .card{cursor:grabbing}
           <div class="pbar" id="pBar"></div>
         </div>
 
-        <!-- notes -->
-        <div id="mNotes" style="display:none;flex-direction:column;min-height:0;flex:1">
-          <div class="dsub"><span class="t">Cards</span><span class="n" id="cardN">0</span><span class="sp"></span>
-            <button class="pill sm" id="filterBtn">Filter</button>
-            <button class="pill sm" id="askNote">Ask <span id="askN">0</span></button>
-            <button class="ghostbtn" id="libBtn" title="Add this note to a collection"></button>
-          </div>
-          <div class="chips" id="chips"></div>
-          <div class="ncomp" id="ncomp">
-            <textarea id="cText" rows="1" placeholder="Write a note…"></textarea>
-            <div class="pins" id="cPins"></div>
-          </div>
-          <div class="dbody" id="notesBody">
-            <div id="noteList"></div>
-            <div class="tail" id="tail"></div>
-            <div class="hint" id="hint"></div>
-          </div>
-        </div>
       </aside>
     </section>
 
@@ -683,7 +707,7 @@ const IC={
  eye:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
  spark:'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.9 2.1L22 19l-2.1.9L19 22l-.9-2.1L16 19l2.1-.9z',
  filter:'M3 5h18M6 12h12M10 19h4', check:'M4 12l5 5L20 6', ext:'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5',
- lock:'M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5z', note:'M5 3h9l5 5v13H5zM14 3v5h5M8 13h7M8 17h5',
+ lock:'M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5z', note:'M4 4h16v10l-6 6H4zM20 14h-6v6M8 9h8M8 13h4',
  info:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 8v.5',
  dots:'M6 12h.01M12 12h.01M18 12h.01', grip:'M9 6h.01M9 12h.01M9 18h.01M15 6h.01M15 12h.01M15 18h.01',
  flask:'M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3',
@@ -787,7 +811,7 @@ const el=(tag,cls,html)=>{const d=document.createElement(tag);if(cls)d.className
 let scriptAt=0;
 let QUERIES=[], CARDS=[], seq=1, activeQ=0, freshSet=new Set(),
     selRef=new Set(), drag=null, dragCard=null, staged=[], savedTo=null,
-    dmode='refs', paperOn=null, pTab='overview', screen='thread',
+    dmode='refs', showNotes=false, paperOn=null, pTab='overview', screen='thread',
     coll=null, tab='items', selNotes=new Set(), openNote=null,
     activeTags=new Set(), query='', attached=null, attachedCards=[], inclNotes=false;
 const dropline=el('div','dropline');
@@ -837,6 +861,8 @@ function paintChrome(){
   $('seedBtn').nextElementSibling.innerHTML=svg('mic',18);
   $('sendBtn').innerHTML=svg('up',18);
   $('dClose').innerHTML=svg('x',16);
+  $('nClose').innerHTML=svg('x',16);
+  $('nSwitchIco').innerHTML=svg('note',16); $('nSwitchChev').innerHTML=svg('chev',14);
   const ds=$('mRefs').querySelectorAll('.dsub .ghostbtn');
   ds[0].innerHTML=svg('bookmark',18); ds[1].innerHTML=svg('down',18);
   const sg=document.querySelectorAll('.seg button');
@@ -864,8 +890,8 @@ function toast(m,action){
   t.classList.add('on');
   clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),action?5200:2800);
 }
-/* if the drawer is not on Notes, the toast offers to take you there */
-const viewNote=()=>dmode==='notes'?null:{label:'View',fn:()=>{setMode('notes');$('notesBody').scrollTop=0}};
+/* if the notes column is closed, the toast offers to open it */
+const viewNote=()=>showNotes?null:{label:'View',fn:()=>{showNotesPane(true);$('notesBody').scrollTop=0}};
 
 /* ══ provenance — live-computed from the searches you actually ran ═══════ */
 const recurrence=i=>QUERIES.filter(q=>q.refs.some(r=>r.p===i)).length;
@@ -903,9 +929,7 @@ function setMode(m,toggle){
   $('drawer').classList.toggle('on',!!m);
   $('mRefs').style.display=m==='refs'?'flex':'none';
   $('mPaper').style.display=m==='paper'?'flex':'none';
-  $('mNotes').style.display=m==='notes'?'flex':'none';
   $('btnRefs').classList.toggle('on',m==='refs');
-  $('btnNotes').classList.toggle('on',m==='notes');
   if(m==='refs'){$('dTitle').textContent='References';$('dSlash').style.display='';
     $('dSwitch').style.display='';$('dSwitchIco').innerHTML=svg('chat',16);
     $('dSwitchChev').innerHTML=svg('chev',14);
@@ -913,24 +937,36 @@ function setMode(m,toggle){
     renderRefs()}
   if(m==='paper'){$('dTitle').textContent='Paper';$('dSlash').style.display='none';
     $('dSwitch').style.display='none';renderPaper()}
-  if(m==='notes'){$('dTitle').textContent='Notes';$('dSlash').style.display='';
-    $('dSwitch').style.display='';$('dSwitchIco').innerHTML=svg('note',16);
-    $('dSwitchChev').innerHTML=svg('chev',14);
-    render();requestAnimationFrame(()=>{fit($('cText'));
-      $('noteList').querySelectorAll('textarea').forEach(fit)})}
+  fitHeader();
 }
+/* Notes is its own column, so opening it never costs you References. */
+function showNotesPane(v){
+  showNotes=v;
+  $('notesPane').classList.toggle('on',v);
+  $('btnNotes').classList.toggle('on',v);
+  fitHeader();
+  if(v){render();requestAnimationFrame(()=>{fit($('cText'));
+    $('noteList').querySelectorAll('textarea').forEach(fit)})}
+}
+function fitHeader(){
+  requestAnimationFrame(()=>{
+    const w=document.querySelector('.mid').clientWidth;
+    document.querySelector('.thd').classList.toggle('tight',w<40*16);
+  });
+}
+window.addEventListener('resize',fitHeader);
 $('btnRefs').addEventListener('click',()=>setMode('refs',true));
-$('btnNotes').addEventListener('click',()=>setMode('notes',true));
+$('btnNotes').addEventListener('click',()=>showNotesPane(!showNotes));
 $('dClose').addEventListener('click',()=>setMode(null));
+$('nClose').addEventListener('click',()=>showNotesPane(false));
 
-/* The drawer holds one thing at a time, so References and Notes are never both
-   on screen. The Notes button in the header is therefore the drop target — and
-   holding a drag over it for a moment springs the panel open so you can place
-   the drop precisely. */
+/* References and Notes are both on screen, so the ordinary move is to drag one
+   across into a card. The Notes button stays a drop target for when the column
+   is closed, and springs it open if you hold a drag over it. */
 let springT=null;
 $('btnNotes').addEventListener('dragover',e=>{if(!drag)return;e.preventDefault();
   $('btnNotes').classList.add('drop');
-  if(!springT)springT=setTimeout(()=>{setMode('notes');springT=null},650)});
+  if(!springT)springT=setTimeout(()=>{showNotesPane(true);springT=null},650)});
 $('btnNotes').addEventListener('dragleave',()=>{$('btnNotes').classList.remove('drop');
   clearTimeout(springT);springT=null});
 $('btnNotes').addEventListener('drop',e=>{if(!drag)return;e.preventDefault();
@@ -1469,13 +1505,12 @@ function renderChips(){
 function syncSwitch(){
   const n=NOTES.find(x=>x.id===activeNote);
   if(!n)return;
-  if(dmode==='notes') $('dSwitchLab').textContent=n.thread+
+  $('nSwitchLab').textContent=n.thread+
     (CARDS.length?' · '+CARDS.length+(CARDS.length===1?' card':' cards'):' · empty');
 }
-$('dSwitch').addEventListener('click',e=>{
-  e.stopPropagation();
+function openSwitcher(which,btn){
   const m=$('menu'); m.innerHTML='';
-  if(dmode==='refs'){
+  if(which==='refs'){
     m.innerHTML='<div class="lab">REFERENCES FOR</div>';
     QUERIES.forEach((q,i)=>{const b=el('button');
       b.innerHTML=svg('chat',15)+'<span class="grow"><b></b><span></span></span>';
@@ -1505,8 +1540,10 @@ $('dSwitch').addEventListener('click',e=>{
       NOTES.push(n);switchNote(n.id)});
     m.appendChild(nb);
   }
-  place(m,$('dSwitch'));
-});
+  place(m,btn);
+}
+$('dSwitch').addEventListener('click',e=>{e.stopPropagation();openSwitcher('refs',$('dSwitch'))});
+$('nSwitch').addEventListener('click',e=>{e.stopPropagation();openSwitcher('notes',$('nSwitch'))});
 /* the live note's cards are held in CARDS, so sync it back before reading */
 function syncActive(){const cur=NOTES.find(n=>n.id===activeNote);
   if(cur){cur.cards=CARDS; if(savedTo)cur.coll=savedTo}}
@@ -1872,6 +1909,8 @@ function askNotes(){
   const fresh={id:'n'+(NOTES.length+1),thread:$('threadName').textContent,cards:[],coll:''};
   NOTES.push(fresh); activeNote=fresh.id; CARDS=fresh.cards; savedTo=null;
   activeTags.clear(); query=''; clearAttach();
+  /* the comparison gets the room; the fresh note is there when you go looking */
+  showNotesPane(false);
   renderThread(); setMode('refs'); render();
   toast('Both notes are attached. Ask anything else and it stays inside them.');
 }
@@ -1926,7 +1965,7 @@ function compareBlock(picked){
 /* ══ boot ═══════════════════════════════════════════════════════════════ */
 paintChrome();
 $('tail').textContent='Nothing here yet.\nDrag references onto the Notes button, or type above.';
-setMode('refs');
+setMode('refs'); showNotesPane(false);
 renderThread(); render(); fit($('cText'));
 </script>
 </body>

@@ -18,6 +18,9 @@ const ok=(l,c,x)=>{c?(pass++,console.log('  ok   '+l)):(fail++,console.log('  FA
 const shot=n=>p.screenshot({path:OUT+n});
 const txt=s=>p.evaluate(x=>document.querySelector(x)?.textContent||'',s);
 const n=s=>p.evaluate(x=>document.querySelectorAll(x).length,s);
+/* Notes is its own column now, so opening it is a state, not a toggle */
+const openNotes=async()=>{if(!await p.evaluate(()=>showNotes)){
+  await p.click('#btnNotes'); await p.waitForTimeout(250)}};
 
 console.log('\n0 · the shell is theirs');
 ok('the product sidebar, not a rail',
@@ -27,10 +30,13 @@ ok('Pro quota and Upgrade are present', /4 \/ 15 Pro messages left/.test(await t
 ok('Notes sits beside References in the thread header',
   await p.evaluate(()=>{const h=[...document.querySelectorAll('.thd .pill')].map(b=>b.textContent.trim());
     return h[0].startsWith('Notes')&&h[1]==='References'&&h[2]==='Share'}));
+ok('the header is not tight with one panel open',
+  await p.evaluate(()=>!document.querySelector('.thd').classList.contains('tight')));
 ok('the composer carries Corpus and Deep',
   /Corpus/.test(await txt('#btnCorpus'))&&/Deep/.test(await txt('#btnDeep')));
-ok('one drawer, showing References', await p.evaluate(()=>dmode==='refs'
-  &&getComputedStyle(document.getElementById('mNotes')).display==='none'
+ok('the drawer shows References; Notes is a separate column, closed',
+  await p.evaluate(()=>dmode==='refs'&&showNotes===false
+  &&getComputedStyle(document.getElementById('notesPane')).display==='none'
   &&getComputedStyle(document.getElementById('mPaper')).display==='none'));
 await shot('h-0-shell.png');
 
@@ -104,11 +110,31 @@ await shot('h-4-kept.png');
 
 console.log('\n5 · Notes is the third thing the drawer can be');
 await p.click('#toast .tact'); await p.waitForTimeout(350);
-ok('View switched the drawer to Notes', await p.evaluate(()=>dmode==='notes'));
-ok('References is not also on screen',
-  await p.evaluate(()=>getComputedStyle(document.getElementById('mRefs')).display==='none'));
-ok('the header reads Notes / the thread it belongs to',
-  await txt('#dTitle')==='Notes'&&/CRISPR Off Target Effects/.test(await txt('#dSwitchLab')));
+ok('View opened the Notes column', await p.evaluate(()=>showNotes===true));
+/* the whole point of the change: References does not go away to make room */
+ok('References is still on screen beside it',
+  await p.evaluate(()=>dmode==='refs'
+    &&getComputedStyle(document.getElementById('mRefs')).display!=='none'));
+ok('Notes sits to the LEFT of the drawer',
+  await p.evaluate(()=>document.getElementById('notesPane').getBoundingClientRect().right
+    <=document.getElementById('drawer').getBoundingClientRect().left+1));
+ok('its header reads Notes / the thread it belongs to',
+  /CRISPR Off Target Effects/.test(await txt('#nSwitchLab')));
+ok('three columns fit the viewport', await p.evaluate(()=>{
+  const d=document.getElementById('drawer').getBoundingClientRect();
+  const t=document.querySelector('.mid').getBoundingClientRect();
+  return Math.round(d.right)<=window.innerWidth&&t.width>380}));
+/* the header must not bleed into the Notes column it now sits next to */
+ok('the header sheds its labels rather than overflowing', await p.evaluate(()=>{
+  const thd=document.querySelector('.thd'), mid=document.querySelector('.mid');
+  const last=document.getElementById('btnShare').getBoundingClientRect();
+  return thd.classList.contains('tight')
+    && Math.round(last.right)<=Math.round(mid.getBoundingClientRect().right)+1
+    && thd.scrollWidth<=thd.clientWidth+1}));
+ok('and every control is still there, and visible',
+  await p.evaluate(()=>[...document.querySelectorAll('.thd .pill,.thd .ghostbtn')]
+    .every(b=>b.getBoundingClientRect().width>0))
+  && await n('.thd .pill')===3 && await n('.thd .ghostbtn')===3);
 ok('the card shows its three sources', await n('#noteList .card .pin')===3);
 ok('the write-a-note field is above the cards',
   await p.evaluate(()=>document.getElementById('ncomp').compareDocumentPosition(
@@ -182,7 +208,7 @@ ok('rank is explained as per-search', /Rank is per search/.test(await txt('#pBod
 await shot('h-10-evidence.png');
 
 console.log('\n10 · file the note into a collection');
-await p.click('#btnNotes'); await p.waitForTimeout(250);
+await openNotes();
 await p.click('#libBtn'); await p.waitForTimeout(250);
 ok('the picker is the product\'s own Save popover',
   /Saved to My Library/.test(await txt('#collPop')));
@@ -232,8 +258,10 @@ ok('the drawer still fits the viewport',
   await p.evaluate(()=>{const r=document.getElementById('drawer').getBoundingClientRect();
     return Math.round(r.right)<=window.innerWidth&&r.width>300}));
 await shot('h-14-compare.png');
-await p.click('#btnNotes'); await p.waitForTimeout(300);
-ok('and it opens empty, with no count', /· empty/.test(await txt('#dSwitchLab')));
+ok('the comparison got the room — the Notes column closed itself',
+  await p.evaluate(()=>showNotes===false));
+await openNotes();
+ok('and it opens empty, with no count', /· empty/.test(await txt('#nSwitchLab')));
 ok('no empty quote marks pretending you wrote something',
   await p.evaluate(()=>!document.querySelector('#noteList .card')));
 await shot('h-15-fresh-note.png');
@@ -252,20 +280,19 @@ await p.mouse.up(); await p.waitForTimeout(400);
 ok('a reference dropped on the Notes button is kept',
   await p.evaluate(()=>CARDS.length===1&&CARDS[0].srcs[0]===1));
 ok('one source reads "Added to note", singular', /^Added to note/.test(await txt('#toast')));
-await p.click('#btnNotes'); await p.waitForTimeout(300);
+await openNotes();
 await p.click('#noteList .card .cardmore'); await p.waitForTimeout(200);
 ok('the card menu holds Ask, Tag, Collection, Copy, Delete',
   await p.evaluate(()=>[...document.querySelectorAll('#menu button')].map(x=>x.textContent.trim()).join('|'))
     .then(v=>/Ask this card/.test(v)&&/Tag…/.test(v)&&/Add to a collection/.test(v)
       &&/Copy citations/.test(v)&&/Delete this card/.test(v)));
 await p.keyboard.press('Escape');
-await p.click('#dSwitch'); await p.waitForTimeout(250);
+await p.click('#nSwitch'); await p.waitForTimeout(250);
 ok('the note switcher lists every note and offers a new one',
   await p.evaluate(()=>[...document.querySelectorAll('#menu button')].map(x=>x.textContent).join('|'))
     .then(v=>v.includes('CRISPR Off Target Effects')&&v.includes('Post-delivery monitoring in vivo')
       &&v.includes('New note in this thread')));
 await p.keyboard.press('Escape'); await p.waitForTimeout(150);
-await p.click('#btnRefs'); await p.waitForTimeout(200);
 await p.click('#dSwitch'); await p.waitForTimeout(250);
 ok('the same switcher in References picks the query',
   /REFERENCES FOR/.test(await txt('#menu')));
@@ -274,8 +301,11 @@ await p.keyboard.press('Escape'); await p.waitForTimeout(150);
 await p.click('#btnRefs'); await p.waitForTimeout(200);
 ok('pressing References again closes the drawer',
   await p.evaluate(()=>!document.getElementById('drawer').classList.contains('on')));
+ok('closing the drawer left the Notes column open', await p.evaluate(()=>showNotes===true));
 await p.click('#btnNotes'); await p.waitForTimeout(200);
-ok('and Notes reopens it as Notes', await p.evaluate(()=>dmode==='notes'));
+ok('and Notes closes independently of it',
+  await p.evaluate(()=>showNotes===false
+    &&!document.getElementById('drawer').classList.contains('on')));
 
 console.log('\n13 · no raw hex, no dark-mode leak');
 const raw=await p.evaluate(()=>{
