@@ -65,10 +65,13 @@ h1{font-size:var(--t-lg);letter-spacing:-.01em;margin-bottom:var(--s-sm)}
   padding:0 var(--s-xs);color:var(--muted)}
 
 /* ── the addition ─────────────────────────────────────────────── */
-.why{margin-top:var(--s-xs);border-top:1px solid var(--bd);padding-top:var(--s-xs);
-  display:flex;gap:var(--s-xs);align-items:baseline}
-.why .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);white-space:nowrap}
-.why .v{flex:1;font-size:var(--t-2xs);line-height:1.55}
+/* the label carries the job now: "why" alone did not say whose reason it was,
+   or that it is a reason at all. It gets its own line because it no longer fits
+   beside the quote. */
+.why{margin-top:var(--s-xs);border-top:1px solid var(--bd);padding-top:var(--s-xs)}
+.why .k{display:block;font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);
+  letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
+.why .v{font-size:var(--t-2xs);line-height:1.55}
 .why .v em{font-style:normal;color:var(--accent-emph)}
 .why .v q{font-style:italic}
 .why .tag{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);display:block;margin-top:2px}
@@ -139,7 +142,7 @@ function lit(i){
 function show(i,row){
   const n=A.filter(a=>a.srcs.includes(i)).length;
   card.innerHTML=base(i)+
-    '<div class="why"><span class="k">why</span><span class="v">'+
+    '<div class="why"><span class="k">Why this paper was chosen</span><span class="v">'+
     (n?'← Highlighted: the '+(n===1?'sentence':n+' sentences')+' this paper holds up.'
       :'← Nothing. It was read for this question and never cited.')+'</span></div>';
   place(row); lit(i);

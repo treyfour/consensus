@@ -102,9 +102,13 @@ h1{font-size:var(--t-lg);letter-spacing:-.01em;margin-bottom:var(--s-sm)}
 .card .chips{display:flex;gap:var(--s-2xs);margin-top:var(--s-xs);flex-wrap:wrap}
 .card .ch{font-family:var(--mono);font-size:var(--t-2xs);border:1px solid var(--bd);border-radius:625rem;
   padding:0 var(--s-xs);color:var(--muted)}
-.why{margin-top:var(--s-xs);border-top:1px solid var(--bd);padding-top:var(--s-xs);display:flex;gap:var(--s-xs)}
-.why .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);white-space:nowrap}
-.why .v{flex:1;font-size:var(--t-2xs);line-height:1.55}
+/* the label carries the job now: "why" alone did not say whose reason it was,
+   or that it is a reason at all. It gets its own line because it no longer fits
+   beside the quote. */
+.why{margin-top:var(--s-xs);border-top:1px solid var(--bd);padding-top:var(--s-xs)}
+.why .k{display:block;font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);
+  letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
+.why .v{font-size:var(--t-2xs);line-height:1.55}
 .why .v q{font-style:italic}
 .why .tag{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);display:block;margin-top:2px}
 
@@ -207,8 +211,10 @@ function base(i){
     '<div class="ab">'+esc(p.ab)+'</div>'+
     '<div class="chips"><span class="ch">'+esc(p.type)+'</span><span class="ch">INDEXED</span>'+
     '<span class="ch">FULL TEXT</span></div>'+
-    '<div class="why"><span class="k">why</span><span class="v"><q>'+esc(p.passage)+'</q>'+
-    '<span class="tag">best of '+p.q+' matched passages · the paper’s words, not ours</span></span></div>';
+    '<div class="why"><span class="k">Why this paper was chosen</span><span class="v"><q>'+
+    esc(p.passage)+'</q>'+
+    '<span class="tag">the line that matched your question most closely, of '+p.q+
+    ' that matched · quoted from the paper, not written by us</span></span></div>';
 }
 function place(row){
   const r=row.getBoundingClientRect(), h=card.offsetHeight, w=card.offsetWidth;

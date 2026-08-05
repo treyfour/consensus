@@ -34,6 +34,8 @@ h2.sec{font-size:var(--t-base);margin:var(--s-2xl) 0 var(--s-sm)}
 .opt{display:block;background:var(--bg);border:1px solid var(--bd);border-radius:.75rem;
   padding:var(--s-md) var(--s-lg);text-decoration:none;color:inherit;margin-bottom:var(--s-sm)}
 .opt:hover{border-color:var(--accent-bd);box-shadow:0 2px 14px #068ef114}
+.opt.pick{border:1.5px solid var(--accent);box-shadow:0 2px 14px #068ef114;margin-bottom:var(--s-xl)}
+.opt.pick h3{color:var(--accent-emph)}
 .opt .top{display:flex;gap:var(--s-sm);align-items:baseline;flex-wrap:wrap}
 .opt h3{font-size:var(--t-base);font-weight:600}
 .tag{font-family:var(--mono);font-size:var(--t-2xs);border-radius:625rem;padding:1px .45rem;white-space:nowrap;
@@ -81,8 +83,15 @@ footer b{color:var(--fg);font-weight:500}
 
   <h2 class="sec">Four directions</h2>
 
-  <a class="opt" href="redirect-1-ask-the-goal.html">
-    <div class="top"><h3>A · Ask what they were after</h3><span class="tag">one paper · three taps · no typing</span></div>
+  <p class="lede" style="margin-bottom:var(--s-lg)"><b>Changed after review:</b> the hover card’s
+  label was <span style="font-family:var(--mono)">why</span>, which is too terse to carry the job.
+  It is now <span style="font-family:var(--mono)">WHY THIS PAPER WAS CHOSEN</span> on its own line,
+  and the footnote under the quote says what the quote is and where it came from: <span
+  style="font-family:var(--mono)">the line that matched your question most closely, of 8 that
+  matched · quoted from the paper, not written by us</span>.</p>
+
+  <a class="opt pick" href="redirect-1-ask-the-goal.html">
+    <div class="top"><h3>Chosen · A · Ask what they were after</h3><span class="tag">one paper · three taps · no typing</span></div>
     <p>The card asks a question instead of offering a verdict: <b>Not quite what you needed? →</b>
     You pick a goal, not a fault, and get back a search you can edit, run here, or take to a new
     chat. The paper stays exactly where it is either way.</p>
