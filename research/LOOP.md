@@ -116,11 +116,26 @@ answer to "which note?" on every single add. Round 11 removed the decision. This
 puts it back where it belongs: at the end, optional, once you know the shape.
 
 **R5a · My Library is a tree, and the picker has to walk it.**
-Reported by the user 2026-08-04, from the current product; **not yet screenshotted, so it
-is on the ledger as reported-not-verified.** My Library contains **collections**, a
-collection contains **sub-collections**, navigation is a breadcrumb
-(`My Library / collection / sub-collection`), and a collection's detail view has **tabs** —
-Threads, and at least one more, believed to be Sources.
+**VERIFIED 2026-08-04** by `screens/20-library-threads-tab.png`. Two things recorded from the
+verbal report were wrong and are corrected here:
+
+| I had written | Actually |
+|---|---|
+| navigation is a breadcrumb `My Library / collection / sub-collection` | it is a **left sidebar tree**, always visible: `adhd` › `specifics`, `Airpollution Dementia`, `Semaglutide Cardiovasc…` |
+| tabs are Threads and "believed to be Sources" | tabs are **Items (6)** and **Threads (3)**. The noun is *Items* |
+
+New in the same screenshot:
+
+- The **Threads tab is a table** — checkbox · Title · Preview, where Preview is the opening
+  line of that thread's answer.
+- **Threads are already multi-selectable.** Selecting raises `3 selected · ⋯ · ✕`. The
+  selection primitive exists at thread level today.
+- **Selecting threads offers no way to chat against them.** Verified by absence, and it is
+  the opening for R7.
+
+The correction matters beyond bookkeeping: `option-21-ask.html` built a breadcrumb
+drill-down picker on the strength of the wrong version. A picker is not wrong, but it does
+not match navigation that never leaves the tree.
 
 Two consequences:
 
@@ -197,7 +212,10 @@ Same discipline as `HANDOFF.md` §2 — nothing here reaches a slide without a r
 | Asking from the Citation Graph creates a top-level orphan thread, no backlink | **Verified** | `screens/13`, `14` |
 | No note, tag or highlight anywhere in thread or library | **Verified** | `screens/09`, `15` |
 | Composer attaches papers as scope (`Papers · 20 attached`) | **Verified** — this is what `Ask` reuses | `screens/14` |
-| My Library has collections, sub-collections, a breadcrumb, and tabs incl. Threads | **REPORTED BY USER**, 2026-08-04, not screenshotted. Everything in R5a rests on it — capture a screen before this reaches a slide | — |
+| My Library has collections and sub-collections in a left sidebar tree | **Verified** | `screens/20` |
+| A collection's tabs are **Items** and **Threads**, not "Sources" | **Verified** | `screens/20` |
+| Threads are multi-selectable in My Library (`3 selected · ⋯`) | **Verified** | `screens/20` |
+| Selecting threads offers no "chat against these" action | **Verified by absence** | `screens/20` |
 | Researchers would rather not file at capture time | **ASSUMED** — motivates R1 and R5; it is the strongest untested premise here | — |
 | Researchers do not want notes auto-filed into a shared namespace | **User's explicit call**, 2026-08-04, overriding round 12's automatic link | — |
 | Written notes should be excluded from ask scope by default | **User's stated instinct** ("these notes are kind of personal"), implemented as an opt-in | — |
