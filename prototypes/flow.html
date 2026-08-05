@@ -77,7 +77,15 @@ body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(
 .attach .x{cursor:pointer;color:var(--muted)}
 .ask .line{display:flex;gap:var(--s-xs);align-items:center}
 .ask input{flex:1;border:0;outline:0;font-family:inherit;font-size:var(--t-sm);background:transparent}
+/* a quiet demo affordance: fills the next scripted question, never fires it */
+.seed{font-family:inherit;font-size:var(--t-xs);border:0;background:none;color:var(--bd-emph);
+  cursor:pointer;padding:2px var(--s-2xs);line-height:1}
+.seed:hover{color:var(--accent-emph)}
 .send{font-family:inherit;font-size:var(--t-2xs);border:0;background:var(--accent);color:#fff;border-radius:var(--r-sm);padding:6px var(--s-sm);cursor:pointer}
+.blank{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;
+  text-align:center;color:var(--muted);gap:var(--s-xs)}
+.blank b{font-size:var(--t-lg);color:var(--fg);font-weight:600;letter-spacing:-.01em}
+.blank span{font-family:var(--mono);font-size:var(--t-2xs);line-height:1.8}
 .send:hover{background:var(--accent-emph)}
 .hintline{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs);max-width:40rem;line-height:1.6}
 
@@ -97,8 +105,17 @@ body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(
 #notesPane{background:var(--paper);border-color:var(--paper-bd)}
 #notesPane .pane-hd{border-color:var(--paper-bd)}
 .notetop{flex:none;border-bottom:1px solid var(--paper-bd);padding:var(--s-xs) var(--s-sm) var(--s-sm)}
-.prov{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);line-height:1.5}
-.prov b{color:var(--fg);font-weight:500}
+/* which note you are writing into, and a way to change it — a note is
+   thread-scoped, so the thread it belongs to is part of its identity */
+.noteswitch{display:flex;width:100%;gap:var(--s-2xs);align-items:baseline;background:#fff;
+  border:1px solid var(--paper-bd);border-radius:var(--r-sm);padding:var(--s-2xs) var(--s-xs);
+  cursor:pointer;font-family:inherit;text-align:left}
+.noteswitch:hover{border-color:var(--accent-bd)}
+.noteswitch .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);
+  background:var(--accent-subtle);border-radius:625rem;padding:0 var(--s-2xs);flex:none;letter-spacing:.04em}
+.noteswitch .w{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.noteswitch .cv{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);flex:none}
 .tools{margin-top:var(--s-xs)}
 .chips{display:none;gap:var(--s-2xs);align-items:center;flex-wrap:wrap;margin-top:var(--s-xs)}
 .chips.on{display:flex}
@@ -354,7 +371,8 @@ body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--acc
         <div class="ask" id="ask">
           <div class="box">
             <div class="attachrow"><span class="attach"><span id="attLab"></span><span class="x" id="attX">✕</span></span></div>
-            <div class="line"><input placeholder="Search, or ask a follow-up…" id="askInput">
+            <div class="line"><input placeholder="Search 32.8M papers…" id="askInput">
+              <button class="seed" id="seedBtn" title="Demo: fill the next question">✨</button>
               <button class="send" id="sendBtn">Search ↩</button></div>
           </div>
           <div class="hintline" id="hint"></div>
@@ -366,7 +384,10 @@ body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--acc
           <button class="filebtn" id="libBtn">＋ Library</button>
           <button class="x" id="closeNotes">✕</button></div>
         <div class="notetop">
-          <div class="prov">from this thread · <b>CRISPR Off Target Effects</b></div>
+          <button class="noteswitch" id="noteSwitch">
+            <span class="k" id="nsKind">NEW NOTE</span>
+            <span class="w" id="nsFrom"></span><span class="cv">▾</span>
+          </button>
           <div class="tools">
             <button class="btn primary" id="askNote">💬 Ask <span class="n" id="askN">0</span></button>
             <button class="btn" id="filterBtn">Filter ▾</button>
@@ -492,14 +513,18 @@ const GOALS=[
  {l:"I want work published since 2024",q:"Recent CRISPR off-target findings published since 2024"},
  {l:"Something else…",q:null}];
 const TAGS=["ch.3","gap?","methods","to ask","read next"];
+/* two collections, one layer deep — a picker you can finish in one click */
 const LIB={name:"My Library",kids:[
- {name:"CRISPR off-target",kids:[{name:"detection",kids:[]}]},
- {name:"Delivery and monitoring",kids:[]},
+ {name:"Chapter 3 · detection",kids:[]},
  {name:"Unsorted",kids:[]}]};
-/* one note already exists, from an earlier thread, so act 5 has two to compare */
-const PRIOR={thread:"Post-delivery monitoring in vivo",coll:"CRISPR off-target",
- cards:[{text:"Vehicle decides the tissue, tissue decides what you can even monitor.",srcs:[5,4],tags:["methods"]},
-        {text:"The clinical framework assumes the measurement is settled. It is not.",srcs:[4,3],tags:["gap?","to ask"]}]};
+/* one note already exists, from an earlier thread, so there is something to
+   compare against and something to switch to */
+let NOTES=[
+ {id:'n1',thread:'CRISPR Off Target Effects',cards:[],coll:''},
+ {id:'n2',thread:'Post-delivery monitoring in vivo',coll:'Chapter 3 · detection',
+  cards:[{id:101,text:"Vehicle decides the tissue, tissue decides what you can even monitor.",srcs:[5,4],tags:["methods"],coll:'Chapter 3 · detection'},
+         {id:102,text:"The clinical framework assumes the measurement is settled. It is not.",srcs:[4,3],tags:["gap?","to ask"],coll:'Chapter 3 · detection'}]}];
+let activeNote='n1';
 
 const $=id=>document.getElementById(id);
 const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
@@ -507,14 +532,21 @@ function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');
   clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2800)}
 
 let dragCard=null;
-let QUERIES=[JSON.parse(JSON.stringify(Q0))], CARDS=[], seq=1, activeQ=0, freshSet=new Set(),
+/* the demo starts on an empty thread so the search itself can be shown */
+const SCRIPT=[
+ "What are the open questions in CRISPR off-target effects for in vivo therapies?",
+ "Which of these disagree about what counts as a detected off-target?",
+ "What should be monitored in a patient after in vivo delivery?"];
+let scriptAt=0;
+let QUERIES=[], CARDS=[], seq=1, activeQ=0, freshSet=new Set(),
     selRef=new Set(), anchor=null, drag=null, staged=[], savedTo=null,
     showNotes=false, showRefs=true, screen='thread',
     coll=null, tab='notes', selNotes=new Set(), openNote=null, compare=null, askedQ='';
 
 /* ══ recurrence is counted from the searches you actually ran ══════════ */
 const recurrence=i=>QUERIES.filter(q=>q.refs.some(r=>r.p===i)).length;
-const rankIn=(qi,i)=>{const r=QUERIES[qi].refs.find(r=>r.p===i);return r?r.rank:null};
+const rankIn=(qi,i)=>{const q=QUERIES[qi];if(!q)return null;
+  const r=q.refs.find(r=>r.p===i);return r?r.rank:null};
 function dots(n,tot){const slots=Math.min(tot,5)||1,f=Math.max(n?1:0,Math.round(n/Math.max(tot,1)*slots));
   return '●'.repeat(Math.min(f,slots))+'○'.repeat(Math.max(0,slots-f))}
 function provOf(i){const rec=recurrence(i),tot=QUERIES.length,rank=rankIn(activeQ==='all'?0:activeQ,i);
@@ -541,6 +573,12 @@ function fit(t){t.style.height='auto';t.style.height=Math.max(t.scrollHeight,21)
 function fillCites(h){return h.replace(/\[\[(\d+)\]\]/g,(_,i)=>'<span class="cite" data-p="'+i+'" draggable="true">'+P[+i].n.toUpperCase()+'</span>')}
 function renderThread(){
   const host=$('thread'); host.innerHTML='';
+  if(!QUERIES.length){
+    host.innerHTML='<div class="blank"><b>CRISPR Off Target Effects</b>'+
+      '<span>ask something, and the papers that answer it appear on the right<br>'+
+      '✨ in the composer fills the next question for this walkthrough</span></div>';
+    return;
+  }
   QUERIES.forEach((q,qi)=>{
     const t=document.createElement('div'); t.className='turn';
     const qd=document.createElement('div'); qd.className='q';
@@ -610,6 +648,7 @@ function submit(){
   const text=$('askInput').value.trim(); if(!text) return;
   const scoped=$('ask').classList.contains('scoped');
   $('askInput').value=''; $('sendBtn').disabled=true;
+  if(!QUERIES.length) $('thread').innerHTML='';
   const t=document.createElement('div'); t.className='turn';
   t.innerHTML='<div class="q"></div><div class="funnel thinking">'+
     (scoped?'reading your '+noteSrcs().length+' sources':'searching 32.8M papers')+' <i></i><i></i><i></i></div>';
@@ -617,6 +656,14 @@ function submit(){
   $('thread').appendChild(t); $('thread').scrollTop=$('thread').scrollHeight;
   setTimeout(()=>{
     $('sendBtn').disabled=false;
+    if(text===SCRIPT[scriptAt]) scriptAt=Math.min(scriptAt+1,SCRIPT.length-1);
+    /* the first question is the captured one, so it returns the captured answer */
+    if(!scoped && text===SCRIPT[0] && !QUERIES.some(q=>q.real)){
+      QUERIES.push(JSON.parse(JSON.stringify(Q0)));
+      activeQ=QUERIES.length-1; freshSet=new Set();
+      showRefs=true; layout(); renderThread(); renderRefs(); render();
+      $('sendBtn').disabled=false; return;
+    }
     const pool=scoped?(attached&&attached.length?attached:noteSrcs()):null;
     const refs=runSearch(text,pool);
     const top=refs.slice(0,3).map(r=>r.p);
@@ -652,10 +699,14 @@ function submit(){
       activeQ=QUERIES.length;
     }
     QUERIES.push(q);
+    t.remove();
     if(scoped){freshSet=new Set(raised!=null?[raised]:[]); activeQ=QUERIES.length-1}
     showRefs=true; layout(); renderThread(); renderRefs(); render();
   },700);
 }
+$('seedBtn').addEventListener('click',()=>{
+  $('askInput').value=SCRIPT[Math.min(scriptAt,SCRIPT.length-1)];
+  $('askInput').focus()});
 $('sendBtn').addEventListener('click',submit);
 $('askInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submit()}});
 
@@ -713,6 +764,11 @@ function offer(q){
 /* ══ act 3 · references and the note ═══════════════════════════════════ */
 function renderRefs(){
   const qbar=$('qbar'); qbar.innerHTML='';
+  if(!QUERIES.length){
+    $('refSub').textContent='nothing retrieved yet'; $('trCount').textContent='0';
+    $('refs').innerHTML='<div class="empty" style="text-align:center">Ask something and the papers<br>that answered it appear here.</div>';
+    return;
+  }
   QUERIES.forEach((q,i)=>{const b=document.createElement('button');b.className='qb'+(activeQ===i?' on':'');
     b.textContent='Q'+(i+1)+' · '+q.refs.length; b.title=q.q;
     b.addEventListener('click',()=>{activeQ=i;renderRefs()});qbar.appendChild(b)});
@@ -894,6 +950,7 @@ function render(){
   $('libBtn').title=savedTo?'Saved to My Library / '+savedTo:'Add this note to a collection in My Library';
   $('tail').classList.toggle('quiet',CARDS.length>0);
   $('tail').textContent=CARDS.length?'':'Nothing here yet.\nDrag references in, or type above.';
+  syncSwitch();
   $('hint').textContent=CARDS.length?'Ask attaches your note as scope — sources only, and nothing new is retrieved.'
     :'Hover any reference for why it is here. Select and drag them into the note to keep them.';
   syncInNote();
@@ -1015,11 +1072,11 @@ $('railLib').addEventListener('click',()=>showScreen('lib'));
 $('backHome').addEventListener('click',()=>showScreen('thread'));
 $('railNew').addEventListener('click',()=>{if(confirm('Start over?'))location.reload()});
 
-const notesInColl=()=>{
-  const out=[];
-  if(PRIOR.coll===coll) out.push({key:'prior',name:PRIOR.thread,cards:PRIOR.cards});
-  if(savedTo===coll&&CARDS.length) out.push({key:'mine',name:$('threadName').textContent,cards:CARDS});
-  return out};
+/* the live note's cards are held in CARDS, so sync it back before reading */
+function syncActive(){const cur=NOTES.find(n=>n.id===activeNote);
+  if(cur){cur.cards=CARDS; if(savedTo) cur.coll=savedTo}}
+const notesInColl=()=>{syncActive();
+  return NOTES.filter(n=>n.coll===coll&&n.cards.length).map(n=>({key:n.id,name:n.thread,cards:n.cards}))};
 const srcsOfNote=n=>[...new Set(n.cards.flatMap(c=>c.srcs))];
 function renderLib(){
   const tree=$('tree'); tree.innerHTML='';
@@ -1181,7 +1238,47 @@ function askNotes(){
 $('nGo').addEventListener('click',askNotes);
 $('nAsk').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();askNotes()}});
 
-layout(); renderThread(); renderRefs(); render(); fit($('cText'));
+function syncSwitch(){
+  const n=NOTES.find(x=>x.id===activeNote);
+  $('nsKind').textContent=CARDS.length?'NOTE':'NEW NOTE';
+  $('nsFrom').textContent='from '+n.thread+(CARDS.length?' · '+CARDS.length+
+    (CARDS.length===1?' card':' cards'):'');
+}
+function switchNote(id){
+  syncActive();
+  activeNote=id;
+  const nx=NOTES.find(n=>n.id===id);
+  CARDS=nx.cards; savedTo=nx.coll||null;
+  activeTags.clear(); query=''; render();
+  toast('Now writing into the note from “'+nx.thread+'”');
+}
+$('noteSwitch').addEventListener('click',e=>{
+  e.stopPropagation();
+  const m=$('cardMenu'); m.innerHTML='<div class="lab">WRITE INTO</div>';
+  syncActive();
+  NOTES.forEach(n=>{
+    const b=document.createElement('button');
+    b.textContent=(n.id===activeNote?'✓ ':'')+n.thread+' · '+n.cards.length+
+      (n.cards.length===1?' card':' cards');
+    b.addEventListener('click',ev=>{ev.stopPropagation();m.classList.remove('on');
+      if(n.id!==activeNote) switchNote(n.id)});
+    m.appendChild(b)});
+  m.insertAdjacentHTML('beforeend','<div class="sep"></div>');
+  const nb=document.createElement('button'); nb.textContent='＋ New note in this thread';
+  nb.addEventListener('click',ev=>{ev.stopPropagation();m.classList.remove('on');
+    const n={id:'n'+(NOTES.length+1),thread:$('threadName').textContent,cards:[],coll:''};
+    NOTES.push(n); switchNote(n.id)});
+  m.appendChild(nb);
+  place(m,$('noteSwitch'));
+});
+/* once filed, the button is the way back to where it went */
+/* stopPropagation does not stop other listeners on the same element — the
+   picker would still open behind the screen we just navigated to */
+$('libBtn').addEventListener('click',e=>{
+  if(!savedTo) return;
+  e.stopImmediatePropagation(); coll=savedTo; tab='notes'; showScreen('lib');
+},true);
+layout(); renderThread(); renderRefs(); render(); fit($('cText')); syncSwitch();
 </script>
 </body>
 </html>
