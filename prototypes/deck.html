@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Consensus — rethinking the research thread</title>
+<style>
+:root{
+--accent:#068ef1;--accent-emph:#006fce;--accent-muted:#dfeeff;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
+--bg:#fff;--mist:#fafafa;--faint:#f4f4f5;--subtle:#e4e4e7;
+--fg:#18181b;--muted:#71717b;--bd:#e4e4e7;--bd-emph:#d4d4d8;
+--pos:#148d74;--pos-bg:#eefaf6;--warn:#a65f00;--warn-bg:#fdf6e7;--paper:#fdfcf8;--paper-bd:#e9e5da;
+--s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;--s-3xl:2.5rem;--s-4xl:3.5rem;
+--t-2xs:.75rem;--t-xs:.9rem;--t-sm:1.06rem;--t-base:1.06rem;--t-lg:1.45rem;
+--sans:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+--mono:"Reddit Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);color:var(--fg);background:var(--mist);-webkit-font-smoothing:antialiased;overflow:hidden}
+.deck{height:100%;position:relative}
+.slide{position:absolute;inset:0;display:none;overflow-y:auto;background:var(--bg)}
+.slide.on{display:block}
+.inner{max-width:64rem;margin:0 auto;padding:var(--s-2xl) var(--s-3xl) 4rem;min-height:100%}
+.eyebrow{font-family:var(--mono);font-size:var(--t-2xs);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:3.4rem;line-height:1.06;letter-spacing:-.028em;margin:var(--s-xs) 0 var(--s-md);max-width:22ch}
+h2{font-size:2.3rem;line-height:1.1;letter-spacing:-.022em;margin:var(--s-2xs) 0 var(--s-sm);max-width:26ch}
+h3{font-size:1.2rem;letter-spacing:-.01em;margin-bottom:var(--s-2xs)}
+.lede{font-size:var(--t-lg);line-height:1.55;color:var(--muted);max-width:56ch}
+.lede b{color:var(--fg);font-weight:600}
+p{font-size:var(--t-base);line-height:1.58;max-width:62ch;margin-bottom:var(--s-sm)}
+p.muted{color:var(--muted)}
+em{font-style:normal;color:var(--accent-emph)}
+.mono{font-family:var(--mono);font-size:var(--t-xs);color:var(--muted)}
+
+/* ── the ranked stack, which is the spine of the argument ─────────── */
+.rank{margin-top:var(--s-md);display:flex;flex-direction:column;gap:var(--s-xs)}
+.item{display:grid;grid-template-columns:2.4rem 1fr 12rem;gap:var(--s-lg);align-items:start;
+  border:1px solid var(--bd);border-radius:.75rem;padding:var(--s-sm) var(--s-lg);background:var(--bg)}
+.item.picked{border-color:var(--accent);background:var(--accent-subtle)}
+.item .n{font-family:var(--mono);font-size:var(--t-lg);color:var(--bd-emph);line-height:1.2}
+.item.picked .n{color:var(--accent)}
+.item h3{margin:0 0 var(--s-2xs)}
+.item .q{font-size:var(--t-xs);color:var(--muted);line-height:1.55}
+.item .cost{font-family:var(--mono);font-size:var(--t-2xs);line-height:1.7;color:var(--muted)}
+.item .cost b{display:block;font-weight:400}
+.item .cost .lo{color:var(--pos)}.item .cost .hi{color:var(--warn)}
+.tag{display:inline-block;font-family:var(--mono);font-size:var(--t-2xs);border-radius:625rem;
+  padding:1px .5rem;background:var(--faint);color:var(--muted)}
+.tag.on{background:var(--accent);color:#fff}
+.tag.ok{background:var(--pos-bg);color:var(--pos)}
+.tag.no{background:var(--warn-bg);color:var(--warn)}
+
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-md);margin-top:var(--s-md)}
+.cols.three{grid-template-columns:repeat(3,1fr)}
+.card{border:1px solid var(--bd);border-radius:.75rem;padding:var(--s-md) var(--s-lg);background:var(--bg)}
+.card.warm{background:var(--paper);border-color:var(--paper-bd)}
+.card.good{border-color:var(--pos)}
+.card .k{font-family:var(--mono);font-size:var(--t-2xs);letter-spacing:.08em;color:var(--muted)}
+.card.good .k{color:var(--pos)}
+.card p{font-size:var(--t-xs);line-height:1.6;margin:var(--s-2xs) 0 0;color:var(--muted)}
+.card p b{color:var(--fg)}
+
+table{width:100%;border-collapse:collapse;margin-top:var(--s-md);font-size:var(--t-xs)}
+th{text-align:left;font-family:var(--mono);font-size:var(--t-2xs);letter-spacing:.06em;color:var(--muted);
+  font-weight:400;padding:0 var(--s-md) var(--s-xs) 0;border-bottom:1px solid var(--bd)}
+td{padding:var(--s-xs) var(--s-md) var(--s-xs) 0;border-bottom:1px solid var(--bd);vertical-align:top;line-height:1.55}
+td b{font-weight:600}
+td.who{white-space:nowrap;font-weight:600}
+.open{margin-top:var(--s-md);background:var(--accent-subtle);border:1px solid var(--accent-bd);
+  border-radius:.75rem;padding:var(--s-md) var(--s-lg)}
+.open .k{font-family:var(--mono);font-size:var(--t-2xs);letter-spacing:.08em;color:var(--accent-emph);display:block}
+.open p{margin:var(--s-xs) 0 0;font-size:var(--t-sm)}
+
+.flow{display:flex;gap:var(--s-xs);margin-top:var(--s-lg);flex-wrap:wrap}
+.step{flex:1;min-width:9rem;border:1px solid var(--bd);border-radius:.75rem;padding:var(--s-md);background:var(--bg)}
+.step .n{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph)}
+.step b{display:block;font-size:var(--t-sm);margin:var(--s-2xs) 0}
+.step span{font-size:var(--t-2xs);color:var(--muted);line-height:1.5}
+.step.hero{border-color:var(--accent);background:var(--accent-subtle)}
+
+ul{margin:var(--s-xs) 0 var(--s-sm) var(--s-lg);max-width:64ch}
+li{font-size:var(--t-base);line-height:1.55;margin-bottom:var(--s-2xs)}
+li b{font-weight:600}
+.qbox{margin:var(--s-xl) 0;max-width:52ch}
+.qbox q{font-size:1.55rem;line-height:1.45;letter-spacing:-.012em;font-style:normal;display:block;text-indent:-.5em}
+.qbox cite{display:block;margin-top:var(--s-xs);font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);font-style:normal}
+.big{font-size:1.5rem;line-height:1.35;letter-spacing:-.015em;max-width:34ch;margin:var(--s-lg) 0}
+.big b{color:var(--accent-emph)}
+a.demo{display:inline-flex;align-items:center;gap:var(--s-xs);margin-top:var(--s-md);text-decoration:none;
+  background:var(--accent);color:#fff;border-radius:625rem;padding:var(--s-sm) var(--s-xl);font-size:var(--t-sm);font-weight:500}
+a.demo:hover{background:var(--accent-emph)}
+a.plain{color:var(--accent-emph);text-decoration:none;font-size:var(--t-xs);font-family:var(--mono)}
+a.plain:hover{text-decoration:underline}
+
+.nav{position:fixed;bottom:0;left:0;right:0;height:3rem;display:flex;align-items:center;gap:var(--s-md);
+  padding:0 var(--s-xl);background:#ffffffe8;backdrop-filter:blur(8px);border-top:1px solid var(--bd);z-index:20}
+.nav .t{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav button{font-family:inherit;font-size:var(--t-xs);border:1px solid var(--bd);background:var(--bg);
+  color:var(--fg);border-radius:var(--r-sm,.5rem);padding:5px var(--s-md);cursor:pointer}
+.nav button:hover{border-color:var(--accent-bd);color:var(--accent-emph)}
+.pips{display:flex;gap:4px}
+.pip{width:6px;height:6px;border-radius:625rem;background:var(--subtle);cursor:pointer}
+.pip.on{background:var(--accent);width:18px}
+@media print{.nav{display:none}.slide{display:block!important;page-break-after:always}body{overflow:visible}}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- ─── 1 ─────────────────────────────────────────────────────────── -->
+<section class="slide on" data-t="Opening">
+  <div class="inner">
+    <p class="eyebrow">Consensus · design challenge</p>
+    <h1>Consensus remembers papers. It doesn’t remember research.</h1>
+    <p class="lede">Every screen is excellent at the moment you are on it. Nothing carries
+    forward. As a thread grows, the papers that mattered get buried. Not because they are
+    lost, but because <b>the reason you kept them was never recorded anywhere.</b></p>
+    <div class="qbox">
+      <q>“A place to make notes as I’m searching, tags with notes… an explanation why certain
+      ‘most relevant’ papers are picked over others. Impossible to tell.”</q>
+      <cite>from the user feedback in the brief</cite>
+    </div>
+    <p class="mono">Built on the real CRISPR off-target thread · 6 captured papers · Consensus’s own CDL tokens</p>
+  </div>
+</section>
+
+<!-- ─── 2 ─────────────────────────────────────────────────────────── -->
+<section class="slide" data-t="Problem framing · the four pains">
+  <div class="inner">
+    <p class="eyebrow">Problem framing</p>
+    <h2>Four ways a paper gets buried</h2>
+    <p class="lede">I audited the live product against the brief before designing anything.
+    Several assumptions died: the retrieval funnel, per-query references, the compare matrix
+    and source scoping <b>all already ship, and are good.</b> These four are what is genuinely
+    missing.</p>
+
+    <div class="rank">
+      <div class="item">
+        <span class="n">01</span>
+        <div>
+          <h3>I can’t tell why this paper is here</h3>
+          <p class="q">The funnel says 32.8M → 100 → 20. No individual paper says which query
+          found it, how it ranked, or whether it recurred. <span class="tag">stage 3, returns at 7</span></p>
+        </div>
+        <div class="cost"><b>impact <span class="hi">high</span></b><b>to explain <span class="lo">cheap</span></b><b>to improve <span class="hi">expensive</span></b></div>
+      </div>
+      <div class="item picked">
+        <span class="n">02</span>
+        <div>
+          <h3>I have nowhere to put a thought</h3>
+          <p class="q">No note, no tag, no highlight, no decision, anywhere in the product.
+          The thinking happens somewhere else, and never comes back. <span class="tag on">chosen</span></p>
+        </div>
+        <div class="cost"><b>impact <span class="hi">high</span></b><b>to build <span class="lo">cheap</span></b><b>no model work</b></div>
+      </div>
+      <div class="item picked">
+        <span class="n">03</span>
+        <div>
+          <h3>Every question starts over</h3>
+          <p class="q">Context flows forward between surfaces and is never remembered. Asking
+          from the Citation Graph opens a thread with no link back to where it came from.
+          <span class="tag on">chosen</span></p>
+        </div>
+        <div class="cost"><b>impact <span class="hi">high</span></b><b>to build <span class="lo">schema</span></b><b>no model work</b></div>
+      </div>
+      <div class="item picked">
+        <span class="n">04</span>
+        <div>
+          <h3>The paper survives, the question doesn’t</h3>
+          <p class="q">Save to My Library and the metadata is intact. The <b>Evidence (N)</b> tab
+          is gone, along with rank, recurrence and the query that surfaced it. <span class="tag on">chosen</span></p>
+        </div>
+        <div class="cost"><b>impact <span class="hi">high</span></b><b>to build <span class="lo">carry, not compute</span></b></div>
+      </div>
+    </div>
+    <p class="mono" style="margin-top:var(--s-lg)">Three of the four sit inside the thread. The fourth sits on the seam between the thread and the Library.</p>
+  </div>
+</section>
+
+<!-- ─── 3 ─────────────────────────────────────────────────────────── -->
+<section class="slide" data-t="The work today">
+  <div class="inner">
+    <p class="eyebrow">The work today</p>
+    <h2>Where Consensus sits in a graduate research process</h2>
+    <p class="lede">Eight stages, from “I have a vague question” to “I defend this to my
+    advisor”. Consensus is <b>strongest at 1–3</b>, finding and screening. It hands off at 4
+    and never sees the researcher again.</p>
+
+    <div class="cols three">
+      <div class="card good">
+        <span class="k">STAGES 1–3 · OWNED</span>
+        <p><b>Frame · Search · Screen.</b> The funnel, per-query references, the compare
+        matrix. All shipped, all good, and none of it is what I touched.</p>
+      </div>
+      <div class="card warm">
+        <span class="k">STAGES 4–5 · HANDED OFF</span>
+        <p><b>Read · Synthesise.</b> Where the thinking actually happens, and where the
+        researcher leaves for Zotero, Notion, or a document.</p>
+      </div>
+      <div class="card">
+        <span class="k">STAGES 6–7 · UNOWNED</span>
+        <p><b>Write · Defend.</b> Nobody in this market owns the moment you have to justify
+        a set of papers to someone else.</p>
+      </div>
+    </div>
+
+    <div class="open">
+      <span class="k">THE OBSERVATION THAT SET THE DIRECTION</span>
+      <p>The pain is not at stage 4 onward. It is that <b>stages 1–3 produce nothing a
+      researcher can carry into 4</b>. Fixing the thread fixes the handoff as a side effect.
+      Building a better library does not fix the thread.</p>
+    </div>
+    <a class="plain" href="journey.html" target="_blank">Open the full journey diagram →</a>
+  </div>
+</section>
+
+<!-- ─── 4 ─────────────────────────────────────────────────────────── -->
+<section class="slide" data-t="Competitive analysis">
+  <div class="inner">
+    <p class="eyebrow">Competitive analysis</p>
+    <h2>Everyone has solved a piece of this. Nobody has solved the join.</h2>
+    <p class="lede">I looked for <b>gestures researchers have already been trained on</b>,
+    not for feature parity. Borrowing a known pattern beats inventing one.</p>
+
+    <table>
+      <tr><th>Product</th><th>The pattern worth borrowing</th><th>Applies to</th></tr>
+      <tr><td class="who">Elicit</td><td>Every extracted cell carries its <b>supporting quote</b>. A claim and its proof are one object</td><td><span class="tag">why this paper</span></td></tr>
+      <tr><td class="who">Undermind</td><td>Per-paper <b>match score with a reason</b>, plus a completeness estimate, which is a defensibility artefact</td><td><span class="tag">why this paper</span></td></tr>
+      <tr><td class="who">scite</td><td><b>Typed</b> citations: supporting, contrasting, mentioning. Not “cites” but “cites and disagrees”</td><td><span class="tag">why this paper</span></td></tr>
+      <tr><td class="who">Heptabase</td><td>Highlighting creates a <b>real object</b>, not a string. Capture costs nothing; structure is deferred</td><td><span class="tag on">notes</span></td></tr>
+      <tr><td class="who">Rayyan</td><td>Include / <b>Maybe</b> / Exclude on hotkeys, and excluding asks for a <b>reason</b></td><td><span class="tag on">notes</span></td></tr>
+      <tr><td class="who">ResearchRabbit</td><td><b>The curated set is the query.</b> Recommendations operate on the collection and improve as it grows</td><td><span class="tag on">continuity</span></td></tr>
+      <tr><td class="who">NotebookLM</td><td>The source panel <b>persists across the whole notebook</b>; every turn is grounded in the same set</td><td><span class="tag on">continuity</span></td></tr>
+    </table>
+
+    <div class="open">
+      <span class="k">THE OPEN SPACE</span>
+      <p>Nobody surfaces <b>recurrence across independent searches</b> as a relevance signal.
+      A paper found by four unrelated queries is telling you something, and no product in this
+      set shows it. And nobody connects <em>the reason you kept a paper</em> to
+      <em>the paper itself</em>. That join is empty.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 5 ─────────────────────────────────────────────────────────── -->
+<section class="slide" data-t="What I chose, and why">
+  <div class="inner">
+    <p class="eyebrow">What I chose to focus on, and why</p>
+    <h2>Organisation and control, not better retrieval</h2>
+
+    <p class="lede">Pain 01, “why is this paper here”, is the loudest complaint in the
+    feedback. I deliberately did <b>not</b> make it the centre of the work. Here is the
+    reasoning, because it is the decision I most expect to be challenged on.</p>
+
+    <div class="cols">
+      <div class="card">
+        <span class="k">IMPROVING RELEVANCE</span>
+        <p><b>A retrieval and ranking problem.</b> Better papers, better ordering, fewer
+        near-duplicates. This is model and infrastructure work measured in quarters, and
+        design cannot move it much. Betting the concept on it means the concept is only as
+        good as a roadmap I do not control.</p>
+      </div>
+      <div class="card good">
+        <span class="k">EXPLAINING RELEVANCE</span>
+        <p><b>Already computed, then thrown away.</b> The agent trace holds three literal
+        sub-queries with pool sizes, <b>31.7M · 656.6K · 442.8K</b>, and the paper drawer
+        holds <b>27 supporting quotes</b>. All produced to write the answer, all discarded
+        before they reach the paper. This costs a wire, not a model.</p>
+      </div>
+    </div>
+
+    <p class="big">So: <b>explain</b> relevance, because it is nearly free. <b>Do not try to
+    fix it.</b> Spend the design on the three pains where a researcher can act.</p>
+
+    <p>Organisation and control is where design actually moves the needle without a model
+    change. It is also where the compounding is: a note is the only object that can carry a
+    reason, and once reasons exist, everything else gets cheaper: asking a curated set,
+    comparing two lines of enquiry, restoring what the Library drops.</p>
+
+    <div class="open">
+      <span class="k">THE ONE-LINE POSITION</span>
+      <p><b>My Library is what you kept. The note is why you kept it.</b> Every rule in the
+      concept follows from that sentence, and if a rule stops following from it, the rule is
+      wrong.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 6 ─────────────────────────────────────────────────────────── -->
+<section class="slide" data-t="Key concepts">
+  <div class="inner">
+    <p class="eyebrow">Key concepts</p>
+    <h2>One new object, and six rules it has to obey</h2>
+    <p class="lede">The note is the only thing I added. Everything else is a relationship
+    between things that already exist.</p>
+
+    <ul>
+      <li><b>A note is thread-scoped by default.</b> A note without a question is a Library
+      entry, and a Library entry is the thing that already fails. No filing decision at
+      capture time.</li>
+      <li><b>Nothing reaches My Library on its own.</b> There is no single “Library” to save
+      into. It is a tree of collections. So filing always names a destination, or nothing
+      happens.</li>
+      <li><b>Ask is one verb.</b> It does not navigate; it attaches what you have to the
+      composer as scope, the way <span class="mono">Papers · 20 attached</span> already works.</li>
+      <li><b>Your own words are not part of the question unless you say so.</b> Sources are
+      published artefacts; your notes are you thinking out loud. Sources only by default,
+      with one explicit opt-in.</li>
+      <li><b>Filing is a promotion, not a prerequisite.</b> When a note outgrows one thread it
+      becomes a collection: named, cross-thread, and arriving with its questions attached.</li>
+      <li><b>From a saved paper, you can see the notes and threads it came from.</b> This is
+      the return leg, and it is what makes the Library stop being a terminus.</li>
+    </ul>
+
+    <div class="open">
+      <span class="k">THE CONSEQUENCE WORTH ARGUING ABOUT</span>
+      <p>A tag stops being only a way to <em>find</em> things in a note and becomes a way to
+      <em>ask part of one</em>. Filter to <span class="mono">ch.3</span> and the button reads
+      <span class="mono">Ask 4 of 9</span>. The question is scoped to what you filtered.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── 7 ─────────────────────────────────────────────────────────── -->
+<section class="slide" data-t="The flow">
+  <div class="inner">
+    <p class="eyebrow">Key flows</p>
+    <h2>Five acts, one continuous loop</h2>
+    <div class="flow">
+      <div class="step"><span class="n">01</span><b>Ask</b><span>The funnel, unchanged, and expandable to the three sub-queries it already ran</span></div>
+      <div class="step"><span class="n">02</span><b>Why is this here?</b><span>Hover any reference: the passage that matched, in the paper’s own words</span></div>
+      <div class="step"><span class="n">03</span><b>Keep what matters</b><span>Drag a set into the note. One note, nothing to file into</span></div>
+      <div class="step hero"><span class="n">04</span><b>Ask what you kept</b><span>The note attaches as scope, and the answer surfaces a paper you had not kept</span></div>
+      <div class="step"><span class="n">05</span><b>Come back, and across</b><span>File it, then ask two notes from two threads in one question</span></div>
+    </div>
+
+    <div class="open">
+      <span class="k">THE BEAT THAT PAYS</span>
+      <p>Act 4 is the one to watch. Everything before it is capture; everything after is
+      filing. <b>Act 4 is the only moment the note pays you back</b>. The pile you built
+      surfaces a paper you would otherwise have missed, which then joins the pile. If that
+      lands, the rest follows. If it does not, the note is just a folder.</p>
+    </div>
+    <a class="demo" href="flow.html" target="_blank">Open the working prototype →</a>
+  </div>
+</section>
+
+<!-- ─── 8 ─────────────────────────────────────────────────────────── -->
+<section class="slide" data-t="Tradeoffs and open questions">
+  <div class="inner">
+    <p class="eyebrow">Tradeoffs, open questions, what I’d test next</p>
+    <h2>What I traded away, and what I don’t know</h2>
+
+    <div class="cols">
+      <div class="card">
+        <span class="k">TRADED AWAY</span>
+        <p><b>One note per thread, not many.</b> No filing decision at capture, but
+        organisation has to come from tags and filter rather than from structure.</p>
+        <p><b>Notes are one tab deep in My Library.</b> The most personal content is not what
+        you see on arrival. Softened by links into it from both other tabs.</p>
+        <p><b>Explaining relevance, not improving it.</b> A researcher who wants
+        <em>better</em> papers is not served by this work.</p>
+      </div>
+      <div class="card">
+        <span class="k">THINGS I BUILT AND REJECTED</span>
+        <p><b>A scope fence</b> across the thread. Per-query References already answers
+        “what am I searching against”.</p>
+        <p><b>Sections and sub-threads.</b> The composer already shows the scope more plainly
+        and holds it for longer.</p>
+        <p><b>Automatic seam detection.</b> Measured: paper overlap scores 0.50–1.00 and the
+        real subject change scores <em>worse</em> than a false one. It would confidently
+        propose the wrong cut.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top:var(--s-lg)">What I’d test next, in order</h3>
+    <ul>
+      <li><b>Does act 4 land?</b> If the scoped answer surfacing a missed paper does not feel
+      like a payoff, the whole concept is a folder with extra steps.</li>
+      <li><b>Is one note enough at forty papers?</b> Tags plus filter is my bet; it is untested
+      past a dozen cards.</li>
+      <li><b>Does “not what you needed?” get used, or does it feel like blame?</b> It asks the
+      goal rather than the fault specifically to avoid that, and that is a guess.</li>
+      <li><b>Is the private-by-default note the right call?</b> The opposite is defensible,
+      and would need saying out loud.</li>
+    </ul>
+
+    <div class="open">
+      <span class="k">STATED PLAINLY</span>
+      <p>The grad-student journey stages and “nobody owns stage 7” are <b>assumed</b>, not
+      verified. Five of six passage counts in the prototype are placeholders. Only
+      Wienert’s 27 is real. Everything else in the demo runs on captured data.</p>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<div class="nav">
+  <span class="t" id="navT"></span>
+  <div class="pips" id="pips"></div>
+  <button id="prev">←</button>
+  <button id="next">→</button>
+</div>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')];
+let at=0;
+const pips=document.getElementById('pips');
+slides.forEach((s,i)=>{
+  const d=document.createElement('span'); d.className='pip';
+  d.title=s.dataset.t; d.addEventListener('click',()=>go(i)); pips.appendChild(d);
+});
+function go(i){
+  at=Math.max(0,Math.min(i,slides.length-1));
+  slides.forEach((s,k)=>s.classList.toggle('on',k===at));
+  [...pips.children].forEach((p,k)=>p.classList.toggle('on',k===at));
+  document.getElementById('navT').textContent=(at+1)+' / '+slides.length+'  ·  '+slides[at].dataset.t;
+  slides[at].scrollTop=0;
+}
+document.getElementById('prev').addEventListener('click',()=>go(at-1));
+document.getElementById('next').addEventListener('click',()=>go(at+1));
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();go(at+1)}
+  if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(at-1)}
+  if(e.key==='Home')go(0); if(e.key==='End')go(slides.length-1);
+});
+go(0);
+</script>
+</body>
+</html>
