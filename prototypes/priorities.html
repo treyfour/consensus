@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What I chose to work on, and why</title>
+<style>
+:root{
+--accent:#068ef1;--accent-emph:#006fce;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
+--bg:#fff;--mist:#fafafa;--faint:#f4f4f5;--subtle:#e4e4e7;
+--fg:#18181b;--muted:#71717b;--bd:#e4e4e7;--bd-emph:#d4d4d8;
+--warn:#a65f00;--warn-fill:#fdf0c9;--pos:#148d74;--pos-fill:#eefaf6;
+--s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;--s-3xl:2.5rem;
+--t-2xs:.69rem;--t-xs:.81rem;--t-sm:.94rem;--t-base:1rem;--t-lg:1.13rem;
+--sans:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+--mono:"Reddit Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--fg);background:var(--mist);
+  padding:var(--s-2xl) var(--s-lg) var(--s-3xl);-webkit-font-smoothing:antialiased}
+.wrap{max-width:78rem;margin:0 auto}
+.eyebrow{font-family:var(--mono);font-size:var(--t-2xs);text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.back{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);text-decoration:none}
+.back:hover{text-decoration:underline}
+h1{font-size:1.75rem;letter-spacing:-.015em;margin:var(--s-2xs) 0 var(--s-xs)}
+.claim{font-size:var(--t-lg);color:var(--fg);max-width:58rem;line-height:1.5}
+.claim b{color:var(--accent-emph)}
+
+/* the stack: what is broken, what it costs to fix, and what I picked */
+.stack{margin-top:var(--s-2xl);background:var(--bg);border:1px solid var(--bd);border-radius:1rem;overflow:hidden}
+.hd,.rowx{display:grid;grid-template-columns:2.5rem 1fr 9rem 9rem 8.5rem;gap:var(--s-md);align-items:start;
+  padding:var(--s-sm) var(--s-lg)}
+.hd{font-family:var(--mono);font-size:var(--t-2xs);letter-spacing:.08em;color:var(--muted);
+  border-bottom:1px solid var(--bd);background:var(--faint)}
+.rowx{border-bottom:1px solid var(--bd)}
+.rowx:last-child{border-bottom:0}
+.rowx.picked{background:var(--accent-subtle)}
+.rowx .n{font-family:var(--mono);font-size:var(--t-sm);color:var(--muted);line-height:1.5;letter-spacing:.04em}
+.rowx.picked .n{color:var(--accent)}
+.rowx h3{font-size:var(--t-base);line-height:1.3;margin-bottom:var(--s-2xs)}
+.rowx .what{font-size:var(--t-xs);color:var(--muted);line-height:1.55;max-width:42rem}
+.rowx .where{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs)}
+.lvl{font-family:var(--mono);font-size:var(--t-2xs);line-height:1.6}
+.lvl b{display:block;font-weight:400;color:var(--fg)}
+.lvl .hi{color:var(--warn)}.lvl .lo{color:var(--pos)}
+.chip{display:inline-block;font-family:var(--mono);font-size:var(--t-2xs);border-radius:625rem;padding:1px .5rem}
+.chip.on{background:var(--accent);color:#fff}
+.chip.off{background:var(--faint);color:var(--muted);border:1px solid var(--bd)}
+
+.split{margin-top:var(--s-2xl);display:grid;grid-template-columns:1fr 1fr;gap:var(--s-md)}
+@media (max-width:60rem){.split{grid-template-columns:1fr}
+  .hd,.rowx{grid-template-columns:2rem 1fr;gap:var(--s-xs)}
+  .hd span:nth-child(n+3),.rowx .lvl,.rowx .decide{display:none}}
+.panel{background:var(--bg);border:1px solid var(--bd);border-radius:.75rem;padding:var(--s-lg)}
+.panel.good{border-color:var(--pos);background:var(--pos-fill)}
+.panel .k{font-family:var(--mono);font-size:var(--t-2xs);letter-spacing:.08em;color:var(--muted)}
+.panel.good .k{color:var(--pos)}
+.panel h2{font-size:var(--t-base);margin:var(--s-2xs) 0 var(--s-xs)}
+.panel p{font-size:var(--t-sm);line-height:1.6;color:var(--fg)}
+.panel p+p{margin-top:var(--s-xs)}
+.panel .num{font-family:var(--mono);font-size:var(--t-xs);color:var(--pos-emph,var(--pos));font-weight:500}
+
+.sofar{margin-top:var(--s-2xl);background:var(--bg);border:1px solid var(--bd);border-radius:.75rem;padding:var(--s-lg)}
+.sofar h2{font-size:var(--t-base);margin-bottom:var(--s-xs)}
+.sofar p{font-size:var(--t-sm);line-height:1.6;max-width:62rem}
+.sofar p+p{margin-top:var(--s-xs)}
+.sofar em{font-style:normal;color:var(--accent-emph);font-weight:500}
+.sofar .line{margin-top:var(--s-md);padding-top:var(--s-sm);border-top:1px solid var(--bd);
+  font-size:var(--t-lg);line-height:1.45;letter-spacing:-.01em}
+.sofar .line b{color:var(--accent-emph)}
+.foot{margin-top:var(--s-lg);font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);line-height:1.7}
+.foot a{color:var(--accent-emph);text-decoration:none}
+.foot a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="journey.html">← the research journey and the four pains</a>
+  <p class="eyebrow" style="margin-top:var(--s-sm)">What I chose to work on, and why</p>
+  <h1>Three of the four, and not the loudest one</h1>
+  <p class="claim">All four pains are real. They do not cost the same to fix, and one of them
+  is not a design problem at all. <b>I picked the three where a researcher can act and where
+  design moves the needle without a model change.</b></p>
+
+  <div class="stack">
+    <div class="hd">
+      <span>PAIN</span><span>What is missing</span><span>Impact</span><span>Cost to build</span><span>Decision</span>
+    </div>
+
+    <div class="rowx">
+      <span class="n">P1</span>
+      <div>
+        <h3>I can’t tell why this paper is here</h3>
+        <p class="what">The funnel says 32.8M → 100 → 20 and it is excellent. No individual
+        paper says which query found it, how it ranked, or whether it recurred across
+        searches.</p>
+        <p class="where">stage 3, returns at 7 · loudest in the user feedback</p>
+      </div>
+      <span class="lvl"><b class="hi">high</b></span>
+      <span class="lvl"><b class="lo">cheap to explain</b><b class="hi">expensive to fix</b></span>
+      <span class="decide"><span class="chip off">partly</span></span>
+    </div>
+
+    <div class="rowx picked">
+      <span class="n">P2</span>
+      <div>
+        <h3>I have nowhere to put a thought</h3>
+        <p class="what">No note, no tag, no highlight, no decision, anywhere in the product.
+        The thinking happens in Zotero or a document and never comes back.</p>
+        <p class="where">stages 1–5, worst at 4–5 · nothing exists to build on</p>
+      </div>
+      <span class="lvl"><b class="hi">high</b></span>
+      <span class="lvl"><b class="lo">cheap</b><b>no model work</b></span>
+      <span class="decide"><span class="chip on">built</span></span>
+    </div>
+
+    <div class="rowx picked">
+      <span class="n">P3</span>
+      <div>
+        <h3>Every question starts over</h3>
+        <p class="what">Context flows forward between surfaces and is never remembered. Asking
+        from the Citation Graph opens a thread with no link back to where it came from.</p>
+        <p class="where">stages 1–3, and every surface switch</p>
+      </div>
+      <span class="lvl"><b class="hi">high</b></span>
+      <span class="lvl"><b class="lo">schema, not model</b></span>
+      <span class="decide"><span class="chip on">built</span></span>
+    </div>
+
+    <div class="rowx picked">
+      <span class="n">P4</span>
+      <div>
+        <h3>The paper survives, the question doesn’t</h3>
+        <p class="what">Save to My Library and every piece of metadata is intact. The
+        <b>Evidence (N)</b> tab is gone, along with rank, recurrence and the query that
+        surfaced it. Evidence is query-relative and the Library has no query.</p>
+        <p class="where">exactly at the seam, stage 3 → 4 · verified against the live product</p>
+      </div>
+      <span class="lvl"><b class="hi">high</b></span>
+      <span class="lvl"><b class="lo">carry, not compute</b></span>
+      <span class="decide"><span class="chip on">built</span></span>
+    </div>
+  </div>
+
+  <div class="split">
+    <div class="panel">
+      <span class="k">P1 · IMPROVING RELEVANCE</span>
+      <h2>A retrieval problem, not a design one</h2>
+      <p>Better papers, better ordering, fewer near-duplicates. This is model and
+      infrastructure work measured in quarters, and design cannot move it much.</p>
+      <p>Betting the concept on it would make the concept only as good as a roadmap I do not
+      control. So I left it alone.</p>
+    </div>
+    <div class="panel good">
+      <span class="k">P1 · EXPLAINING RELEVANCE</span>
+      <h2>Already computed, then thrown away</h2>
+      <p>The agent trace holds three literal sub-queries with their pool sizes,
+      <span class="num">31.7M · 656.6K · 442.8K</span>, and the paper drawer holds
+      <span class="num">27 supporting quotes</span>.</p>
+      <p>All of it is produced to write the answer and discarded before it reaches the paper.
+      Surfacing it costs a wire, not a model. That part I did build.</p>
+    </div>
+  </div>
+
+  <div class="sofar">
+    <h2>Why this ordering</h2>
+    <p>Three of the four pains sit <em>inside the thread</em>, and the fourth sits on the seam
+    between the thread and the Library. None of them need a better retriever. They need the
+    product to remember something it currently throws away.</p>
+    <p>That is also where the compounding is. A note is the only object that can carry a
+    reason, and once reasons exist the rest gets cheaper: asking a curated set, comparing two
+    lines of enquiry, and restoring what the Library drops all become the same mechanism
+    pointed in different directions.</p>
+    <p class="line"><b>My Library is what you kept. The note is why you kept it.</b> Every rule
+    in the concept follows from that sentence, and if a rule stops following from it, the rule
+    is wrong.</p>
+  </div>
+
+  <p class="foot">
+    Audited against the live product before designing: the retrieval funnel, per-query
+    references, the Elicit-style compare matrix and source scoping all already ship and are
+    good. Assumed rather than verified: the eight journey stages, and that nobody owns the
+    defend stage.<br>
+    <a href="journey.html">← the research journey</a> &nbsp;·&nbsp;
+    <a href="flow.html">the working prototype →</a>
+  </p>
+</div>
+</body>
+</html>
