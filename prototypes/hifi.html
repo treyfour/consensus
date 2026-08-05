@@ -1,0 +1,1933 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Notes in Consensus — hi-fi</title>
+<style>
+/* ══════════════════════════════════════════════════════════════════════════
+   CDL — Consensus Design Language, extracted from the live app on 2026-08-04.
+   Every colour, radius, spacing and type step below is a real --cdl-* token
+   (research/cdl-tokens.css). No invented hex.
+   CircularXXWeb is licensed; Figtree is the metric substitute. Reddit Mono
+   is the real mono and is named exactly.
+   Light theme only — dark was explicitly out of scope for this build.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root{
+  --accent:#068ef1;--accent-emph:#006fce;--accent-muted:#dfeeff;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
+  --bg:#fff;--mist:#fafafa;--faint:#f4f4f5;--subtle:#e4e4e7;--heavy:#27272a;
+  --fg:#18181b;--muted:#71717b;--placeholder:#9f9fa9;--bd:#e4e4e7;--bd-emph:#d4d4d8;
+  --pos:#148d74;--pos-bg:#cef9eb;--green:#3bcdaa;--warn:#a65f00;--warn-bg:#fef9c2;
+  --btn-primary-bd:#00000029;--btn-secondary-bd:#00000014;
+  --r-xs:.25rem;--r-sm:.5rem;--r-md:.75rem;--r-lg:1rem;--r-circle:624.94rem;
+  --s-3xs:.13rem;--s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;
+  --s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;--s-3xl:2.5rem;
+  --t-2xs:.69rem;--t-xs:.81rem;--t-sm:.94rem;--t-base:1rem;--t-lg:1.13rem;
+  --h-2xs:1.13rem;--h-xs:1.25rem;--h-sm:1.38rem;--h-base:1.75rem;
+  --lh-2xs:1.06rem;--lh-xs:1.22rem;--lh-sm:1.41rem;--lh-base:1.5rem;--lh-lg:1.75rem;
+  --w-reg:400;--w-med:500;--w-bold:700;
+  --icon-sm:1rem;--icon-md:1.25rem;--icon-lg:1.5rem;
+  --elev:0px 6px 12px 0px #35465508;
+  --elev-pop:0 1px 2px #18181b0d,0 8px 24px #18181b14;
+  --dur:.1s;
+  --sans:Figtree,"CircularXXWeb",ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --mono:"Reddit Mono",ui-monospace,SFMono-Regular,Menlo,Monaco,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(--t-base);
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+button,input,textarea{font-family:inherit;color:inherit}
+svg{display:block;flex:none}
+.app{display:grid;grid-template-columns:13rem 1fr;height:100vh}
+.app>*{min-height:0}
+
+/* ── sidebar ─────────────────────────────────────────────────────────────
+   Two states, both real: the thread sidebar (screens/03) and the library
+   sidebar (screens/09), which replaces Recents/Tools with Collections. */
+.sb{border-right:1px solid var(--bd);display:flex;flex-direction:column;padding:var(--s-sm);gap:var(--s-3xs);overflow:hidden}
+.sb .brand{display:flex;align-items:center;justify-content:space-between;padding:var(--s-xs) var(--s-2xs) var(--s-md)}
+.sb .brand .logo{width:1.5rem;height:1.5rem;border-radius:var(--r-circle);
+  background:conic-gradient(from 210deg,#3bcdaa,#068ef1 55%,#3bcdaa);flex:none}
+.sb .brand .ic{display:flex;gap:var(--s-2xs)}
+.sb .brand button{border:0;background:none;color:var(--muted);cursor:pointer;padding:var(--s-3xs);border-radius:var(--r-xs)}
+.sb .brand button:hover{color:var(--fg);background:var(--faint)}
+.nav{display:flex;align-items:center;gap:var(--s-sm);width:100%;border:0;background:none;cursor:pointer;
+  padding:var(--s-xs) var(--s-xs);border-radius:var(--r-sm);font-size:var(--t-sm);color:var(--fg);text-align:left}
+.nav:hover{background:var(--faint)}
+.nav.on{background:var(--faint);font-weight:var(--w-med)}
+.nav .ring{width:1.5rem;height:1.5rem;border:1px solid var(--bd-emph);border-radius:var(--r-circle);
+  display:grid;place-items:center;flex:none}
+.nav .grow{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav .ext{color:var(--muted)}
+.sb .lab{font-size:var(--t-xs);color:var(--muted);padding:var(--s-md) var(--s-xs) var(--s-2xs)}
+.sb .scroll{flex:1;overflow-y:auto;min-height:0}
+.sb .recent{font-size:var(--t-xs);color:var(--fg)}
+.sb .foot{border-top:1px solid var(--bd);margin-top:var(--s-xs);padding-top:var(--s-xs);display:flex;flex-direction:column;gap:var(--s-3xs)}
+.sb .acct{display:flex;align-items:center;gap:var(--s-sm);padding:var(--s-xs)}
+.sb .acct .av{width:1.5rem;height:1.5rem;border-radius:var(--r-circle);background:#4f46e5;color:#fff;
+  display:grid;place-items:center;font-size:var(--t-2xs);font-weight:var(--w-med);flex:none}
+.sb .quota{display:flex;align-items:center;gap:var(--s-xs);font-size:var(--t-xs);color:var(--muted);padding:var(--s-2xs) var(--s-xs)}
+.sb .quota .dot{width:.75rem;height:.75rem;border-radius:var(--r-circle);
+  background:conic-gradient(var(--warn-bg) 0 27%,var(--subtle) 0);flex:none}
+.sb .upg{display:flex;align-items:center;justify-content:center;gap:var(--s-xs);width:100%;height:2.5rem;
+  border:1px solid var(--bd);border-radius:var(--r-md);background:var(--bg);font-size:var(--t-sm);
+  font-weight:var(--w-med);cursor:pointer;box-shadow:var(--elev)}
+.sb .upg:hover{border-color:var(--bd-emph)}
+.sb .zot{display:flex;align-items:center;justify-content:center;gap:var(--s-xs);width:100%;height:2.5rem;
+  border:1px solid var(--bd);border-radius:var(--r-md);background:var(--bg);font-size:var(--t-sm);
+  font-weight:var(--w-med);cursor:pointer;box-shadow:var(--elev);margin-bottom:var(--s-xs)}
+.sb .zot b{color:#a52a2a;font-family:var(--mono)}
+.collrow{display:flex;align-items:center;gap:var(--s-xs);width:100%;border:0;background:none;cursor:pointer;
+  padding:var(--s-xs);border-radius:var(--r-sm);font-size:var(--t-xs);color:var(--fg);text-align:left}
+.collrow:hover{background:var(--faint)}
+.collrow.on{background:var(--faint);font-weight:var(--w-med)}
+.collrow.sub{padding-left:var(--s-xl)}
+.collrow .grow{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── stage ───────────────────────────────────────────────────────────── */
+.stage{position:relative;overflow:hidden}
+.screen{position:absolute;inset:0;display:none}
+.screen.on{display:grid}
+#threadScreen{grid-template-columns:1fr auto}
+#threadScreen>*{min-height:0;min-width:0}
+.mid{display:flex;flex-direction:column;min-height:0;position:relative}
+
+/* thread header — screens/03 */
+.thd{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-sm) var(--s-lg);flex:none}
+.thd .ttl{font-size:var(--h-2xs);font-weight:var(--w-bold);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;min-width:3rem}
+.thd .cnt{font-size:var(--t-sm);color:var(--muted)}
+.thd .sp{flex:1}
+.ghostbtn{width:2.25rem;height:2.25rem;display:grid;place-items:center;border:0;background:none;
+  border-radius:var(--r-sm);color:var(--fg);cursor:pointer}
+.ghostbtn:hover{background:var(--faint)}
+.pill{display:inline-flex;align-items:center;gap:var(--s-xs);height:2.5rem;padding:0 var(--s-sm);
+  border:1px solid var(--bd);border-radius:var(--r-md);background:var(--bg);font-size:var(--t-sm);
+  font-weight:var(--w-med);cursor:pointer;box-shadow:var(--elev);white-space:nowrap;
+  transition:transform var(--dur)}
+.pill:hover{border-color:var(--bd-emph)}
+.pill:active{transform:scale(.98)}
+.pill.on{background:var(--accent-subtle);border-color:var(--accent-bd);color:var(--accent-emph)}
+.pill.tint{background:var(--accent-subtle);border-color:transparent}
+.pill.drop{background:var(--accent-muted);border-color:var(--accent);color:var(--accent-emph)}
+.pill.sm{height:2rem;font-size:var(--t-xs);padding:0 var(--s-xs);border-radius:var(--r-sm)}
+
+/* thread body */
+.body{flex:1;overflow-y:auto;padding:var(--s-xs) var(--s-lg) 12rem;scroll-behavior:smooth}
+.inner{max-width:36rem;margin:0 auto}
+.turn{margin-bottom:var(--s-2xl)}
+.q{background:var(--accent-muted);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);
+  font-size:var(--t-base);line-height:var(--lh-base);margin-left:auto;width:fit-content;max-width:100%}
+.q .att{display:flex;align-items:center;gap:var(--s-2xs);font-family:var(--mono);font-size:var(--t-2xs);
+  letter-spacing:.04em;color:var(--accent-emph);margin-bottom:var(--s-2xs)}
+
+/* agent trace — screens/04, 05 */
+.trace{margin-top:var(--s-md)}
+.trace .hd{display:flex;align-items:center;gap:var(--s-xs);font-size:var(--t-xs);color:var(--muted);
+  cursor:pointer;border:0;background:none;padding:var(--s-2xs) 0}
+.trace .hd b{color:var(--fg);font-size:var(--t-sm)}
+.trace .hd .chev{transition:transform var(--dur)}
+.trace.open .hd .chev{transform:rotate(180deg)}
+.trace .panel{display:none;padding-left:var(--s-2xs)}
+.trace.open .panel{display:block}
+.funnel{display:flex;gap:var(--s-3xl);padding:var(--s-sm) 0}
+.funnel .cell b{font-size:var(--h-xs);font-weight:var(--w-bold);display:flex;align-items:center;gap:var(--s-2xs)}
+.funnel .cell b svg{color:var(--placeholder)}
+.funnel .cell span{font-size:var(--t-xs);color:var(--muted)}
+.trace hr{border:0;border-top:1px solid var(--bd);margin:0}
+.step{display:flex;align-items:center;gap:var(--s-sm);padding:var(--s-xs) 0;font-size:var(--t-sm)}
+.step svg:first-child{color:var(--muted)}
+.step .txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.step .pool{font-weight:var(--w-bold);font-size:var(--t-xs);margin-left:auto;white-space:nowrap}
+.step .go{color:var(--muted)}
+.step.lit{color:var(--accent-emph)}
+.step.lit svg:first-child{color:var(--accent)}
+/* the one sentence this whole prototype turns on */
+.discard{font-size:var(--t-xs);line-height:var(--lh-xs);color:var(--muted);padding:var(--s-xs) 0 var(--s-2xs);
+  border-top:1px solid var(--bd);margin-top:var(--s-2xs)}
+.discard b{color:var(--fg);font-weight:var(--w-med)}
+.scopeline{display:flex;align-items:center;gap:var(--s-xs);font-size:var(--t-xs);color:var(--muted);
+  margin-top:var(--s-md);padding-bottom:var(--s-2xs)}
+.scopeline svg{color:var(--accent)}
+
+/* answer */
+.ans{margin-top:var(--s-lg)}
+.ans h2{font-size:var(--h-sm);line-height:var(--h-base);font-weight:var(--w-bold);margin-bottom:var(--s-sm)}
+.ans p{font-size:var(--t-base);line-height:var(--lh-lg);margin-bottom:var(--s-sm)}
+.ans h3{font-size:var(--t-lg);font-weight:var(--w-bold);margin:var(--s-lg) 0 var(--s-sm)}
+.cite{display:inline-flex;align-items:center;gap:var(--s-3xs);background:var(--faint);border-radius:var(--r-xs);
+  padding:0 var(--s-2xs);font-family:var(--mono);font-size:var(--t-2xs);letter-spacing:.02em;
+  text-transform:uppercase;cursor:grab;vertical-align:baseline;white-space:nowrap}
+.cite:hover,.cite.lit{background:var(--accent-muted);color:var(--accent-emph)}
+.cite svg{width:.7rem;height:.7rem}
+/* evidence coverage table — captured from screens/03 */
+.ev{width:100%;border-collapse:collapse;margin-bottom:var(--s-sm);font-size:var(--t-sm)}
+.ev th{text-align:left;font-weight:var(--w-med);padding:var(--s-xs) var(--s-sm);vertical-align:bottom;
+  border-bottom:1px solid var(--bd)}
+.ev td{padding:var(--s-sm);border-bottom:1px solid var(--bd);font-weight:var(--w-med)}
+.ev td.h{text-align:center;color:#fff;font-weight:var(--w-bold)}
+.ev td.h.lo{background:#a8d8fb;color:var(--fg)}
+.ev td.h.mid{background:#5cb6f5;color:var(--fg)}
+.ev td.h.hi{background:var(--accent)}
+.ev td.h.gap{background:var(--faint);color:var(--muted);font-family:var(--mono);font-size:var(--t-2xs)}
+
+/* composer — screens/03, floats over the thread */
+.comp-wrap{position:absolute;left:0;right:0;bottom:0;padding:0 var(--s-lg) var(--s-lg);
+  background:linear-gradient(transparent,var(--bg) 22%);pointer-events:none}
+.comp{max-width:36rem;margin:0 auto;pointer-events:auto;background:var(--bg);border:1px solid var(--bd);
+  border-radius:var(--r-lg);box-shadow:var(--elev-pop);padding:var(--s-sm);transition:border-color var(--dur)}
+.comp.over,.comp.dropok{border-color:var(--accent);background:var(--accent-subtle)}
+.chipatt{position:relative;display:inline-flex;align-items:flex-start;gap:var(--s-xs);background:var(--faint);
+  border-radius:var(--r-sm);padding:var(--s-xs) var(--s-sm);margin-bottom:var(--s-xs);max-width:100%}
+.chipatt .tx{min-width:0}
+.chipatt b{display:block;font-size:var(--t-xs);font-weight:var(--w-med);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chipatt span{font-size:var(--t-2xs);color:var(--muted)}
+.chipatt .x{position:absolute;top:-.4rem;right:-.4rem;width:1.15rem;height:1.15rem;border-radius:var(--r-circle);
+  background:var(--heavy);color:#fff;border:0;display:grid;place-items:center;cursor:pointer}
+.comp .row1{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-xs) var(--s-2xs) var(--s-sm)}
+.comp input.ask{flex:1;border:0;outline:0;font-size:var(--t-base);background:none}
+.comp input.ask::placeholder{color:var(--placeholder)}
+.tabhint{font-family:var(--mono);font-size:var(--t-2xs);color:var(--placeholder);white-space:nowrap}
+.comp .row2{display:flex;align-items:center;gap:var(--s-xs)}
+.circ{width:2.25rem;height:2.25rem;border-radius:var(--r-circle);border:1px solid var(--bd);background:var(--bg);
+  display:grid;place-items:center;cursor:pointer;flex:none;transition:transform var(--dur)}
+.circ:hover{border-color:var(--bd-emph)}
+.circ:active{transform:scale(.98)}
+.circ.send{background:var(--accent);border-color:var(--btn-primary-bd);color:#fff}
+.circ.send:disabled{opacity:.45;cursor:default}
+.circ.ghost{border:0}
+.circ.ghost:hover{background:var(--faint)}
+.dashed{border-style:dashed;color:var(--muted)}
+.dashed .deep{color:var(--accent)}
+.comp .grow{flex:1}
+#inclNotes{display:none}
+#inclNotes.show{display:inline-flex}
+#inclNotes.on{background:var(--accent-subtle);border-color:var(--accent-bd);color:var(--accent-emph)}
+.thinking{display:flex;align-items:center;gap:var(--s-xs);font-size:var(--t-xs);color:var(--muted);
+  margin-top:var(--s-md)}
+.thinking i{width:.3rem;height:.3rem;border-radius:var(--r-circle);background:var(--placeholder);
+  animation:bl 1s infinite}
+.thinking i:nth-child(2){animation-delay:.15s}.thinking i:nth-child(3){animation-delay:.3s}
+@keyframes bl{0%,100%{opacity:.25}50%{opacity:1}}
+.blank{max-width:36rem;margin:6rem auto 0;text-align:center}
+.blank b{display:block;font-size:var(--h-sm);font-weight:var(--w-bold);margin-bottom:var(--s-xs)}
+.blank span{font-size:var(--t-sm);color:var(--muted);line-height:var(--lh-sm)}
+.blank kbd{font-family:var(--mono);font-size:var(--t-2xs);background:var(--faint);border-radius:var(--r-xs);padding:1px 4px}
+
+/* ── the drawer: References · Paper · Notes ──────────────────────────────
+   The product has one right-hand drawer that swaps between References and the
+   Paper detail. Notes is a third thing it can be — same frame, same header
+   grammar, opened from the thread header beside References. */
+.drawer{width:28rem;border-left:1px solid var(--bd);display:none;flex-direction:column;min-height:0}
+.drawer.on{display:flex}
+.dhd{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-sm) var(--s-md) var(--s-sm) var(--s-lg);flex:none}
+.dhd .t{font-size:var(--h-2xs);font-weight:var(--w-bold);white-space:nowrap}
+.dhd .slash{color:var(--bd-emph)}
+.dhd .sp{flex:1}
+.dswitch{display:flex;align-items:center;gap:var(--s-xs);border:0;background:none;cursor:pointer;
+  font-size:var(--t-sm);color:var(--fg);border-radius:var(--r-sm);padding:var(--s-2xs) var(--s-xs);
+  min-width:0;max-width:13rem}
+.dswitch:hover{background:var(--faint)}
+.dswitch .grow{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dswitch svg{color:var(--muted)}
+.xbtn{width:2.25rem;height:2.25rem;border-radius:var(--r-circle);border:1px solid var(--bd);background:var(--bg);
+  display:grid;place-items:center;cursor:pointer;flex:none}
+.xbtn:hover{border-color:var(--bd-emph)}
+.dsub{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-xs) var(--s-lg) var(--s-sm)}
+.dsub .t{font-size:var(--t-base);font-weight:var(--w-bold)}
+.dsub .n{font-size:var(--t-sm);color:var(--muted)}
+.dsub .sp{flex:1}
+.seg{display:flex;border:1px solid var(--bd);border-radius:var(--r-sm);overflow:hidden}
+.seg button{width:2rem;height:1.9rem;display:grid;place-items:center;border:0;background:var(--bg);cursor:pointer;color:var(--muted)}
+.seg button+button{border-left:1px solid var(--bd)}
+.seg button.on{background:var(--faint);color:var(--fg)}
+.dbody{flex:1;overflow-y:auto;padding:0 var(--s-lg) var(--s-lg);min-height:0}
+.qtabs{display:flex;gap:var(--s-2xs);padding:0 var(--s-lg) var(--s-xs);flex-wrap:wrap}
+.qtab{font-family:var(--mono);font-size:var(--t-2xs);letter-spacing:.04em;border:1px solid var(--bd);
+  background:var(--bg);border-radius:var(--r-circle);padding:var(--s-3xs) var(--s-xs);cursor:pointer;color:var(--muted)}
+.qtab.on{background:var(--heavy);border-color:var(--heavy);color:#fff}
+
+/* reference card — screens/05 */
+.ref{position:relative;background:var(--mist);border:1px solid transparent;border-radius:var(--r-md);
+  padding:var(--s-sm) var(--s-md);margin-bottom:var(--s-xs);cursor:grab;transition:border-color var(--dur)}
+.ref:hover{border-color:var(--bd)}
+.ref.sel{border-color:var(--accent-bd);background:var(--accent-subtle)}
+.ref.ghosting{opacity:.4}
+.ref .top{display:flex;align-items:flex-start;gap:var(--s-xs)}
+.rank{width:1.5rem;height:1.5rem;border-radius:var(--r-circle);background:var(--heavy);color:#fff;flex:none;
+  display:grid;place-items:center;font-size:var(--t-2xs);font-weight:var(--w-bold)}
+.rank.none{background:var(--bg);color:var(--muted);border:1px dashed var(--bd-emph)}
+.ref h3{flex:1;font-size:var(--t-sm);font-weight:var(--w-bold);line-height:var(--lh-sm)}
+.chk{width:1.25rem;height:1.25rem;border-radius:var(--r-xs);border:1.5px solid var(--bd-emph);flex:none;
+  display:grid;place-items:center;color:transparent;background:var(--bg)}
+.ref.sel .chk{background:var(--accent);border-color:var(--accent);color:#fff}
+.ref .kt{font-size:var(--t-xs);line-height:var(--lh-xs);margin:var(--s-xs) 0}
+.ref .kt .k{font-family:var(--mono);font-size:var(--t-2xs);letter-spacing:.06em;color:var(--muted)}
+.badges{display:flex;flex-wrap:wrap;gap:var(--s-2xs);margin-bottom:var(--s-xs)}
+.badge{display:inline-flex;align-items:center;gap:var(--s-2xs);font-family:var(--mono);font-size:var(--t-2xs);
+  letter-spacing:.04em;color:var(--muted);border-radius:var(--r-circle);padding:var(--s-3xs) var(--s-xs)}
+.badge.fill{background:var(--faint)}
+.badge.rec{background:var(--accent-subtle);color:var(--accent-emph)}
+.badge.kept{background:var(--pos-bg);color:var(--pos)}
+.badge.notkept{background:var(--warn-bg);color:var(--warn)}
+.ref .meta{font-size:var(--t-xs);color:var(--muted);display:flex;align-items:center;gap:var(--s-2xs);flex-wrap:wrap}
+.ref .meta b{color:var(--fg)}
+.ref .jr{font-size:var(--t-xs);color:var(--muted);font-style:italic;display:flex;align-items:center;gap:var(--s-2xs);margin-top:var(--s-3xs)}
+.ref .pdf{position:absolute;right:var(--s-md);bottom:var(--s-sm);font-family:var(--mono);font-size:var(--t-2xs);
+  color:var(--muted);display:flex;align-items:center;gap:var(--s-2xs)}
+.empty{text-align:center;color:var(--muted);font-size:var(--t-xs);line-height:var(--lh-sm);padding:var(--s-3xl) var(--s-md)}
+
+/* paper drawer — screens/03 */
+.tabs{display:flex;gap:var(--s-md);padding:0 var(--s-lg);border-bottom:1px solid var(--bd);flex:none}
+.tab{border:0;background:none;padding:var(--s-xs) 0 var(--s-sm);font-size:var(--t-sm);color:var(--muted);
+  cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:var(--s-xs)}
+.tab.on{color:var(--fg);font-weight:var(--w-med);border-bottom-color:var(--fg)}
+.pp h2{font-size:var(--h-2xs);font-weight:var(--w-bold);line-height:var(--lh-lg);margin:var(--s-md) 0 var(--s-xs)}
+.pp .by{font-size:var(--t-xs);margin-bottom:var(--s-md)}
+.pp .by b{font-weight:var(--w-bold)}
+.pp .by span{color:var(--muted)}
+.pp .facts{display:flex;gap:var(--s-2xl);margin-bottom:var(--s-md)}
+.pp .facts b{display:block;font-size:var(--t-xs);font-weight:var(--w-bold)}
+.pp .facts span{font-size:var(--t-2xs);color:var(--muted);display:flex;align-items:center;gap:var(--s-2xs)}
+.dots4{display:flex;gap:2px}
+.dots4 i{width:.4rem;height:.4rem;border-radius:var(--r-circle);background:var(--green)}
+.dots4 i.off{background:var(--subtle)}
+.pp .doi{display:flex;align-items:center;gap:var(--s-xs);font-size:var(--t-2xs);color:var(--muted);margin-bottom:var(--s-md)}
+.pp .doi b{font-family:var(--mono);color:var(--fg)}
+.pp .abs{font-size:var(--t-xs);line-height:var(--lh-sm)}
+.pbar{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-sm) var(--s-lg);border-top:1px solid var(--bd);flex:none}
+.pbar .sp{flex:1}
+.quotepill{position:absolute;right:var(--s-lg);bottom:4.5rem;display:inline-flex;align-items:center;gap:var(--s-xs);
+  background:var(--bg);border:1px solid var(--bd);border-radius:var(--r-circle);padding:var(--s-xs) var(--s-sm);
+  box-shadow:var(--elev-pop);font-size:var(--t-xs);cursor:pointer}
+
+/* WHY THIS PAPER — the block that carries the whole argument.
+   It appears in two places, deliberately: on the reference hover card, and as
+   the head of the paper drawer's Evidence tab, which is where the product
+   already keeps per-query evidence. */
+.why{border:1px solid var(--accent-bd);background:var(--accent-subtle);border-radius:var(--r-sm);
+  padding:var(--s-sm);margin:var(--s-sm) 0}
+.why .k{display:block;font-family:var(--mono);font-size:var(--t-2xs);letter-spacing:.08em;
+  color:var(--accent-emph);margin-bottom:var(--s-2xs)}
+.why q{display:block;font-size:var(--t-xs);line-height:var(--lh-sm);quotes:'“' '”'}
+.why .tag{display:block;font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-xs);line-height:var(--lh-2xs)}
+
+/* hover card */
+#whyCard{position:fixed;z-index:60;width:23rem;max-width:calc(100vw - 1rem);background:var(--bg);
+  border:1px solid var(--bd);border-radius:var(--r-md);box-shadow:var(--elev-pop);padding:var(--s-md);
+  display:none;max-height:80vh;overflow-y:auto}
+#whyCard.on{display:block}
+#whyCard h4{font-size:var(--t-sm);font-weight:var(--w-bold);line-height:var(--lh-sm)}
+#whyCard .meta{font-size:var(--t-2xs);color:var(--muted);margin:var(--s-2xs) 0 var(--s-xs)}
+#whyCard .ab{font-size:var(--t-xs);line-height:var(--lh-sm);color:var(--fg)}
+#whyCard .rowacts{display:flex;gap:var(--s-xs);margin-top:var(--s-sm);padding-top:var(--s-sm);border-top:1px solid var(--bd)}
+.miss{margin-top:var(--s-xs)}
+.miss .open{border:0;background:none;font-size:var(--t-xs);color:var(--muted);cursor:pointer;
+  text-decoration:underline;text-underline-offset:2px;padding:0}
+.miss .open:hover{color:var(--fg)}
+.goals,.sug{display:none;margin-top:var(--s-xs)}
+.goals.on,.sug.on{display:block}
+.goals .lab,.sug .lab{display:block;font-size:var(--t-2xs);color:var(--muted);margin-bottom:var(--s-2xs)}
+.goal{display:block;width:100%;text-align:left;border:1px solid var(--bd);background:var(--bg);
+  border-radius:var(--r-sm);padding:var(--s-xs) var(--s-sm);font-size:var(--t-xs);cursor:pointer;margin-bottom:var(--s-2xs)}
+.goal:hover{border-color:var(--accent-bd);background:var(--accent-subtle)}
+.sug input{width:100%;border:1px solid var(--bd);border-radius:var(--r-sm);padding:var(--s-xs) var(--s-sm);
+  font-size:var(--t-xs);outline:0;margin-bottom:var(--s-xs)}
+.sug input:focus{border-color:var(--accent)}
+.sug .two{display:flex;gap:var(--s-2xs);flex-wrap:wrap}
+.sug .keep{display:block;font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-xs)}
+.mini{display:inline-flex;align-items:center;gap:var(--s-2xs);border:1px solid var(--bd);background:var(--bg);
+  border-radius:var(--r-sm);padding:var(--s-2xs) var(--s-xs);font-size:var(--t-xs);cursor:pointer;white-space:nowrap}
+.mini:hover{border-color:var(--bd-emph)}
+.mini.pri{background:var(--accent);border-color:var(--btn-primary-bd);color:#fff}
+
+/* ── notes drawer ────────────────────────────────────────────────────── */
+.chips{display:flex;flex-wrap:wrap;gap:var(--s-2xs);padding:0 var(--s-lg) var(--s-xs);align-items:center}
+.chips:empty{display:none}
+.chip{display:inline-flex;align-items:center;gap:var(--s-2xs);background:var(--accent-subtle);
+  color:var(--accent-emph);border:1px solid var(--accent-bd);border-radius:var(--r-circle);
+  padding:var(--s-3xs) var(--s-xs);font-size:var(--t-2xs);cursor:pointer}
+.chips .shown{font-size:var(--t-2xs);color:var(--muted);margin-left:auto}
+.ncomp{margin:0 var(--s-lg) var(--s-sm);border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-xs) var(--s-sm);
+  transition:border-color var(--dur)}
+.ncomp:focus-within{border-color:var(--accent)}
+.ncomp textarea{width:100%;border:0;outline:0;resize:none;font-size:var(--t-xs);line-height:var(--lh-sm);
+  overflow:hidden;background:none}
+.ncomp textarea::placeholder{color:var(--placeholder)}
+.ncomp .pins{margin-top:var(--s-2xs)}
+.card{position:relative;border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-sm);
+  margin-bottom:var(--s-xs);background:var(--bg);cursor:grab}
+.card.hidden{display:none}
+.card.dragging{opacity:.4}
+.card.merge{border-color:var(--accent);background:var(--accent-subtle)}
+.card.land{animation:land .42s ease}
+.card.flash{animation:flash 1s ease}
+@keyframes land{from{opacity:0;transform:translateY(-.4rem)}}
+@keyframes flash{0%,100%{background:var(--bg)}30%{background:var(--accent-subtle)}}
+.card textarea{width:100%;border:0;outline:0;resize:none;font-size:var(--t-xs);line-height:var(--lh-sm);
+  overflow:hidden;background:none;padding-right:var(--s-lg)}
+.card textarea::placeholder{color:var(--placeholder)}
+.pin{display:flex;align-items:center;gap:var(--s-2xs);font-size:var(--t-2xs);color:var(--muted);
+  padding:var(--s-3xs) 0}
+.pin b{font-weight:var(--w-med);color:var(--fg);white-space:nowrap}
+.pin .pv{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.pin .x{cursor:pointer;color:var(--placeholder);flex:none}
+.pin .x:hover{color:var(--fg)}
+.cfoot{display:flex;align-items:center;gap:var(--s-2xs);flex-wrap:wrap;margin-top:var(--s-xs)}
+.tag{font-family:var(--mono);font-size:var(--t-2xs);letter-spacing:.03em;border-radius:var(--r-circle);
+  padding:var(--s-3xs) var(--s-xs);background:var(--faint);color:var(--muted)}
+.tag.add{border:1px dashed var(--bd-emph);background:none;cursor:pointer}
+.tag.add:hover{border-color:var(--accent);color:var(--accent-emph)}
+.tag.coll{background:var(--pos-bg);color:var(--pos);display:inline-flex;align-items:center;gap:var(--s-3xs)}
+.grip{margin-left:auto;font-size:var(--t-2xs);color:var(--placeholder);display:flex;align-items:center;gap:var(--s-3xs)}
+.cardmore{position:absolute;top:var(--s-2xs);right:var(--s-2xs);width:1.5rem;height:1.5rem;border:0;background:none;
+  border-radius:var(--r-xs);color:var(--muted);cursor:pointer;opacity:0;display:grid;place-items:center}
+.card:hover .cardmore{opacity:1}
+.cardmore:hover{background:var(--faint);color:var(--fg)}
+.tail{border:1px dashed var(--bd-emph);border-radius:var(--r-md);padding:var(--s-lg);text-align:center;
+  font-size:var(--t-xs);color:var(--muted);white-space:pre-line;line-height:var(--lh-sm)}
+.tail.quiet{display:none}
+.tail.over{border-color:var(--accent);background:var(--accent-subtle);color:var(--accent-emph)}
+.dropline{height:2px;background:var(--accent);border-radius:2px;margin:var(--s-2xs) 0}
+.hint{font-size:var(--t-2xs);color:var(--muted);line-height:var(--lh-2xs);padding:var(--s-xs) 0 0}
+
+/* ── my library ──────────────────────────────────────────────────────── */
+#libScreen{grid-template-columns:1fr;overflow:hidden}
+.lib{display:flex;flex-direction:column;min-height:0}
+.libhd{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-lg) var(--s-xl) var(--s-md)}
+.libhd h1{font-size:var(--h-xs);font-weight:var(--w-bold);display:flex;align-items:center;gap:var(--s-xs)}
+.libhd h1 .crumb{color:var(--muted);cursor:pointer}
+.libhd h1 .crumb:hover{color:var(--fg)}
+.libhd .sp{flex:1}
+.pill.blue{background:var(--accent);border-color:var(--btn-primary-bd);color:#fff}
+.libtabs{display:flex;gap:var(--s-xl);padding:0 var(--s-xl);border-bottom:1px solid var(--bd);flex:none}
+.libsearch{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-md) var(--s-xl)}
+.libsearch .box{display:flex;align-items:center;gap:var(--s-xs);flex:1;max-width:31rem;height:2.5rem;
+  border:1px solid var(--bd);border-radius:var(--r-circle);padding:0 var(--s-md);color:var(--placeholder)}
+.libsearch .box input{border:0;outline:0;flex:1;font-size:var(--t-sm);background:none}
+.libbody{flex:1;overflow-y:auto;padding:0 var(--s-xl) 8rem;min-height:0}
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;font-size:var(--t-xs);font-weight:var(--w-bold);color:var(--fg);
+  padding:var(--s-sm);border-bottom:1px solid var(--bd)}
+.tbl td{font-size:var(--t-xs);padding:var(--s-sm);border-bottom:1px solid var(--bd);vertical-align:top}
+.tbl td.ti{font-weight:var(--w-bold)}
+.tbl td .sub{color:var(--muted);font-weight:var(--w-reg);margin-top:var(--s-3xs);display:block}
+.tbl tr.pick{cursor:pointer}
+.tbl tr.pick:hover td{background:var(--mist)}
+.tbl .cw{width:2.5rem}
+.tbl .type{display:flex;align-items:center;gap:var(--s-2xs);color:var(--fg)}
+.gchk{width:1.15rem;height:1.15rem;border-radius:var(--r-xs);border:1.5px solid var(--bd-emph);
+  display:grid;place-items:center;color:transparent;cursor:pointer;background:var(--bg)}
+.gchk.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.selbar{position:absolute;left:50%;bottom:var(--s-2xl);transform:translateX(-50%) translateY(1rem);
+  display:none;align-items:center;gap:var(--s-sm);background:var(--bg);border:1px solid var(--bd);
+  border-radius:var(--r-circle);box-shadow:var(--elev-pop);padding:var(--s-xs) var(--s-xs) var(--s-xs) var(--s-md);
+  opacity:0;transition:opacity var(--dur),transform var(--dur);z-index:20}
+.selbar.on{display:flex;opacity:1;transform:translateX(-50%)}
+.selbar .n{font-size:var(--t-sm);white-space:nowrap}
+.selbar input{border:0;outline:0;font-size:var(--t-sm);background:none;width:17rem}
+.selbar input::placeholder{color:var(--placeholder)}
+.selbar .div{width:1px;height:1.5rem;background:var(--bd)}
+.noteview{max-width:46rem}
+.noteview .back{border:0;background:none;font-size:var(--t-xs);color:var(--muted);cursor:pointer;
+  padding:var(--s-xs) 0;display:flex;align-items:center;gap:var(--s-2xs)}
+.noteview .back:hover{color:var(--fg)}
+.noteview h2{font-size:var(--h-2xs);font-weight:var(--w-bold);margin:var(--s-xs) 0 var(--s-2xs)}
+.noteview .sub{font-size:var(--t-xs);color:var(--muted);margin-bottom:var(--s-md)}
+
+/* comparison — one generator, so it reads the same wherever it lands */
+.cmp .join{border:1px solid var(--accent-bd);background:var(--accent-subtle);border-radius:var(--r-sm);
+  padding:var(--s-sm);margin-bottom:var(--s-sm)}
+.cmp .join .k{font-family:var(--mono);font-size:var(--t-2xs);letter-spacing:.08em;color:var(--accent-emph);
+  display:block;margin-bottom:var(--s-2xs)}
+.cmp .join p{font-size:var(--t-xs);line-height:var(--lh-sm);margin:0}
+.cmp .blk{margin-bottom:var(--s-sm)}
+.cmp .blk .hd{font-size:var(--t-xs);color:var(--muted);margin-bottom:var(--s-2xs)}
+.cmp .blk .hd b{color:var(--fg);font-weight:var(--w-med)}
+.cmp .blk q{display:block;font-size:var(--t-sm);line-height:var(--lh-sm);border-left:2px solid var(--bd-emph);
+  padding-left:var(--s-sm)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-xs);margin:var(--s-sm) 0}
+.grid2 .col{border:1px solid var(--bd);border-radius:var(--r-sm);padding:var(--s-sm)}
+.grid2 .k{font-family:var(--mono);font-size:var(--t-2xs);letter-spacing:.08em;color:var(--muted)}
+.grid2 h4{font-size:var(--t-xs);font-weight:var(--w-bold);margin:var(--s-3xs) 0 var(--s-2xs)}
+.grid2 ul{list-style:none;font-size:var(--t-2xs);color:var(--muted);line-height:var(--lh-xs)}
+.grid2 ul b{color:var(--fg);font-weight:var(--w-med)}
+.gapline{font-size:var(--t-2xs);color:var(--muted);border-top:1px solid var(--bd);padding-top:var(--s-xs)}
+
+/* ── popovers, toast, ghost ──────────────────────────────────────────── */
+.pop{position:fixed;z-index:70;min-width:18.75rem;max-width:21.88rem;background:var(--bg);
+  border:1px solid var(--bd);border-radius:var(--r-md);box-shadow:var(--elev-pop);padding:var(--s-xs);
+  display:none;max-height:24rem;overflow-y:auto}
+.pop.on{display:block}
+.pop button{display:flex;align-items:center;gap:var(--s-xs);width:100%;text-align:left;border:0;background:none;
+  border-radius:var(--r-sm);padding:var(--s-xs);font-size:var(--t-xs);cursor:pointer}
+.pop button:hover{background:var(--faint)}
+.pop button .grow{flex:1;min-width:0}
+.pop button .grow b{display:block;font-weight:var(--w-med);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pop button .grow span{font-size:var(--t-2xs);color:var(--muted)}
+.pop input{width:100%;border:1px solid var(--bd);border-radius:var(--r-sm);padding:var(--s-xs) var(--s-sm);
+  font-size:var(--t-xs);outline:0;margin:var(--s-2xs) 0}
+.pop input:focus{border-color:var(--accent)}
+.pop .lab{font-size:var(--t-2xs);color:var(--muted);padding:var(--s-xs) var(--s-xs) var(--s-2xs);line-height:var(--lh-2xs)}
+.pop .sep{height:1px;background:var(--bd);margin:var(--s-2xs) 0}
+#toast{position:fixed;left:50%;bottom:8rem;transform:translateX(-50%) translateY(1rem);z-index:90;
+  background:var(--heavy);color:#fff;border-radius:var(--r-md);padding:var(--s-xs) var(--s-sm);
+  font-size:var(--t-xs);max-width:21.88rem;display:flex;align-items:center;gap:var(--s-sm);
+  opacity:0;pointer-events:none;transition:opacity var(--dur),transform var(--dur)}
+#toast.on{opacity:1;transform:translateX(-50%);pointer-events:auto}
+#toast .tact{border:0;background:#ffffff26;color:#fff;border-radius:var(--r-xs);padding:var(--s-3xs) var(--s-xs);
+  font-size:var(--t-2xs);cursor:pointer;white-space:nowrap}
+#ghost{position:fixed;top:-100px;left:-100px;background:var(--heavy);color:#fff;border-radius:var(--r-sm);
+  padding:var(--s-2xs) var(--s-xs);font-size:var(--t-2xs);white-space:nowrap}
+.tip{position:fixed;z-index:95;background:var(--heavy);color:#fff;border-radius:var(--r-sm);
+  padding:var(--s-2xs) var(--s-xs);font-size:var(--t-2xs);max-width:15.63rem;line-height:var(--lh-2xs);display:none}
+.tip.on{display:block}
+body.dragging .ref,body.dragging .card{cursor:grabbing}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ═══ sidebar ═══════════════════════════════════════════════════════ -->
+  <aside class="sb">
+    <div class="brand">
+      <span class="logo"></span>
+      <span class="ic"><button id="sbNewColl" title="New collection" style="display:none"></button>
+      <button title="Collapse sidebar"></button></span>
+    </div>
+
+    <div id="sbThread">
+      <button class="nav" id="navNew"><span class="ring"></span><span class="grow">New Thread</span></button>
+      <button class="nav" id="navHome"><span class="grow">Home</span></button>
+      <button class="nav" id="navLib"><span class="grow">My Library</span></button>
+      <button class="nav"><span class="grow">History</span></button>
+      <div class="lab">Recents</div>
+      <div id="recents"></div>
+      <div class="lab">Tools</div>
+      <button class="nav recent"><span class="grow">Paper search</span></button>
+      <button class="nav recent"><span class="grow">Citation Graph</span></button>
+    </div>
+
+    <div id="sbLib" style="display:none">
+      <button class="nav" id="backHome"><span class="grow">Back Home</span></button>
+      <button class="nav on"><span class="grow">My Library</span></button>
+      <div class="lab">Collections</div>
+      <div id="tree"></div>
+    </div>
+
+    <div class="scroll"></div>
+    <div class="foot">
+      <button class="zot" id="zotBtn" style="display:none"><b>Z</b> Zotero Import</button>
+      <button class="nav recent"><span class="grow">Learn</span><span class="ext"></span></button>
+      <button class="nav recent"><span class="grow">Contact</span><span class="ext"></span></button>
+      <div class="acct"><span class="av">t</span><span class="grow" style="font-size:var(--t-xs)">the</span><span style="color:var(--muted)"></span></div>
+      <div class="quota"><span class="dot"></span>4 / 15 Pro messages left</div>
+      <button class="upg">Upgrade</button>
+    </div>
+  </aside>
+
+  <!-- ═══ stage ═════════════════════════════════════════════════════════ -->
+  <div class="stage">
+
+    <!-- ── thread ──────────────────────────────────────────────────────── -->
+    <section class="screen on" id="threadScreen">
+      <div class="mid">
+        <header class="thd">
+          <span class="ttl" id="threadName">CRISPR Off Target Effects</span>
+          <span class="cnt" id="threadCount">0</span>
+          <button class="ghostbtn" id="thChev" title="Thread options"></button>
+          <span class="sp"></span>
+          <button class="ghostbtn" title="Save thread"></button>
+          <button class="ghostbtn" title="Thread settings"></button>
+          <button class="pill" id="btnNotes" title="Notes for this thread">Notes<span id="btnNotesN" style="color:var(--muted)"></span></button>
+          <button class="pill" id="btnRefs">References</button>
+          <button class="pill tint" id="btnShare">Share</button>
+        </header>
+
+        <div class="body" id="body"><div class="inner" id="thread"></div></div>
+
+        <div class="comp-wrap">
+          <div class="comp" id="comp">
+            <div id="compAtt"></div>
+            <div class="row1">
+              <input class="ask" id="askInput" placeholder="Ask a research question…" autocomplete="off">
+              <span class="tabhint">TAB →</span>
+            </div>
+            <div class="row2">
+              <button class="circ" id="btnPlus" title="Attach"></button>
+              <button class="pill sm" id="btnCorpus">Corpus</button>
+              <button class="pill sm dashed" id="btnDeep"><span class="deep"></span>Deep +</button>
+              <button class="pill sm" id="inclNotes"></button>
+              <span class="grow"></span>
+              <button class="circ ghost" id="seedBtn" title="Fill the next question in this walkthrough"></button>
+              <button class="circ ghost" title="Dictate"></button>
+              <button class="circ send" id="sendBtn" title="Send"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── the drawer: one frame, three modes ───────────────────────── -->
+      <aside class="drawer" id="drawer">
+        <header class="dhd">
+          <span class="t" id="dTitle">References</span>
+          <span class="slash" id="dSlash">/</span>
+          <button class="dswitch" id="dSwitch"><span id="dSwitchIco"></span><span class="grow" id="dSwitchLab"></span><span id="dSwitchChev"></span></button>
+          <span class="sp"></span>
+          <button class="xbtn" id="dClose" title="Close"></button>
+        </header>
+
+        <!-- references -->
+        <div id="mRefs" style="display:flex;flex-direction:column;min-height:0;flex:1">
+          <div class="dsub" id="refIdle"><span class="t">Results</span><span class="n" id="refN">0</span><span class="sp"></span>
+            <button class="ghostbtn" title="Save all"></button>
+            <button class="ghostbtn" title="Export"></button>
+            <span class="seg"><button class="on" title="Card view"></button><button title="Row view"></button><button title="Table view"></button></span>
+          </div>
+          <!-- selecting references turns the panel's own control row into the
+               actions for the selection — no floating pill over the composer -->
+          <div class="dsub" id="refSel" style="display:none">
+            <span class="t" id="refSelN">0 selected</span><span class="sp"></span>
+            <button class="pill sm" id="selAdd"></button>
+            <button class="pill sm" id="selAsk"></button>
+            <button class="ghostbtn" id="selNone" title="Clear selection"></button>
+          </div>
+          <div class="qtabs" id="qtabs"></div>
+          <div class="dbody" id="refs"></div>
+        </div>
+
+        <!-- paper -->
+        <div id="mPaper" style="display:none;flex-direction:column;min-height:0;flex:1;position:relative">
+          <div class="tabs" id="pTabs"></div>
+          <div class="dbody pp" id="pBody"></div>
+          <button class="quotepill" id="pQuotes"></button>
+          <div class="pbar" id="pBar"></div>
+        </div>
+
+        <!-- notes -->
+        <div id="mNotes" style="display:none;flex-direction:column;min-height:0;flex:1">
+          <div class="dsub"><span class="t">Cards</span><span class="n" id="cardN">0</span><span class="sp"></span>
+            <button class="pill sm" id="filterBtn">Filter</button>
+            <button class="pill sm" id="askNote">Ask <span id="askN">0</span></button>
+            <button class="ghostbtn" id="libBtn" title="Add this note to a collection"></button>
+          </div>
+          <div class="chips" id="chips"></div>
+          <div class="ncomp" id="ncomp">
+            <textarea id="cText" rows="1" placeholder="Write a note…"></textarea>
+            <div class="pins" id="cPins"></div>
+          </div>
+          <div class="dbody" id="notesBody">
+            <div id="noteList"></div>
+            <div class="tail" id="tail"></div>
+            <div class="hint" id="hint"></div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- ── my library ──────────────────────────────────────────────────── -->
+    <section class="screen" id="libScreen">
+      <div class="lib">
+        <div class="libhd">
+          <h1 id="libTitle"></h1><span class="sp"></span>
+          <button class="pill" id="libShare">Share</button>
+          <button class="pill blue">Add</button>
+        </div>
+        <div class="libtabs" id="libTabs"></div>
+        <div class="libsearch" id="libSearch">
+          <span class="box"><input id="libQ" placeholder="Search items in My Library"></span>
+        </div>
+        <div class="libbody" id="libBody"></div>
+      </div>
+      <div class="selbar" id="selbar">
+        <span class="n" id="selN"></span>
+        <span class="div"></span>
+        <input id="nAsk" placeholder="Ask this note…">
+        <button class="circ send" id="nGo" title="Ask"></button>
+        <button class="ghostbtn" id="selClear" title="Clear selection"></button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div id="whyCard"></div>
+<div class="pop" id="collPop"></div>
+<div class="pop" id="tagPop"></div>
+<div class="pop" id="filterPop">
+  <input id="fq" placeholder="Filter by tag, or any text…">
+  <div id="fTags"></div><div class="sep"></div><div id="fText"></div>
+</div>
+<div class="pop" id="menu"></div>
+<div id="toast"></div>
+<div id="ghost"></div>
+<div class="tip" id="tip"></div>
+
+<script>
+/* ══ icons ════════════════════════════════════════════════════════════════
+   Inline so the file stays self-contained. 1.5px stroke, currentColor. */
+const IC={
+ plus:'M12 5v14M5 12h14', home:'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+ bookmark:'M6 3h12v18l-6-4.5L6 21z', history:'M3 12a9 9 0 1 0 3-6.7M3 4v4h4',
+ chat:'M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5z', search:'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3',
+ graph:'M6 3v7a4 4 0 0 0 4 4h4M6 3a2 2 0 1 1 0-.001M18 10a2 2 0 1 1 0-.001M18 18a2 2 0 1 1 0-.001M6 3v14a4 4 0 0 0 4 4h4',
+ play:'M5 3l14 9-14 9z', mail:'M3 6h18v12H3zM3 6l9 6 9-6',
+ chev:'M6 9l6 6 6-6', chevR:'M9 6l6 6-6 6', chevUD:'M8 9l4-4 4 4M8 15l4 4 4-4',
+ panel:'M3 4h18v16H3zM9 4v16', folder:'M3 7a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z',
+ doc:'M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7zM14 3v4h4',
+ sliders:'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h10M18 18h2M14 4v4M8 10v4M14 16v4',
+ link:'M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1',
+ mic:'M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM5 11a7 7 0 0 0 14 0M12 18v3',
+ up:'M12 19V5M5 12l7-7 7 7', right:'M5 12h14M12 5l7 7-7 7',
+ x:'M6 6l12 12M18 6L6 18', copy:'M9 9h11v11H9zM5 15V4h11',
+ down:'M12 4v12M6 12l6 6 6-6M4 20h16', quote:'M9 7H5v5h4v5H5M19 7h-4v5h4v5h-4',
+ eye:'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+ spark:'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.9 2.1L22 19l-2.1.9L19 22l-.9-2.1L16 19l2.1-.9z',
+ filter:'M3 5h18M6 12h12M10 19h4', check:'M4 12l5 5L20 6', ext:'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5',
+ lock:'M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5z', note:'M5 3h9l5 5v13H5zM14 3v5h5M8 13h7M8 17h5',
+ info:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v5M12 8v.5',
+ dots:'M6 12h.01M12 12h.01M18 12h.01', grip:'M9 6h.01M9 12h.01M9 18h.01M15 6h.01M15 12h.01M15 18h.01',
+ flask:'M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3',
+ tag:'M3 12V4h8l9 9-8 8zM7 8h.01', clip:'M17 8v9a5 5 0 0 1-10 0V6.5a3.5 3.5 0 0 1 7 0V16a2 2 0 0 1-4 0V8',
+ upload:'M12 20V8M6 14l6-6 6 6M4 4h16', people:'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M19 8v6M22 11h-6'
+};
+function svg(name,size){const s=size||16;
+  return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" '+
+   'stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="'+IC[name]+'"/></svg>'}
+
+/* ══ data ═════════════════════════════════════════════════════════════════
+   Six papers captured from the real CRISPR off-target thread. `q` is the count
+   of matching passages: only Wienert's 27 is real, read off the paper drawer.
+   The other five are placeholders and are declared as such in research/HIFI.md. */
+const P=[
+ {n:"Wienert 2022",t:"CRISPR nuclease off-target activity and mitigation strategies",a:"B. Wienert, M. Cromer",y:2022,c:46,
+  j:"Frontiers in Genome Editing",type:"LITERATURE REVIEW",q:27,sub:0,sjr:4,doi:"10.3389/fgeed.2022.1050507",
+  ab:"The discovery of CRISPR has allowed site-specific genomic modification to become a reality and this technology is now being applied in a number of human clinical trials. While this technology has demonstrated impressive efficacy in the clinic to date, there remains the potential for unintended on- and off-target effects of CRISPR nuclease activity.",
+  kt:"CRISPR technology has shown promising efficacy in clinical trials, but detecting large-scale off-target effects and mitigating potential safety concerns are crucial for its full translational potential.",
+  passage:"large-scale aberrations have recently been reported… these are more difficult to detect using current workflows, indicating a major unmet need",
+  k:["mitigat","guide","fidelity","off-target","nuclease","strateg","open question"]},
+ {n:"Höijer 2021",t:"CRISPR-Cas9 induces large structural variants at on- and off-target sites",a:"I. Höijer",y:2021,c:149,
+  j:"Nature Communications",type:"PRIMARY RESEARCH",q:19,sub:1,sjr:4,doi:null,
+  ab:"Long-read sequencing reveals large deletions and rearrangements that short-read, indel-focused assays systematically miss.",
+  kt:"Short-read assays built around small indels systematically under-report the large structural changes that long-read sequencing can see.",
+  passage:"long-read sequencing reveals large deletions and rearrangements that short-read, indel-focused assays systematically miss",
+  k:["long-read","structural","variant","deletion","large","detect","assay","indel","sequenc"]},
+ {n:"Cancellieri 2022",t:"Human genetic diversity alters off-target outcomes of therapeutic gene editing",a:"S. Cancellieri",y:2022,c:98,
+  j:"Nature Genetics",type:"PRIMARY RESEARCH",q:14,sub:1,sjr:4,doi:null,
+  ab:"Shows that individual genetic variation changes the off-target landscape, so a reference-genome analysis under-reports risk.",
+  kt:"A reference genome is the wrong baseline: individual variation moves the off-target landscape, and risk assessed against the reference is understated.",
+  passage:"individual genetic variation changes the off-target landscape, so a reference-genome analysis under-reports risk",
+  k:["diversity","population","genetic","variation","individual","ancestry","reference genome","risk"]},
+ {n:"Kalter 2025",t:"Off-target effects in CRISPR-Cas genome editing for human therapeutics",a:"N. Kalter",y:2025,c:56,
+  j:"Molecular Therapy Nucleic Acids",type:"LITERATURE REVIEW",q:23,sub:1,sjr:3,doi:null,
+  ab:"Surveys detection methods for therapeutic editing and argues current standards do not agree on what counts as detected.",
+  kt:"Detection methods for therapeutic editing do not agree with one another on what should count as a detected off-target.",
+  passage:"current standards do not agree on what counts as detected",
+  k:["detect","therapeut","standard","method","survey","clinical","human","off-target"]},
+ {n:"Angelini Stewart 2025",t:"Measurement and clinical interpretation of CRISPR off-targets",a:"A. Angelini Stewart",y:2025,c:6,
+  j:"Nature Genetics",type:"LITERATURE REVIEW",q:11,sub:2,sjr:4,doi:null,
+  ab:"Proposes a framework for interpreting off-target measurements clinically, including what to monitor after delivery.",
+  kt:"Proposes what a clinician should actually monitor after an edit is delivered, and how to read a measurement once they have one.",
+  passage:"a framework for interpreting off-target measurements clinically, including what to monitor after delivery",
+  k:["clinical","monitor","interpret","measure","patient","follow-up","after","regulat"]},
+ {n:"Huang 2022",t:"In vivo delivery of CRISPR-Cas9 genome editing components",a:"K. Huang",y:2022,c:39,
+  j:"Biomaterials",type:"LITERATURE REVIEW",q:8,sub:2,sjr:3,doi:null,
+  ab:"Compares viral and lipid nanoparticle delivery for in vivo editing, and the tropism constraints each imposes.",
+  kt:"Vehicle choice decides which tissues can be reached at all, and each vehicle brings its own tropism constraint.",
+  passage:"compares viral and lipid nanoparticle delivery for in vivo editing, and the tropism constraints each imposes",
+  k:["deliver","vivo","lnp","nanoparticle","lipid","viral","aav","tropism","liver","vector"]}
+];
+/* verified: these three literal sub-queries and their pool sizes are in the
+   agent trace today, produced to write the answer and then discarded (screens/04) */
+const SUBQ=[
+ {s:"CRISPR off-target effects in vivo therapies",pool:"31.7M"},
+ {s:"CRISPR off-target editing, genome-wide off-target profiling",pool:"656.6K"},
+ {s:"CRISPR nuclease specificity, delivery, immunogenicity",pool:"442.8K"}
+];
+const Q0={q:"What are the open questions in CRISPR off-target effects for in vivo therapies?",
+ title:"Open Questions in CRISPR Off-Target Effects for In Vivo Therapies",
+ funnel:["32.8M","100","20"],real:true,
+ refs:[{p:0,rank:1},{p:1,rank:2},{p:3,rank:3},{p:2,rank:4},{p:4,rank:9},{p:5,rank:12}],
+ lead:"Several unresolved questions persist across detection, biological variability, structural variants, and clinical monitoring for CRISPR off-target effects in in vivo therapies",
+ paras:["Several unresolved questions persist across detection, biological variability, structural variants, and clinical monitoring [[0]] [[3]].",
+  "Large rearrangements are systematically harder to detect than small indels [[1]].",
+  "Individual genetic variation shifts the off-target landscape away from the reference genome [[2]].",
+  "Nothing settles what should be monitored once an edit reaches a patient [[4]].",
+  "Delivery remains the rate-limiting step for in vivo editing [[5]]."],
+ /* the two left-hand cells are read off screens/03; the third row is extrapolated */
+ table:{cols:["In Vivo Detection","Human Genetic Variation"],
+   rows:[["Off-target indels",8,4],["Large-scale aberrations",3,"GAP"],["Post-delivery monitoring",2,"GAP"]]}};
+const GOALS=[
+ {l:"I want detection and measurement methods",q:"How are CRISPR off-target effects detected and measured in vivo?"},
+ {l:"I want human or clinical evidence",q:"What clinical evidence exists for CRISPR off-target effects in humans?"},
+ {l:"I want work published since 2024",q:"Recent CRISPR off-target findings published since 2024"},
+ {l:"Something else…",q:null}];
+const TAGS=["ch.3","gap?","methods","to ask","read next"];
+const LIB={name:"My Library",kids:[{name:"CRISPR off-target effects",kids:[]}]};
+const RECENTS=["CRISPR Off Target Effects","Post-delivery monitoring in vivo","Air Pollution Dementia",
+  "Gut Microbiota Parkinsons","Semaglutide Cardiovascular"];
+/* one note already exists, from an earlier thread, so there is something to
+   compare against and something to switch to */
+let NOTES=[
+ {id:'n1',thread:'CRISPR Off Target Effects',cards:[],coll:''},
+ {id:'n2',thread:'Post-delivery monitoring in vivo',coll:'CRISPR off-target effects',
+  cards:[{id:101,text:"Vehicle decides the tissue, tissue decides what you can even monitor.",srcs:[5,4],tags:["methods"],coll:'CRISPR off-target effects'},
+         {id:102,text:"The clinical framework assumes the measurement is settled. It is not.",srcs:[4,3],tags:["gap?","to ask"],coll:'CRISPR off-target effects'}]}];
+let activeNote='n1';
+const SCRIPT=[
+ "What are the open questions in CRISPR off-target effects for in vivo therapies?",
+ "Which of these disagree about what counts as a detected off-target?",
+ "What should be monitored in a patient after in vivo delivery?"];
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const el=(tag,cls,html)=>{const d=document.createElement(tag);if(cls)d.className=cls;
+  if(html!=null)d.innerHTML=html;return d};
+
+/* ══ state ═══════════════════════════════════════════════════════════════ */
+let scriptAt=0;
+let QUERIES=[], CARDS=[], seq=1, activeQ=0, freshSet=new Set(),
+    selRef=new Set(), drag=null, dragCard=null, staged=[], savedTo=null,
+    dmode='refs', paperOn=null, pTab='overview', screen='thread',
+    coll=null, tab='items', selNotes=new Set(), openNote=null,
+    activeTags=new Set(), query='', attached=null, attachedCards=[], inclNotes=false;
+const dropline=el('div','dropline');
+
+/* ══ chrome ══════════════════════════════════════════════════════════════ */
+function paintChrome(){
+  $('navNew').querySelector('.ring').innerHTML=svg('plus',14);
+  [['navHome','home'],['navLib','bookmark']].forEach(([id,ic])=>
+    $(id).insertAdjacentHTML('afterbegin',svg(ic,20)));
+  const hist=$('sbThread').querySelectorAll('.nav')[3];
+  hist.insertAdjacentHTML('afterbegin',svg('history',20));
+  const tools=$('sbThread').querySelectorAll('.nav.recent');
+  tools[0].insertAdjacentHTML('afterbegin',svg('search',20));
+  tools[1].insertAdjacentHTML('afterbegin',svg('graph',20));
+  $('backHome').insertAdjacentHTML('afterbegin',
+    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" '+
+    'stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>');
+  $('sbLib').querySelectorAll('.nav')[1].insertAdjacentHTML('afterbegin',svg('bookmark',20));
+  $('sbNewColl').innerHTML=svg('folder',18);
+  document.querySelector('.brand .ic button:last-child').innerHTML=svg('panel',18);
+  const foot=document.querySelectorAll('.foot .nav.recent');
+  foot[0].insertAdjacentHTML('afterbegin',svg('play',18));
+  foot[1].insertAdjacentHTML('afterbegin',svg('mail',18));
+  foot[0].querySelector('.ext').innerHTML=svg('ext',13);
+  foot[1].querySelector('.ext').innerHTML=svg('ext',13);
+  document.querySelector('.acct span:last-child').innerHTML=svg('chevUD',14);
+  document.querySelector('.upg').insertAdjacentHTML('afterbegin',svg('spark',16));
+
+  $('recents').innerHTML='';
+  RECENTS.forEach((r,i)=>{const b=el('button','nav recent');
+    b.innerHTML=svg('chat',18)+'<span class="grow"></span>';
+    b.querySelector('.grow').textContent=r; if(!i)b.classList.add('on');
+    $('recents').appendChild(b)});
+
+  $('thChev').innerHTML=svg('chev',18);
+  const hb=document.querySelectorAll('.thd .ghostbtn');
+  hb[1].innerHTML=svg('bookmark',20); hb[2].innerHTML=svg('sliders',20);
+  $('btnNotes').insertAdjacentHTML('afterbegin',svg('note',18));
+  $('btnRefs').insertAdjacentHTML('afterbegin',svg('doc',18));
+  $('btnShare').insertAdjacentHTML('afterbegin',svg('link',18));
+
+  $('btnPlus').innerHTML=svg('plus',18);
+  $('btnCorpus').insertAdjacentHTML('afterbegin',svg('bookmark',15));
+  $('btnCorpus').insertAdjacentHTML('beforeend',svg('chev',14));
+  $('btnDeep').querySelector('.deep').innerHTML=svg('flask',15);
+  $('seedBtn').innerHTML=svg('spark',18);
+  $('seedBtn').nextElementSibling.innerHTML=svg('mic',18);
+  $('sendBtn').innerHTML=svg('up',18);
+  $('dClose').innerHTML=svg('x',16);
+  const ds=$('mRefs').querySelectorAll('.dsub .ghostbtn');
+  ds[0].innerHTML=svg('bookmark',18); ds[1].innerHTML=svg('down',18);
+  const sg=document.querySelectorAll('.seg button');
+  sg[0].innerHTML=svg('panel',15); sg[1].innerHTML=svg('sliders',15); sg[2].innerHTML=svg('copy',15);
+  $('filterBtn').insertAdjacentHTML('afterbegin',svg('filter',15));
+  $('askNote').insertAdjacentHTML('afterbegin',svg('chat',15));
+  $('libBtn').innerHTML=svg('folder',18);
+  document.querySelector('.libhd .pill.blue').insertAdjacentHTML('afterbegin',svg('plus',16));
+  document.querySelector('.libhd .pill.blue').insertAdjacentHTML('beforeend',svg('chev',14));
+  $('libShare').insertAdjacentHTML('afterbegin',svg('people',16));
+  $('libSearch').querySelector('.box').insertAdjacentHTML('afterbegin',svg('search',18));
+  $('nGo').innerHTML=svg('right',18);
+  $('selClear').innerHTML=svg('x',16);
+  $('selNone').innerHTML=svg('x',16);
+}
+
+/* ══ toast ═══════════════════════════════════════════════════════════════
+   A toast carries at most one action, and only navigation to the thing it
+   just changed — never a request to do more work. */
+function toast(m,action){
+  const t=$('toast'); t.innerHTML='';
+  t.appendChild(el('span',null,'')).textContent=m;
+  if(action){const b=el('button','tact');b.textContent=action.label;
+    b.addEventListener('click',()=>{t.classList.remove('on');action.fn()});t.appendChild(b)}
+  t.classList.add('on');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),action?5200:2800);
+}
+/* if the drawer is not on Notes, the toast offers to take you there */
+const viewNote=()=>dmode==='notes'?null:{label:'View',fn:()=>{setMode('notes');$('notesBody').scrollTop=0}};
+
+/* ══ provenance — live-computed from the searches you actually ran ═══════ */
+const recurrence=i=>QUERIES.filter(q=>q.refs.some(r=>r.p===i)).length;
+const rankIn=(qi,i)=>{const q=QUERIES[qi];if(!q)return null;
+  const r=q.refs.find(r=>r.p===i);return r?r.rank:null};
+function dots(n,tot){const slots=Math.min(tot,5)||1,
+  f=Math.max(n?1:0,Math.round(n/Math.max(tot,1)*slots));
+  return '●'.repeat(Math.min(f,slots))+'○'.repeat(Math.max(0,slots-f))}
+function provOf(i){const rec=recurrence(i),tot=QUERIES.length;
+  return {d:dots(rec,tot),r:tot===1?'THIS SEARCH':rec+' OF '+tot+' SEARCHES'}}
+const noteSrcs=()=>[...new Set(CARDS.flatMap(c=>c.srcs))];
+
+/* ══ filter ══════════════════════════════════════════════════════════════ */
+const filtered=()=>!!(activeTags.size||query);
+function cardVisible(c){
+  if(activeTags.size&&!c.tags.some(t=>activeTags.has(t))) return false;
+  if(query){const hay=(c.text+' '+c.tags.join(' ')+' '+
+    c.srcs.map(i=>P[i].n+' '+P[i].t).join(' ')).toLowerCase();
+    if(!hay.includes(query)) return false}
+  return true;
+}
+/* a filter is a way of asking part of a note, so Ask follows the filter */
+const askCards=()=>filtered()?CARDS.filter(cardVisible):CARDS;
+const askSrcs=()=>[...new Set(askCards().flatMap(c=>c.srcs))];
+const filterLabel=()=>[...activeTags].concat(query?['“'+query+'”']:[]).join(' + ');
+const toggleTag=t=>{activeTags.has(t)?activeTags.delete(t):activeTags.add(t);render()};
+
+/* ══ drawer — one frame, three modes ════════════════════════════════════ */
+/* `toggle` is only ever passed by the two header buttons — pressing References
+   while References is showing closes the drawer. Everything else (a new answer,
+   a query tab, opening a paper) shows without ever closing. */
+function setMode(m,toggle){
+  if(toggle&&dmode===m&&$('drawer').classList.contains('on')) m=null;
+  dmode=m;
+  $('drawer').classList.toggle('on',!!m);
+  $('mRefs').style.display=m==='refs'?'flex':'none';
+  $('mPaper').style.display=m==='paper'?'flex':'none';
+  $('mNotes').style.display=m==='notes'?'flex':'none';
+  $('btnRefs').classList.toggle('on',m==='refs');
+  $('btnNotes').classList.toggle('on',m==='notes');
+  if(m==='refs'){$('dTitle').textContent='References';$('dSlash').style.display='';
+    $('dSwitch').style.display='';$('dSwitchIco').innerHTML=svg('chat',16);
+    $('dSwitchChev').innerHTML=svg('chev',14);
+    $('dSwitchLab').textContent=QUERIES.length?(activeQ==='all'?'all cited papers':QUERIES[activeQ].q):'nothing asked yet';
+    renderRefs()}
+  if(m==='paper'){$('dTitle').textContent='Paper';$('dSlash').style.display='none';
+    $('dSwitch').style.display='none';renderPaper()}
+  if(m==='notes'){$('dTitle').textContent='Notes';$('dSlash').style.display='';
+    $('dSwitch').style.display='';$('dSwitchIco').innerHTML=svg('note',16);
+    $('dSwitchChev').innerHTML=svg('chev',14);
+    render();requestAnimationFrame(()=>{fit($('cText'));
+      $('noteList').querySelectorAll('textarea').forEach(fit)})}
+}
+$('btnRefs').addEventListener('click',()=>setMode('refs',true));
+$('btnNotes').addEventListener('click',()=>setMode('notes',true));
+$('dClose').addEventListener('click',()=>setMode(null));
+
+/* The drawer holds one thing at a time, so References and Notes are never both
+   on screen. The Notes button in the header is therefore the drop target — and
+   holding a drag over it for a moment springs the panel open so you can place
+   the drop precisely. */
+let springT=null;
+$('btnNotes').addEventListener('dragover',e=>{if(!drag)return;e.preventDefault();
+  $('btnNotes').classList.add('drop');
+  if(!springT)springT=setTimeout(()=>{setMode('notes');springT=null},650)});
+$('btnNotes').addEventListener('dragleave',()=>{$('btnNotes').classList.remove('drop');
+  clearTimeout(springT);springT=null});
+$('btnNotes').addEventListener('drop',e=>{if(!drag)return;e.preventDefault();
+  $('btnNotes').classList.remove('drop');clearTimeout(springT);springT=null;
+  dropSources(drag.slice(),null);clearRefSel()});
+
+/* ══ act 1 · ask ════════════════════════════════════════════════════════ */
+function fit(t){t.style.height='auto';t.style.height=Math.max(t.scrollHeight,20)+'px'}
+function fillCites(h){return h.replace(/\[\[(\d+)\]\]/g,(_,i)=>
+  '<span class="cite" data-p="'+i+'" draggable="true">'+svg('doc',11)+P[+i].n.toUpperCase().replace(' ',' ')+'</span>')}
+
+function traceBlock(q){
+  const w=el('div','trace open');
+  const hd=el('button','hd','<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="'+
+    '#068ef1" stroke-width="1.6"><circle cx="7" cy="13" r="4"/><circle cx="17" cy="13" r="4"/>'+
+    '<path d="M7 9V6h3M17 9V6h-3" stroke-linecap="round"/></svg>'+
+    '<b>Pro</b><span>· 5 steps</span><span class="chev">'+svg('chev',14)+'</span>');
+  hd.addEventListener('click',()=>w.classList.toggle('open'));
+  w.appendChild(hd);
+  const pan=el('div','panel');
+  const f=el('div','funnel');
+  [['Retrieved',q.funnel[0]],['Eligible',q.funnel[1]],['Included',q.funnel[2]]].forEach(([l,v])=>{
+    const c=el('div','cell'); c.innerHTML='<b></b><span></span>';
+    c.querySelector('b').innerHTML=esc(v)+svg('info',13);
+    c.querySelector('span').textContent=l; f.appendChild(c)});
+  pan.appendChild(f); pan.appendChild(el('hr'));
+  SUBQ.forEach(s=>{
+    const r=el('div','step',svg('search',16)+'<span class="txt"></span>'+
+      '<span class="pool"></span><span class="go">'+svg('ext',13)+'</span>');
+    r.querySelector('.txt').textContent=s.s; r.querySelector('.pool').textContent=s.pool;
+    pan.appendChild(r)});
+  const rd=el('div','step',svg('eye',16)+'<span class="txt"><b>Read</b> &nbsp;Abstracts and PDFs</span>'+
+    '<span class="pool">20</span><span class="go">'+svg('chevR',13)+'</span>');
+  pan.appendChild(rd);
+  const vz=el('div','step',svg('flask',16)+'<span class="txt"><b>Select visuals</b></span>'+
+    '<span class="pool">1</span><span class="go">'+svg('chevR',13)+'</span>');
+  pan.appendChild(vz);
+  /* the sentence this whole prototype turns on */
+  pan.appendChild(el('div','discard','Consensus computes all of this to write the answer, then '+
+    '<b>discards it</b>. No paper below carries which of these searches found it, or how well it matched.'));
+  w.appendChild(pan);
+  return w;
+}
+function scopedLine(text){
+  return el('div','scopeline',svg('note',15)+'<span>'+esc(text)+'</span>');
+}
+function evTable(t){
+  const tb=el('table','ev');
+  tb.innerHTML='<thead><tr><th>Open Question</th>'+t.cols.map(c=>'<th>'+esc(c)+'</th>').join('')+
+    '</tr></thead><tbody></tbody>';
+  const body=tb.querySelector('tbody');
+  t.rows.forEach(r=>{const tr=el('tr');
+    tr.appendChild(el('td',null,'')).textContent=r[0];
+    r.slice(1).forEach(v=>{const cls=v==='GAP'?'h gap':v>=8?'h hi':v>=4?'h mid':'h lo';
+      const td=el('td',cls); td.textContent=v; tr.appendChild(td)});
+    body.appendChild(tr)});
+  return tb;
+}
+function renderThread(){
+  const host=$('thread'); host.innerHTML='';
+  $('threadCount').textContent=QUERIES.length||'';
+  if(!QUERIES.length){
+    host.innerHTML='<div class="blank"><b>'+esc($('threadName').textContent)+'</b>'+
+      '<span>Ask something, and the papers that answered it appear on the right.<br>'+
+      'The <kbd>✨</kbd> in the composer fills the next question for this walkthrough.</span></div>';
+    return;
+  }
+  QUERIES.forEach(q=>{
+    const t=el('div','turn');
+    const qd=el('div','q');
+    if(q.att){const a=el('span','att',svg('clip',13)+'<span></span>');
+      a.querySelector('span').textContent=q.att;qd.appendChild(a)}
+    qd.appendChild(document.createTextNode(q.q));
+    t.appendChild(qd);
+    if(q.scoped) t.appendChild(scopedLine(q.scopedText));
+    else if(q.funnel) t.appendChild(traceBlock(q));
+    else if(q.plainFunnel) t.appendChild(scopedLine(q.plainFunnel));
+    const a=el('div','ans');
+    if(q.title) a.appendChild(el('h2',null,'')).textContent=q.title;
+    q.paras.forEach(p=>a.appendChild(el('p',null,fillCites(esc(p)))));
+    if(q.table){a.appendChild(el('h3',null,'')).textContent='Evidence Coverage Across Key Open Questions';
+      a.appendChild(evTable(q.table))}
+    if(q.block) a.appendChild(q.block);
+    t.appendChild(a); host.appendChild(t);
+  });
+  host.querySelectorAll('.cite').forEach(e=>{
+    const i=+e.dataset.p;
+    e.addEventListener('dragstart',ev=>{drag=[i];document.body.classList.add('dragging');
+      ev.dataTransfer.effectAllowed='copy';$('ghost').textContent=P[i].n;
+      ev.dataTransfer.setDragImage($('ghost'),20,10);hideWhy(true)});
+    e.addEventListener('dragend',endDrag);
+    e.addEventListener('mouseenter',()=>showWhy(i,e,'below'));
+    e.addEventListener('mouseleave',scheduleHide);
+    e.addEventListener('click',()=>{paperOn=i;pTab='overview';setMode('paper')});
+  });
+  $('body').scrollTop=$('body').scrollHeight;
+}
+
+function runSearch(text,pool){
+  const q=text.toLowerCase();
+  const cand=(pool||P.map((_,i)=>i));
+  const scored=cand.map(i=>({i,s:P[i].k.reduce((a,k)=>a+(q.includes(k)?3:0),0)
+    +P[i].t.toLowerCase().split(/\W+/).filter(w=>w.length>4&&q.includes(w)).length}));
+  let hits=scored.filter(x=>x.s>0).sort((a,b)=>b.s-a.s);
+  if(hits.length<3){const rest=scored.filter(x=>!hits.some(h=>h.i===x.i));
+    hits=hits.concat(rest).slice(0,Math.min(4,cand.length))}
+  return hits.map((h,k)=>({p:h.i,rank:k+1}));
+}
+function submit(){
+  const text=$('askInput').value.trim(); if(!text) return;
+  const scoped=!!attached;
+  $('askInput').value=''; $('sendBtn').disabled=true;
+  if(!QUERIES.length) $('thread').innerHTML='';
+  const t=el('div','turn','<div class="q"></div><div class="thinking">'+
+    (scoped?'reading your '+attached.length+' sources':'searching 32.8M papers')+
+    ' <i></i><i></i><i></i></div>');
+  t.querySelector('.q').textContent=text;
+  $('thread').appendChild(t); $('body').scrollTop=$('body').scrollHeight;
+  setTimeout(()=>{
+    $('sendBtn').disabled=false;
+    if(text===SCRIPT[scriptAt]) scriptAt=Math.min(scriptAt+1,SCRIPT.length-1);
+    /* the first question is the captured one, so it returns the captured answer */
+    if(!scoped && text===SCRIPT[0] && !QUERIES.some(q=>q.real)){
+      QUERIES.push(JSON.parse(JSON.stringify(Q0)));
+      activeQ=QUERIES.length-1; freshSet=new Set();
+      t.remove(); setMode('refs'); renderThread(); render(); return;
+    }
+    const pool=scoped?attached:null;
+    const refs=runSearch(text,pool);
+    const top=refs.slice(0,3).map(r=>r.p);
+    /* A scoped answer can still point at something you did not keep. If it does,
+       that paper has to appear in this turn's references — otherwise the answer
+       names a paper the panel cannot show, and the one move it invites is
+       impossible. It carries no rank, because it was not retrieved for you. */
+    let raised=null;
+    if(scoped){
+      const kept=noteSrcs();
+      const seen=[...new Set(QUERIES.flatMap(q=>q.refs.map(r=>r.p)))];
+      raised=seen.find(i=>!kept.includes(i));
+      if(raised!=null) refs.push({p:raised,rank:null,raised:true});
+    }
+    const q={q:text,title:text.charAt(0).toUpperCase()+text.slice(1).replace(/\?+$/,''),refs,scoped,
+      att:scoped?(attached.length+' sources from your note'):null,paras:[]};
+    if(scoped){
+      q.scopedText='Answered inside your note · '+pool.length+' sources · '+
+        (inclNotes?'your own notes included':'sources only')+
+        (filtered()?' · filtered by '+filterLabel():'')+' · nothing new retrieved';
+      q.paras=['Working only from what you kept: '+
+        refs.filter(r=>!r.raised).map(r=>'[['+r.p+']]').join(', ')+'.'];
+      if(raised!=null) q.paras.push('Nothing outside your note was retrieved. But the closest paper '+
+        'in this thread that you have not kept is [['+raised+']] — it is in your references, and not '+
+        'in your note.');
+      clearAttach();
+    } else {
+      q.plainFunnel='Keyword-matched over 6 captured papers · '+refs.length+' included';
+      q.paras=['The strongest evidence here comes from [['+top[0]+']]'+
+        (top[1]!=null?' and [['+top[1]+']]':'')+'.',
+        top[2]!=null?'[['+top[2]+']] came back lower and is worth checking before you rely on it.':''].filter(Boolean);
+      const before=new Set(QUERIES.flatMap(x=>x.refs.map(r=>r.p)));
+      freshSet=new Set(refs.map(r=>r.p).filter(i=>!before.has(i)));
+      activeQ=QUERIES.length;
+    }
+    QUERIES.push(q);
+    t.remove();
+    if(scoped){freshSet=new Set(raised!=null?[raised]:[]); activeQ=QUERIES.length-1}
+    setMode('refs'); renderThread(); render();
+  },700);
+}
+$('seedBtn').addEventListener('click',()=>{
+  $('askInput').value=SCRIPT[Math.min(scriptAt,SCRIPT.length-1)]; $('askInput').focus()});
+$('sendBtn').addEventListener('click',submit);
+$('askInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submit()}});
+
+/* ══ act 2 · why this paper, and the way out ════════════════════════════ */
+let hideT=null;
+function scheduleHide(){hideT=setTimeout(()=>hideWhy(),160)}
+function hideWhy(force){const c=$('whyCard');if(c._sticky&&!force)return;
+  c._sticky=false;c.classList.remove('on');
+  document.querySelectorAll('.cite.lit').forEach(e=>e.classList.remove('lit'))}
+$('whyCard').addEventListener('mouseenter',()=>clearTimeout(hideT));
+$('whyCard').addEventListener('mouseleave',scheduleHide);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){hideWhy(true);closePops()}});
+
+/* the explanation is the paper's own words, so it cannot be wrong about itself */
+function whyBlock(i){
+  const p=P[i];
+  return '<div class="why"><span class="k">WHY THIS PAPER</span><q>'+esc(p.passage)+'</q>'+
+    '<span class="tag">the closest of '+p.q+' matching lines · found by “'+esc(SUBQ[p.sub].s)+'”</span></div>';
+}
+function showWhy(i,anchor,side){
+  clearTimeout(hideT);
+  const p=P[i], c=$('whyCard');
+  c._sticky=false;
+  c.innerHTML='<h4></h4><div class="meta"></div><div class="ab"></div>'+whyBlock(i)+
+    '<div class="miss"><button class="open" id="missBtn">not what you needed?</button>'+
+    '<div class="goals" id="goals"></div><div class="sug" id="sug"></div></div>'+
+    '<div class="rowacts"><button class="mini" id="whyAsk">'+svg('chat',14)+'Ask</button>'+
+    '<button class="mini pri" id="whyKeep">'+svg('plus',14)+'Add to note</button>'+
+    '<button class="mini" id="whyOpen">'+svg('doc',14)+'Open paper</button></div>';
+  c.querySelector('h4').textContent=p.t;
+  c.querySelector('.meta').textContent=p.a+' · '+p.y+' · '+p.c+' citations · '+p.j;
+  c.querySelector('.ab').textContent=p.ab;
+  $('whyAsk').addEventListener('click',()=>{hideWhy(true);attach([i],P[i].n)});
+  $('whyKeep').addEventListener('click',()=>{hideWhy(true);dropSources([i],null)});
+  $('whyOpen').addEventListener('click',()=>{hideWhy(true);paperOn=i;pTab='evidence';setMode('paper')});
+  const g=$('goals');
+  g.innerHTML='<span class="lab">what were you hoping to find?</span>';
+  GOALS.forEach(go=>{const b=el('button','goal');b.textContent=go.l;
+    b.addEventListener('click',()=>offer(go.q||
+      ('Open questions in CRISPR off-target effects, other than '+p.t.toLowerCase())));
+    g.appendChild(b)});
+  $('missBtn').addEventListener('click',()=>{c._sticky=true;g.classList.add('on');
+    $('missBtn').style.display='none'});
+  c.classList.add('on');
+  const r=anchor.getBoundingClientRect(), h=c.offsetHeight, w=c.offsetWidth;
+  const left=side==='below'?r.left:r.left-w-12;
+  c.style.left=Math.max(8,Math.min(left,window.innerWidth-w-8))+'px';
+  c.style.top=Math.max(48,Math.min(side==='below'?r.bottom+8:r.top,window.innerHeight-h-16))+'px';
+  document.querySelectorAll('#thread .cite').forEach(e=>e.classList.toggle('lit',+e.dataset.p===i));
+}
+/* the suggestion is offered, never fired, and nothing is ever removed */
+function offer(q){
+  const s=$('sug');
+  s.innerHTML='<span class="lab">try this instead — edit it if it is not right</span>'+
+    '<input id="sq"><div class="two"><button class="mini pri" id="here">Search this thread</button>'+
+    '<button class="mini" id="fresh">Start a new chat</button>'+
+    '<button class="mini" id="later">not now</button></div>'+
+    '<span class="keep">nothing is removed either way — this paper stays in your references</span>';
+  $('sq').value=q;
+  s.classList.add('on'); $('goals').classList.remove('on');
+  $('here').addEventListener('click',()=>{const v=$('sq').value;hideWhy(true);
+    $('askInput').value=v;submit()});
+  $('fresh').addEventListener('click',()=>{hideWhy(true);
+    toast('A new thread would open with “'+$('sq').value.slice(0,36)+'…” — this one is untouched')});
+  $('later').addEventListener('click',()=>hideWhy(true));
+}
+
+/* ══ act 3 · references ═════════════════════════════════════════════════ */
+function renderRefs(){
+  const qt=$('qtabs'); qt.innerHTML='';
+  if(!QUERIES.length){
+    $('refN').textContent='0';
+    $('refs').innerHTML='<div class="empty">Ask something and the papers<br>that answered it appear here.</div>';
+    return;
+  }
+  QUERIES.forEach((q,i)=>{const b=el('button','qtab'+(activeQ===i?' on':''));
+    b.textContent='Q'+(i+1)+' · '+q.refs.length; b.title=q.q;
+    b.addEventListener('click',()=>{activeQ=i;setMode('refs')});qt.appendChild(b)});
+  const union=[...new Set(QUERIES.flatMap(q=>q.refs.map(r=>r.p)))];
+  const all=el('button','qtab'+(activeQ==='all'?' on':''));
+  all.textContent='ALL CITED · '+union.length;
+  all.addEventListener('click',()=>{activeQ='all';setMode('refs')}); qt.appendChild(all);
+
+  const list=activeQ==='all'
+    ? union.map(p=>({p})).sort((a,b)=>recurrence(b.p)-recurrence(a.p))
+    : QUERIES[activeQ].refs;
+  $('refN').textContent=list.length;
+  const host=$('refs'); host.innerHTML='';
+  const kept=noteSrcs();
+  list.forEach(({p:i,rank,raised})=>{
+    const p=P[i], x=provOf(i);
+    const d=el('div','ref'+(selRef.has(i)?' sel':'')); d.dataset.p=i; d.draggable=true;
+    d.innerHTML='<div class="top"><span class="rank'+(rank==null?' none':'')+'"></span>'+
+        '<h3></h3><span class="chk">'+svg('check',13)+'</span></div>'+
+      '<div class="kt"><span class="k">KEY TAKEAWAY</span> · <span class="kv"></span></div>'+
+      '<div class="badges"></div>'+
+      '<div class="meta"><b></b> · <b></b> citations · <span class="au"></span></div>'+
+      '<div class="jr">'+svg('doc',13)+'<span></span></div>'+
+      '<span class="pdf">'+svg('lock',12)+'PDF</span>';
+    d.querySelector('.rank').textContent=rank==null?'–':rank;
+    d.querySelector('h3').textContent=p.t;
+    d.querySelector('.kv').textContent=p.kt;
+    const bg=d.querySelector('.badges');
+    bg.appendChild(el('span','badge fill',svg('doc',12)+'<span></span>'))
+      .querySelector('span').textContent=p.q+' SUPPORTING QUOTES';
+    bg.appendChild(el('span','badge',svg('sliders',12)+'<span></span>'))
+      .querySelector('span').textContent=p.type;
+    /* recurrence is the one thing the real card has no room for, so it earns a
+       badge of its own in the same grammar as the others */
+    if(raised) bg.appendChild(el('span','badge notkept','RAISED BY THE ANSWER · NOT IN YOUR NOTE'));
+    else bg.appendChild(el('span','badge rec',x.d+' '+x.r));
+    if(kept.includes(i)) bg.appendChild(el('span','badge kept',svg('check',12)+'IN YOUR NOTE'));
+    const m=d.querySelector('.meta').querySelectorAll('b');
+    m[0].textContent=p.y; m[1].textContent=p.c;
+    d.querySelector('.au').textContent=p.a+' et al.';
+    d.querySelector('.jr span').textContent=p.j;
+    host.appendChild(d);
+
+    d.addEventListener('click',ev=>{
+      if(ev.target.closest('.chk')){selRef.has(i)?selRef.delete(i):selRef.add(i);renderRefs();return}
+      paperOn=i;pTab='overview';setMode('paper')});
+    d.addEventListener('dragstart',ev=>{let g=[...selRef];if(!g.includes(i))g=[i];
+      drag=g;document.body.classList.add('dragging');ev.dataTransfer.effectAllowed='copy';
+      $('ghost').textContent=g.length>1?g.length+' sources':P[i].n;
+      ev.dataTransfer.setDragImage($('ghost'),20,10);hideWhy(true);
+      host.querySelectorAll('.ref.sel').forEach(x=>x.classList.add('ghosting'))});
+    d.addEventListener('dragend',endDrag);
+    d.addEventListener('mouseenter',()=>showWhy(i,d,'left'));
+    d.addEventListener('mouseleave',scheduleHide);
+  });
+  syncSel();
+}
+/* Selecting references swaps the panel's own control row for the actions on the
+   selection. The product shows no floating pill here (screens/05), and one would
+   land on top of the composer. */
+function syncSel(){
+  const n=selRef.size;
+  $('refIdle').style.display=n?'none':'';
+  $('refSel').style.display=n?'':'none';
+  if(!n)return;
+  $('refSelN').textContent=n+' selected';
+  $('selAdd').innerHTML=svg('plus',15)+'Add '+n+' to note';
+  $('selAsk').innerHTML=svg('chat',15)+'Ask '+n;
+}
+const clearRefSel=()=>{selRef.clear();renderRefs()};
+$('selAdd').addEventListener('click',()=>{dropSources([...selRef],null);clearRefSel()});
+$('selAsk').addEventListener('click',()=>{const s=[...selRef];
+  attach(s,s.length===1?P[s[0]].n:s.length+' from references');clearRefSel()});
+$('selNone').addEventListener('click',clearRefSel);
+function endDrag(){drag=null;dragCard=null;document.body.classList.remove('dragging');dropline.remove();
+  clearTimeout(springT);springT=null;
+  document.querySelectorAll('.ghosting').forEach(x=>x.classList.remove('ghosting'));
+  document.querySelectorAll('.card.dragging').forEach(x=>x.classList.remove('dragging'));
+  $('comp').classList.remove('over','dropok');$('tail').classList.remove('over');
+  $('btnNotes').classList.remove('drop')}
+
+/* ══ the paper drawer ═══════════════════════════════════════════════════ */
+function renderPaper(){
+  const p=P[paperOn]; if(!p)return;
+  const tabs=[['overview','Overview'],['snapshot','Snapshot'],['attachment','Attachment'],
+    ['evidence','Evidence ('+p.q+')'],['metadata','Metadata']];
+  const tb=$('pTabs'); tb.innerHTML='';
+  tabs.forEach(([k,l])=>{const b=el('button','tab'+(pTab===k?' on':''));b.textContent=l;
+    b.addEventListener('click',()=>{pTab=k;renderPaper()});tb.appendChild(b)});
+  const body=$('pBody'); body.innerHTML='';
+  if(pTab==='overview'){
+    body.appendChild(el('h2',null,'')).textContent=p.t;
+    const by=el('div','by','<b></b> · <span></span>');
+    by.querySelector('b').textContent=new Date(p.y+'-11-10T00:00:00').toLocaleDateString('en-US',
+      {year:'numeric',month:'long',day:'numeric'});
+    by.querySelector('span').textContent=p.a; body.appendChild(by);
+    const f=el('div','facts');
+    const c1=el('div',null,'<b></b><span></span>');
+    c1.querySelector('b').textContent=p.j;
+    c1.querySelector('span').innerHTML='Q1 SJR score <span class="dots4">'+
+      [0,1,2,3].map(k=>'<i class="'+(k<p.sjr?'':'off')+'"></i>').join('')+'</span>';
+    const c2=el('div',null,'<b></b><span></span>');
+    c2.querySelector('b').textContent=p.c; c2.querySelector('span').textContent='Citations';
+    f.append(c1,c2); body.appendChild(f);
+    /* only Wienert's DOI was captured from the live app; inventing the rest
+       would put a copyable identifier on screen that resolves to nothing */
+    const doi=el('div','doi','DOI <b></b>'+(p.doi?svg('copy',13):''));
+    doi.querySelector('b').textContent=p.doi||'not captured for this prototype';
+    if(!p.doi)doi.querySelector('b').style.cssText='font-family:var(--sans);color:var(--muted)';
+    body.appendChild(doi);
+    body.appendChild(el('div','abs',esc(p.ab)));
+  }
+  if(pTab==='evidence'){
+    /* WHY THIS PAPER belongs at the head of Evidence: this tab is already the
+       per-query evidence the product computes, it just never names the closest
+       line or says which search produced it. */
+    body.insertAdjacentHTML('beforeend','<div style="height:var(--s-md)"></div>'+whyBlock(paperOn));
+    const rec=recurrence(paperOn), tot=QUERIES.length;
+    body.insertAdjacentHTML('beforeend',
+      '<div class="hint" style="padding-bottom:var(--s-sm)">Returned by '+
+      (tot===1?'this search':rec+' of your '+tot+' searches')+'. Rank is per search, '+
+      'because it only means anything next to the query that produced it.</div>');
+    for(let k=1;k<4;k++){
+      const q=el('div','ref');q.style.cursor='default';
+      q.innerHTML='<div class="kt"><span class="k">MATCH '+(k+1)+' OF '+p.q+
+        '</span></div><div style="font-size:var(--t-xs);line-height:var(--lh-sm);color:var(--muted)">'+
+        '“…'+esc(p.ab.split(' ').slice(k*20,k*20+20).join(' '))+'…”</div>';
+      body.appendChild(q)}
+  }
+  if(pTab==='snapshot') body.innerHTML='<div class="empty">The snapshot is generated on open.<br>'+
+    'Not part of this prototype.</div>';
+  if(pTab==='attachment') body.innerHTML='<div class="empty">The uploaded PDF, if there is one.<br>'+
+    'Not part of this prototype.</div>';
+  if(pTab==='metadata') body.innerHTML='<div class="empty">Journal, ISSN, publisher, licence.<br>'+
+    'Not part of this prototype.</div>';
+  $('pQuotes').innerHTML=svg('doc',14)+p.q+' supporting quotes'+svg('chev',13);
+  $('pQuotes').style.display=pTab==='overview'?'':'none';
+  $('pQuotes').onclick=()=>{pTab='evidence';renderPaper()};
+  /* Add to note joins Ask and Save on the bar the product already has */
+  const bar=$('pBar'); bar.innerHTML='';
+  const ask=el('button','pill sm',svg('chat',15)+'Ask');
+  ask.addEventListener('click',()=>attach([paperOn],P[paperOn].n));
+  const keep=el('button','pill sm',svg('plus',15)+'Add to note');
+  keep.addEventListener('click',()=>dropSources([paperOn],null));
+  const save=el('button','pill sm',svg('bookmark',15)+'Save'+svg('chev',13));
+  save.addEventListener('click',e=>{e.stopPropagation();openSavePop(save,'paper')});
+  bar.append(ask,keep,save,el('span','sp'));
+  ['quote','link'].forEach(n=>bar.appendChild(el('button','ghostbtn',svg(n,18))));
+  bar.appendChild(el('button','pill sm',svg('lock',14)+'PDF'+svg('ext',13)));
+}
+
+/* ══ act 3 · the note ═══════════════════════════════════════════════════ */
+function pinRow(i,onRem){
+  const d=el('div','pin',svg('doc',12)+'<b></b><span class="pv"></span>'+
+    (onRem?'<span class="x">'+svg('x',12)+'</span>':''));
+  d.querySelector('b').textContent=P[i].n;
+  d.querySelector('.pv').textContent=P[i].j;
+  if(onRem)d.querySelector('.x').addEventListener('click',e=>{e.stopPropagation();onRem()});
+  return d;
+}
+function drawStaged(){$('cPins').innerHTML='';
+  staged.forEach(i=>$('cPins').appendChild(pinRow(i,()=>{staged=staged.filter(x=>x!==i);drawStaged()})))}
+function commit(){
+  const text=$('cText').value.trim();
+  if(!text&&!staged.length)return;
+  CARDS.unshift({id:seq++,text,srcs:staged.slice(),tags:[],coll:savedTo||''});
+  staged=[];$('cText').value='';drawStaged();fit($('cText'));render();
+  const e=$('noteList').firstElementChild;
+  if(e){e.classList.add('land');setTimeout(()=>e.classList.remove('land'),420)}
+}
+$('cText').addEventListener('input',()=>fit($('cText')));
+$('cText').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();commit()}});
+
+/* Sources dragged together arrive together — one card, because you selected
+   them as a set and the thought you write will be about the set. Dropping ONTO
+   a card stacks into that card instead. */
+function dropSources(idxs,targetId,atIndex){
+  if(targetId!=null){
+    const c=CARDS.find(x=>x.id===targetId);
+    const added=idxs.filter(i=>!c.srcs.includes(i));
+    c.srcs.push(...added); render();
+    const e=$('noteList').querySelector('[data-id="'+targetId+'"]');
+    if(e){e.classList.add('flash');setTimeout(()=>e.classList.remove('flash'),1000)}
+    toast(added.length?'Added to this card':'Already on this card',viewNote());
+    return;
+  }
+  const c={id:seq++,text:'',srcs:idxs.slice(),tags:[],coll:savedTo||''};
+  CARDS.splice(atIndex==null?0:atIndex,0,c);
+  render();
+  const e=$('noteList').querySelector('[data-id="'+c.id+'"]');
+  if(e){e.classList.add('land');setTimeout(()=>e.classList.remove('land'),420)}
+  toast(idxs.length===1?'Added to note':idxs.length+' sources added to note',viewNote());
+}
+function cardUnder(y){
+  for(const e of $('noteList').querySelectorAll('.card')){const r=e.getBoundingClientRect();
+    /* the middle band stacks; the top and bottom thirds insert beside */
+    if(y>=r.top+r.height*0.28&&y<=r.bottom-r.height*0.28) return +e.dataset.id}
+  return null;
+}
+function indexAt(y){const els=[...$('noteList').querySelectorAll('.card')];
+  for(let k=0;k<els.length;k++){const r=els[k].getBoundingClientRect();
+    if(y<r.top+r.height/2) return k}
+  return els.length}
+$('notesBody').addEventListener('dragover',e=>{if(!drag)return;e.preventDefault();
+  const id=cardUnder(e.clientY);
+  $('noteList').querySelectorAll('.card').forEach(x=>x.classList.toggle('merge',+x.dataset.id===id));
+  $('tail').classList.toggle('over',id==null&&!CARDS.length);
+  dropline.remove();
+  if(id==null&&CARDS.length){const els=[...$('noteList').querySelectorAll('.card')],at=indexAt(e.clientY);
+    at>=els.length?$('noteList').appendChild(dropline):$('noteList').insertBefore(dropline,els[at])}});
+$('notesBody').addEventListener('dragleave',e=>{if(!$('notesBody').contains(e.relatedTarget)){
+  $('tail').classList.remove('over');dropline.remove();
+  $('noteList').querySelectorAll('.merge').forEach(x=>x.classList.remove('merge'))}});
+$('notesBody').addEventListener('drop',e=>{if(!drag)return;e.preventDefault();
+  const id=cardUnder(e.clientY),at=indexAt(e.clientY);
+  $('tail').classList.remove('over');dropline.remove();
+  $('noteList').querySelectorAll('.merge').forEach(x=>x.classList.remove('merge'));
+  dropSources(drag.slice(),id,id==null?at:null);clearRefSel()});
+/* the composer stages instead, because typing first is a different intention */
+$('comp').addEventListener('dragover',e=>{if(drag){e.preventDefault();e.stopPropagation();
+  $('comp').classList.add('over')}});
+$('comp').addEventListener('dragleave',()=>$('comp').classList.remove('over'));
+$('comp').addEventListener('drop',e=>{
+  if(dragCard!=null){e.preventDefault();e.stopPropagation();$('comp').classList.remove('over','dropok');
+    const c=CARDS.find(x=>x.id===dragCard); if(c)attach(c.srcs.slice(),'this card',[c]); return}
+  if(!drag)return; e.preventDefault();e.stopPropagation();$('comp').classList.remove('over');
+  attach(drag.slice(),drag.length===1?P[drag[0]].n:drag.length+' from references');clearRefSel()});
+
+function render(){
+  const host=$('noteList'); host.innerHTML='';
+  CARDS.forEach(c=>{
+    const a=el('article','card'+(cardVisible(c)?'':' hidden')); a.dataset.id=c.id; a.draggable=true;
+    a.addEventListener('dragstart',e=>{
+      if(e.target.tagName==='TEXTAREA'){e.preventDefault();return}
+      dragCard=c.id;a.classList.add('dragging');e.dataTransfer.effectAllowed='copy';
+      $('ghost').textContent=c.srcs.length+(c.srcs.length===1?' source':' sources')+' from your note';
+      e.dataTransfer.setDragImage($('ghost'),20,10)});
+    a.addEventListener('dragend',endDrag);
+    const ta=el('textarea'); ta.rows=1; ta.value=c.text;
+    ta.placeholder=c.srcs.length?'What matters about these?':'A thought…';
+    ta.addEventListener('input',()=>{c.text=ta.value;fit(ta)});
+    a.appendChild(ta);
+    const pins=el('div','pins');
+    c.srcs.forEach(i=>pins.appendChild(pinRow(i,()=>{c.srcs=c.srcs.filter(x=>x!==i);render()})));
+    a.appendChild(pins);
+    const f=el('div','cfoot');
+    c.tags.forEach(t=>{const s=el('span','tag');s.textContent=t;f.appendChild(s)});
+    const add=el('span','tag add','＋ tag');
+    add.addEventListener('click',e=>{e.stopPropagation();openTagPop(add,c)});
+    f.appendChild(add);
+    if(c.coll){const s=el('span','tag coll',svg('folder',11)+'<span></span>');
+      s.querySelector('span').textContent=c.coll;f.appendChild(s)}
+    f.appendChild(el('span','grip',svg('grip',12)+'drag to chat'));
+    const more=el('button','cardmore',svg('dots',16)); more.title='Actions for this card';
+    more.addEventListener('click',e=>{e.stopPropagation();openCardMenu(more,c)});
+    a.append(f,more); host.appendChild(a); fit(ta);
+  });
+  const s=noteSrcs(), as=askSrcs();
+  $('cardN').textContent=CARDS.length;
+  $('btnNotesN').textContent=CARDS.length?' '+CARDS.length:'';
+  $('askN').textContent=as.length+(filtered()?' of '+s.length:'');
+  $('askNote').disabled=!as.length;
+  $('askNote').title=!filtered()?'Ask everything in this note'
+    :as.length?'Ask the '+askCards().length+' cards matching '+filterLabel()
+              :'The cards matching '+filterLabel()+' carry no sources';
+  renderChips();
+  $('libBtn').style.visibility=CARDS.length?'visible':'hidden';
+  $('libBtn').title=savedTo?'Saved to My Library / '+savedTo
+    :'Add this note to a collection in My Library';
+  $('libBtn').innerHTML=savedTo?svg('check',18):svg('folder',18);
+  $('tail').classList.toggle('quiet',CARDS.length>0);
+  $('tail').textContent=CARDS.length?'':'Nothing here yet.\nDrag references onto the Notes button, or type above.';
+  $('hint').textContent=CARDS.length
+    ?'Ask attaches this note as scope — sources only, and nothing new is retrieved.'
+    :'Hover any reference for why it is here. Select them and drag them here to keep them.';
+  syncSwitch();
+  if(dmode==='refs')renderRefs();
+}
+function renderChips(){
+  const c=$('chips'); c.innerHTML='';
+  if(!filtered())return;
+  activeTags.forEach(t=>{const s=el('span','chip');s.innerHTML='<span></span>'+svg('x',11);
+    s.querySelector('span').textContent=t;
+    s.addEventListener('click',()=>toggleTag(t));c.appendChild(s)});
+  if(query){const s=el('span','chip');s.innerHTML='<span></span>'+svg('x',11);
+    s.querySelector('span').textContent='“'+query+'”';
+    s.addEventListener('click',()=>{query='';$('fq').value='';render()});c.appendChild(s)}
+  const n=el('span','shown'); n.textContent=CARDS.filter(cardVisible).length+' of '+CARDS.length;
+  c.appendChild(n);
+}
+function syncSwitch(){
+  const n=NOTES.find(x=>x.id===activeNote);
+  if(!n)return;
+  if(dmode==='notes') $('dSwitchLab').textContent=n.thread+
+    (CARDS.length?' · '+CARDS.length+(CARDS.length===1?' card':' cards'):' · empty');
+}
+$('dSwitch').addEventListener('click',e=>{
+  e.stopPropagation();
+  const m=$('menu'); m.innerHTML='';
+  if(dmode==='refs'){
+    m.innerHTML='<div class="lab">REFERENCES FOR</div>';
+    QUERIES.forEach((q,i)=>{const b=el('button');
+      b.innerHTML=svg('chat',15)+'<span class="grow"><b></b><span></span></span>';
+      b.querySelector('b').textContent=q.q;
+      b.querySelector('.grow span').textContent=q.refs.length+' results'+(activeQ===i?' · showing':'');
+      b.addEventListener('click',ev=>{ev.stopPropagation();closePops();activeQ=i;setMode('refs')});
+      m.appendChild(b)});
+    const b=el('button'); b.innerHTML=svg('copy',15)+'<span class="grow"><b>All cited papers</b>'+
+      '<span>the union — recurrence only, no single rank</span></span>';
+    b.addEventListener('click',ev=>{ev.stopPropagation();closePops();activeQ='all';setMode('refs')});
+    m.appendChild(b);
+  } else {
+    m.innerHTML='<div class="lab">WRITE INTO</div>';
+    syncActive();
+    NOTES.forEach(n=>{const b=el('button');
+      b.innerHTML=svg('note',15)+'<span class="grow"><b></b><span></span></span>';
+      b.querySelector('b').textContent=n.thread;
+      b.querySelector('.grow span').textContent=n.cards.length+
+        (n.cards.length===1?' card':' cards')+(n.id===activeNote?' · writing here':'');
+      b.addEventListener('click',ev=>{ev.stopPropagation();closePops();
+        if(n.id!==activeNote)switchNote(n.id)});
+      m.appendChild(b)});
+    m.insertAdjacentHTML('beforeend','<div class="sep"></div>');
+    const nb=el('button',null,svg('plus',15)+'<span class="grow"><b>New note in this thread</b></span>');
+    nb.addEventListener('click',ev=>{ev.stopPropagation();closePops();
+      const n={id:'n'+(NOTES.length+1),thread:$('threadName').textContent,cards:[],coll:''};
+      NOTES.push(n);switchNote(n.id)});
+    m.appendChild(nb);
+  }
+  place(m,$('dSwitch'));
+});
+/* the live note's cards are held in CARDS, so sync it back before reading */
+function syncActive(){const cur=NOTES.find(n=>n.id===activeNote);
+  if(cur){cur.cards=CARDS; if(savedTo)cur.coll=savedTo}}
+function switchNote(id){
+  syncActive(); activeNote=id;
+  const nx=NOTES.find(n=>n.id===id);
+  CARDS=nx.cards; savedTo=nx.coll||null;
+  activeTags.clear(); query=''; render();
+  toast('Now writing into the note from “'+nx.thread+'”');
+}
+
+/* ══ ask, with the note attached ════════════════════════════════════════ */
+function attach(srcs,label,cards){
+  if(!srcs||!srcs.length){toast('Nothing to attach');return}
+  attached=srcs.slice();
+  attachedCards=(cards||askCards()).filter(c=>c.text&&c.text.trim());
+  inclNotes=false;
+  drawAtt(label); $('askInput').focus();
+}
+function clearAttach(){attached=null;attachedCards=[];inclNotes=false;drawAtt()}
+function drawAtt(label){
+  const a=$('compAtt'); a.innerHTML='';
+  if(attached){
+    const c=el('div','chipatt',svg('doc',15)+'<span class="tx"><b></b><span></span></span>'+
+      '<button class="x">'+svg('x',11)+'</button>');
+    c.querySelector('b').textContent=attached.length+
+      (attached.length===1?' paper attached':' papers attached')+(label?' · '+label:'');
+    c.querySelector('.tx span').textContent=(inclNotes?'your own notes included'
+      :'sources only')+(filtered()?' · filtered by '+filterLabel():'');
+    c.querySelector('.x').addEventListener('click',clearAttach);
+    a.appendChild(c);
+  }
+  const n=attachedCards.length, b=$('inclNotes');
+  b.classList.toggle('show',!!attached&&n>0);
+  b.classList.toggle('on',inclNotes);
+  b.innerHTML=inclNotes?svg('check',15)+n+(n===1?' note included':' notes included')
+                       :svg('plus',15)+'include my notes ('+n+')';
+  $('askInput').placeholder=attached?'Ask inside what you kept…':'Ask a research question…';
+}
+$('inclNotes').addEventListener('click',()=>{inclNotes=!inclNotes;drawAtt();
+  toast(inclNotes?'Your own words go in with the sources'
+                 :'Sources only — what you wrote stays out of it')});
+$('askNote').addEventListener('click',()=>attach(askSrcs(),filtered()?filterLabel():null));
+
+/* ══ popovers ═══════════════════════════════════════════════════════════ */
+const POPS=()=>[$('collPop'),$('tagPop'),$('filterPop'),$('menu')];
+const closePops=()=>POPS().forEach(p=>p.classList.remove('on'));
+function place(pop,btn){closePops();
+  const r=btn.getBoundingClientRect();
+  pop.style.left=Math.max(8,Math.min(r.left,window.innerWidth-330))+'px';
+  pop.style.top=Math.min(r.bottom+6,window.innerHeight-300)+'px';
+  setTimeout(()=>pop.classList.add('on'),0)}
+POPS().forEach(p=>p.addEventListener('click',e=>e.stopPropagation()));
+document.addEventListener('click',closePops);
+
+function openCardMenu(btn,c){
+  const m=$('menu'); m.innerHTML='';
+  const mk=(ic,label,fn)=>{const b=el('button',null,svg(ic,15)+'<span class="grow"></span>');
+    b.querySelector('.grow').textContent=label;
+    b.addEventListener('click',e=>{e.stopPropagation();closePops();fn()});m.appendChild(b)};
+  if(c.srcs.length) mk('chat','Ask this card · '+c.srcs.length+
+    (c.srcs.length===1?' source':' sources'),()=>attach(c.srcs.slice(),'this card',[c]));
+  mk('tag','Tag…',()=>openTagPop(btn,c));
+  mk('folder','Add to a collection',()=>$('libBtn').click());
+  mk('quote','Copy citations',()=>toast(c.srcs.length+' citations copied'));
+  m.insertAdjacentHTML('beforeend','<div class="sep"></div>');
+  mk('x','Delete this card',()=>{CARDS=CARDS.filter(x=>x.id!==c.id);render();toast('Card deleted')});
+  place(m,btn);
+}
+function openTagPop(btn,card){
+  const pop=$('tagPop');
+  const draw=()=>{const raw=pop._i.value.trim(),q=raw.toLowerCase();
+    pop._l.innerHTML='';
+    TAGS.filter(t=>t.toLowerCase().includes(q)).forEach(t=>{
+      const on=card.tags.includes(t);
+      const b=el('button',null,(on?svg('check',15):'<span style="width:15px"></span>')+
+        '<span class="grow"></span>');
+      b.querySelector('.grow').textContent=t;
+      b.addEventListener('click',e=>{e.stopPropagation();
+        card.tags=on?card.tags.filter(x=>x!==t):card.tags.concat(t);render();draw()});
+      pop._l.appendChild(b)});
+    pop._n.innerHTML='';
+    if(raw&&!TAGS.some(t=>t.toLowerCase()===q)){
+      const b=el('button',null,svg('plus',15)+'<span class="grow"></span>');
+      b.querySelector('.grow').textContent='create “'+raw+'”';
+      b.addEventListener('click',e=>{e.stopPropagation();TAGS.push(raw);card.tags.push(raw);
+        closePops();render();toast('Tagged “'+raw+'”')});
+      pop._n.appendChild(b)}};
+  pop.innerHTML='';
+  const i=el('input'); i.placeholder='Type a tag, or pick one…';
+  const l=el('div'), sep=el('div','sep'), n=el('div');
+  pop.append(i,l,sep,n); pop._i=i; pop._l=l; pop._n=n;
+  i.addEventListener('input',draw);
+  i.addEventListener('keydown',e=>{
+    e.stopPropagation();
+    if(e.key==='Escape'){closePops();return}
+    if(e.key!=='Enter')return;
+    e.preventDefault();
+    const v=i.value.trim(); if(!v)return;
+    /* Enter finishes the thought — an exact tag toggles, anything else is new */
+    const hit=TAGS.find(t=>t.toLowerCase()===v.toLowerCase());
+    if(hit){if(!card.tags.includes(hit))card.tags.push(hit)}
+    else{TAGS.push(v);card.tags.push(v)}
+    closePops(); render(); toast('Tagged “'+(hit||v)+'”');
+  });
+  draw(); place(pop,btn); setTimeout(()=>i.focus(),10);
+}
+$('filterBtn').addEventListener('click',e=>{e.stopPropagation();
+  const pop=$('filterPop');
+  if(pop.classList.contains('on')){closePops();return}
+  $('fq').value=query; drawFilter(); place(pop,e.currentTarget);
+  setTimeout(()=>$('fq').focus(),10)});
+function drawFilter(){
+  const raw=$('fq').value.trim(), q=raw.toLowerCase();
+  const list=$('fTags'); list.innerHTML='';
+  const hits=TAGS.filter(t=>t.toLowerCase().includes(q));
+  if(!hits.length) list.innerHTML='<div class="lab">no tag matches</div>';
+  hits.forEach(t=>{const n=CARDS.filter(c=>c.tags.includes(t)).length;
+    const b=el('button',null,(activeTags.has(t)?svg('check',15):'<span style="width:15px"></span>')+
+      '<span class="grow"></span><span style="color:var(--muted);font-size:var(--t-2xs)"></span>');
+    b.querySelector('.grow').textContent=t;
+    b.lastChild.textContent=n;
+    b.addEventListener('click',ev=>{ev.stopPropagation();toggleTag(t);drawFilter()});list.appendChild(b)});
+  const ft=$('fText'); ft.innerHTML='';
+  if(raw){const b=el('button',null,svg('search',15)+'<span class="grow"></span>');
+    b.querySelector('.grow').textContent='Filter text for “'+raw+'”';
+    b.addEventListener('click',ev=>{ev.stopPropagation();query=q;render();closePops()});
+    ft.appendChild(b)}
+  else ft.innerHTML='<div class="lab">or type any text to search this note</div>';
+}
+$('fq').addEventListener('input',drawFilter);
+$('fq').addEventListener('keydown',e=>{e.stopPropagation();
+  if(e.key==='Enter'){e.preventDefault();const q=$('fq').value.trim().toLowerCase();if(!q)return;
+    const hit=TAGS.find(t=>t.toLowerCase()===q)||TAGS.filter(t=>t.toLowerCase().includes(q))[0];
+    if(hit)toggleTag(hit);else{query=q;render()} closePops()}
+  if(e.key==='Escape')closePops()});
+
+/* the collection picker is the product's own Save popover (screens/10):
+   a master "Saved to My Library" row, then the collections underneath */
+function walk(node,depth,out){node.kids.forEach(k=>{out.push({name:k.name,depth});
+  walk(k,depth+1,out)});return out}
+function openSavePop(btn,kind){
+  const pop=$('collPop');
+  const what=kind==='paper'?'This paper':'This note';
+  pop.innerHTML='';
+  const head=el('button',null,svg('bookmark',16)+
+    '<span class="grow"><b>Saved to My Library</b><span>'+esc(what)+
+    ' keeps its metadata either way</span></span><span class="gchk on">'+svg('check',12)+'</span>');
+  pop.append(head,el('div','sep'),el('div','lab','ADD TO COLLECTION'));
+  const search=el('input'); search.placeholder='Search your Collections…'; pop.appendChild(search);
+  const listWrap=el('div'); pop.appendChild(listWrap);
+  const draw=()=>{listWrap.innerHTML='';
+    const q=search.value.trim().toLowerCase();
+    walk(LIB,0,[]).filter(k=>k.name.toLowerCase().includes(q)).forEach(k=>{
+      const on=savedTo===k.name;
+      const b=el('button',null,svg('folder',16)+'<span class="grow"><b></b><span></span></span>'+
+        '<span class="gchk'+(on?' on':'')+'">'+svg('check',12)+'</span>');
+      b.querySelector('b').textContent=k.name;
+      const notes=NOTES.filter(n=>n.coll===k.name&&n.cards.length).length;
+      b.querySelector('.grow span').textContent=notes+(notes===1?' note':' notes')+' · Updated today';
+      b.addEventListener('click',ev=>{ev.stopPropagation();
+        if(kind==='paper'){closePops();toast('“'+P[paperOn].n+'” saved to '+k.name);return}
+        savedTo=k.name; CARDS.forEach(c=>c.coll=k.name);
+        closePops(); render(); toast('Saved to My Library / '+k.name,
+          {label:'Open',fn:()=>{coll=k.name;tab='notes';showScreen('lib')}})});
+      listWrap.appendChild(b)});
+    if(!listWrap.children.length) listWrap.innerHTML='<div class="lab">no collection matches</div>';
+  };
+  search.addEventListener('input',draw);
+  search.addEventListener('keydown',e=>e.stopPropagation());
+  draw(); place(pop,btn);
+}
+$('libBtn').addEventListener('click',e=>{e.stopPropagation();openSavePop(e.currentTarget,'note')});
+
+/* ══ act 5 · My Library ═════════════════════════════════════════════════ */
+function showScreen(w){
+  screen=w;
+  $('threadScreen').classList.toggle('on',w==='thread');
+  $('libScreen').classList.toggle('on',w==='lib');
+  $('sbThread').style.display=w==='lib'?'none':'';
+  $('sbLib').style.display=w==='lib'?'':'none';
+  $('zotBtn').style.display=w==='lib'?'':'none';
+  $('sbNewColl').style.display=w==='lib'?'':'none';
+  if(w==='lib'){selRef.clear();renderLib()}
+  else{$('selbar').classList.remove('on');render()}
+}
+$('navLib').addEventListener('click',()=>showScreen('lib'));
+$('backHome').addEventListener('click',()=>showScreen('thread'));
+$('navHome').addEventListener('click',()=>showScreen('thread'));
+$('navNew').addEventListener('click',()=>{if(confirm('Start the walkthrough over?'))location.reload()});
+
+const notesInColl=()=>{syncActive();
+  return NOTES.filter(n=>n.coll===coll&&n.cards.length)
+              .map(n=>({key:n.id,name:n.thread,cards:n.cards}))};
+const srcsOfNote=n=>[...new Set(n.cards.flatMap(c=>c.srcs))];
+
+function renderLib(){
+  const tree=$('tree'); tree.innerHTML='';
+  walk(LIB,0,[]).forEach(k=>{
+    const b=el('button','collrow'+(k.depth?' sub':'')+(coll===k.name?' on':''),
+      svg('folder',16)+'<span class="grow"></span>');
+    b.querySelector('.grow').textContent=k.name;
+    b.addEventListener('click',()=>{coll=k.name;selNotes.clear();openNote=null;tab='notes';renderLib()});
+    tree.appendChild(b)});
+
+  const title=$('libTitle'); title.innerHTML='';
+  if(coll){const c=el('span','crumb','My Library');
+    c.addEventListener('click',()=>{coll=null;openNote=null;selNotes.clear();renderLib()});
+    title.append(c,document.createTextNode(' / '));
+    title.appendChild(el('span',null,'')).textContent=coll}
+  else title.textContent='My Library';
+
+  const body=$('libBody'), tabs=$('libTabs');
+  body.innerHTML=''; tabs.innerHTML='';
+  $('libSearch').style.display=coll?'':'none';
+  $('libShare').style.display=coll?'':'none';
+
+  if(!coll){
+    tabs.innerHTML='';
+    body.innerHTML='<table class="tbl"><thead><tr><th class="cw"></th><th>Collection</th>'+
+      '<th>Notes</th><th>Sources</th><th>Updated</th></tr></thead><tbody id="ctb"></tbody></table>';
+    walk(LIB,0,[]).forEach(k=>{
+      const notes=NOTES.filter(n=>n.coll===k.name&&n.cards.length);
+      const srcs=[...new Set(notes.flatMap(srcsOfNote))];
+      const tr=el('tr','pick');
+      tr.innerHTML='<td><span class="gchk"></span></td><td class="ti"></td><td></td><td></td><td>Today</td>';
+      tr.children[1].innerHTML=svg('folder',15)+'<span style="vertical-align:middle;margin-left:6px"></span>';
+      tr.children[1].lastChild.textContent=k.name;
+      tr.children[2].textContent=notes.length; tr.children[3].textContent=srcs.length;
+      tr.addEventListener('click',()=>{coll=k.name;tab='notes';selNotes.clear();renderLib()});
+      $('ctb').appendChild(tr)});
+    syncNoteBar(); return;
+  }
+
+  const notes=notesInColl();
+  const srcs=[...new Set(notes.flatMap(srcsOfNote))];
+  const cards=notes.reduce((a,n)=>a+n.cards.length,0);
+  /* the product's two tabs, plus ours — same grammar, same counts */
+  [['items','Items','doc',srcs.length],['threads','Threads','chat',notes.length],
+   ['notes','Notes','note',cards]].forEach(([k,l,ic,n])=>{
+    const b=el('button','tab'+(tab===k?' on':''),svg(ic,16)+'<span></span>');
+    b.querySelector('span').textContent=l+' ('+n+')';
+    b.addEventListener('click',()=>{tab=k;openNote=null;renderLib()});tabs.appendChild(b)});
+  $('libQ').placeholder='Search '+tab+' in '+coll;
+
+  if(openNote){drawNoteView(body,notes);syncNoteBar();return}
+  if(!notes.length){
+    body.innerHTML='<div class="empty">Nothing filed here yet.<br>'+
+      'Save a note from a thread with the folder button in the Notes panel.</div>';
+    syncNoteBar(); return}
+
+  if(tab==='items'){
+    body.innerHTML='<table class="tbl"><thead><tr><th class="cw"></th><th>Title</th><th>Type</th>'+
+      '<th>Authors</th><th>Journal</th><th>Year</th></tr></thead><tbody id="itb"></tbody></table>';
+    srcs.forEach(i=>{const p=P[i];
+      const keeping=notes.filter(n=>srcsOfNote(n).includes(i));
+      const tr=el('tr','pick');
+      tr.innerHTML='<td><span class="gchk"></span></td><td class="ti"></td>'+
+        '<td><span class="type">'+svg('search',14)+'Journal Article</span></td>'+
+        '<td></td><td></td><td></td>';
+      tr.children[1].innerHTML='<span></span><span class="sub"></span>';
+      tr.children[1].firstChild.textContent=p.t;
+      /* the Evidence tab's job, done by the note: why this is in the library */
+      tr.children[1].lastChild.textContent='kept by '+keeping.length+
+        (keeping.length===1?' note':' notes')+' · “'+p.passage.slice(0,72)+'…”';
+      tr.children[3].textContent=p.a; tr.children[4].textContent=p.j; tr.children[5].textContent=p.y;
+      tr.addEventListener('click',()=>{paperOn=i;pTab='evidence';showScreen('thread');setMode('paper')});
+      $('itb').appendChild(tr)});
+  }
+  if(tab==='threads'){
+    body.innerHTML='<table class="tbl"><thead><tr><th class="cw"></th><th>Title</th>'+
+      '<th>Preview</th></tr></thead><tbody id="ttb"></tbody></table>';
+    notes.forEach(n=>{const first=n.cards.find(c=>c.text);
+      const tr=el('tr','pick');
+      tr.innerHTML='<td><span class="gchk"></span></td><td class="ti"></td><td></td>';
+      tr.children[1].textContent=n.name;
+      tr.children[2].innerHTML='<span></span><span class="sub"></span>';
+      tr.children[2].firstChild.textContent=first?first.text:'(sources only)';
+      tr.children[2].lastChild.textContent=n.cards.length+
+        (n.cards.length===1?' note card · ':' note cards · ')+srcsOfNote(n).length+' sources kept';
+      tr.addEventListener('click',()=>{tab='notes';openNote=n.key;renderLib()});
+      $('ttb').appendChild(tr)});
+  }
+  if(tab==='notes'){
+    body.innerHTML='<table class="tbl"><thead><tr><th class="cw"></th><th>From</th>'+
+      '<th>What you wrote</th><th>Sources</th></tr></thead><tbody id="ntb"></tbody></table>';
+    notes.forEach(n=>{const s=srcsOfNote(n), first=n.cards.find(c=>c.text);
+      const tr=el('tr','pick');
+      tr.innerHTML='<td><span class="gchk'+(selNotes.has(n.key)?' on':'')+'">'+svg('check',12)+
+        '</span></td><td class="ti"></td><td></td><td></td>';
+      tr.children[1].innerHTML='<span></span><span class="sub"></span>';
+      tr.children[1].firstChild.textContent=n.name;
+      tr.children[1].lastChild.textContent=n.cards.length+(n.cards.length===1?' card':' cards');
+      tr.children[2].textContent=first?first.text:'(sources only)';
+      tr.children[3].innerHTML='<span></span><span class="sub"></span>';
+      tr.children[3].firstChild.textContent=s.length;
+      tr.children[3].lastChild.textContent=s.slice(0,2).map(i=>P[i].n).join(', ')+
+        (s.length>2?' +'+(s.length-2):'');
+      tr.querySelector('.gchk').addEventListener('click',e=>{e.stopPropagation();
+        selNotes.has(n.key)?selNotes.delete(n.key):selNotes.add(n.key);renderLib()});
+      tr.addEventListener('click',()=>{openNote=n.key;renderLib()});
+      $('ntb').appendChild(tr)});
+  }
+  syncNoteBar();
+}
+function drawNoteView(body,notes){
+  const n=notes.find(x=>x.key===openNote); if(!n){openNote=null;return renderLib()}
+  const w=el('div','noteview');
+  const b=el('button','back',svg('chev',14)+'<span></span>');
+  b.querySelector('svg').style.transform='rotate(90deg)';
+  b.querySelector('span').textContent=coll+' · Notes';
+  b.addEventListener('click',()=>{openNote=null;renderLib()});
+  w.appendChild(b);
+  w.appendChild(el('h2',null,'')).textContent='From '+n.name;
+  w.appendChild(el('div','sub','')).textContent=n.cards.length+
+    (n.cards.length===1?' card · ':' cards · ')+srcsOfNote(n).length+
+    ' sources · thread-scoped, so it stays with the question it came from';
+  n.cards.forEach(c=>{
+    const a=el('div','card'); a.style.cursor='default';
+    a.appendChild(el('div',null,'')).textContent=c.text||'(sources only)';
+    a.firstChild.style.cssText='font-size:var(--t-xs);line-height:var(--lh-sm)';
+    const pins=el('div','pins');
+    c.srcs.forEach(i=>pins.appendChild(pinRow(i,null)));
+    a.appendChild(pins);
+    const f=el('div','cfoot');
+    (c.tags||[]).forEach(t=>{const s=el('span','tag');s.textContent=t;f.appendChild(s)});
+    a.appendChild(f); w.appendChild(a)});
+  body.appendChild(w);
+}
+function syncNoteBar(){
+  if(screen!=='lib')return;
+  const notes=coll?notesInColl():[];
+  const picked=notes.filter(n=>selNotes.has(n.key));
+  const cards=picked.reduce((a,n)=>a+n.cards.length,0);
+  const srcs=[...new Set(picked.flatMap(srcsOfNote))];
+  const bar=$('selbar');
+  $('selN').textContent=picked.length+' selected · '+cards+' cards · '+srcs.length+
+    (srcs.length===1?' source':' sources');
+  $('nAsk').placeholder=picked.length>1?'Ask across these '+picked.length+' notes…':'Ask this note…';
+  bar.classList.toggle('on',picked.length>0&&!openNote);
+}
+$('selClear').addEventListener('click',()=>{selNotes.clear();renderLib()});
+
+/* Sending from My Library leaves My Library. Two notes become an attachment and
+   the answer arrives in the thread, which is where asking happens. */
+function askNotes(){
+  const keys=[...selNotes]; if(!keys.length)return;
+  const q=$('nAsk').value.trim()||'Where do these lines of enquiry actually disagree?';
+  $('nAsk').value='';
+  const notes=notesInColl().filter(n=>keys.includes(n.key));
+  const srcs=[...new Set(notes.flatMap(srcsOfNote))];
+  const cards=notes.reduce((a,n)=>a+n.cards.length,0);
+  selNotes.clear();
+  showScreen('thread');
+  $('threadName').textContent=notes.map(n=>n.name).join(' + ');
+  QUERIES=[{q,title:'',refs:srcs.map((p,k)=>({p,rank:k+1})),paras:[],scoped:true,
+    att:notes.length+' notes · '+cards+' cards · '+srcs.length+' sources',
+    scopedText:'Answered across '+notes.length+' notes · your own notes included · nothing retrieved',
+    block:compareBlock(notes)}];
+  activeQ=0;
+  /* the two compared notes are attached to the question, not being written into —
+     so the panel opens on a fresh note rather than silently picking one of them */
+  const fresh={id:'n'+(NOTES.length+1),thread:$('threadName').textContent,cards:[],coll:''};
+  NOTES.push(fresh); activeNote=fresh.id; CARDS=fresh.cards; savedTo=null;
+  activeTags.clear(); query=''; clearAttach();
+  renderThread(); setMode('refs'); render();
+  toast('Both notes are attached. Ask anything else and it stays inside them.');
+}
+$('nGo').addEventListener('click',askNotes);
+$('nAsk').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();askNotes()}});
+
+/* one generator, so the comparison reads the same wherever it lands */
+function compareBlock(picked){
+  const wrap=el('div','cmp');
+  const per=picked.map(n=>({n,s:srcsOfNote(n)}));
+  const all=[...new Set(per.flatMap(x=>x.s))];
+  const shared=all.filter(i=>per.every(x=>x.s.includes(i)));
+  wrap.appendChild(el('h2',null,'')).textContent=shared.length
+    ? 'Where these lines of enquiry meet, and where they do not'
+    : 'These notes share no sources at all';
+  wrap.firstChild.style.cssText='font-size:var(--h-sm);font-weight:700;line-height:var(--h-base);margin-bottom:var(--s-sm)';
+  if(shared.length){
+    const j=el('div','join','<span class="k">THE JOIN</span><p></p>');
+    j.querySelector('p').innerHTML='Both notes kept <b>'+shared.map(i=>esc(P[i].n)).join('</b> and <b>')+
+      '</b>, and each leans on it for a different claim — which is why the threads were never as '+
+      'separate as their titles made them look.';
+    wrap.appendChild(j)}
+  per.forEach((x,k)=>{
+    const c=x.n.cards.find(c=>c.text&&c.text.trim());
+    const d=el('div','blk','<div class="hd"></div><q></q>');
+    /* an empty quote would be a lie about what the note contains */
+    d.querySelector('.hd').innerHTML=(c?(k?'And in ':'You wrote, in '):'Nothing written yet in ')+
+      '<b>'+esc(x.n.name)+'</b>';
+    const q=d.querySelector('q');
+    if(c) q.textContent=c.text;
+    else{q.textContent='this note is '+x.s.length+' sources you kept and no words yet — '+
+      'the comparison below is working from the papers alone'; q.style.color='var(--muted)'}
+    wrap.appendChild(d)});
+  const g=el('div','grid2');
+  per.forEach(x=>{
+    const only=x.s.filter(i=>!per.some(y=>y.n.key!==x.n.key&&y.s.includes(i)));
+    const c=el('div','col','<span class="k">ONLY IN</span><h4></h4><ul></ul>');
+    c.querySelector('h4').textContent=x.n.name;
+    const ul=c.querySelector('ul');
+    only.forEach(i=>{const li=el('li',null,'<b></b> — '+esc(P[i].j));
+      li.querySelector('b').textContent=P[i].n;ul.appendChild(li)});
+    if(!only.length)ul.innerHTML='<li>nothing exclusive to this note</li>';
+    g.appendChild(c)});
+  wrap.appendChild(g);
+  const missed=P.map((_,i)=>i).filter(i=>!all.includes(i));
+  wrap.appendChild(el('div','gapline','')).textContent=missed.length
+    ? 'In the corpus but in neither note: '+missed.map(i=>P[i].n).join(', ')+'.'
+    : 'Between them these notes cover all '+P.length+' papers this thread retrieved.';
+  return wrap;
+}
+
+/* ══ boot ═══════════════════════════════════════════════════════════════ */
+paintChrome();
+$('tail').textContent='Nothing here yet.\nDrag references onto the Notes button, or type above.';
+setMode('refs');
+renderThread(); render(); fit($('cText'));
+</script>
+</body>
+</html>

@@ -33,6 +33,24 @@ h1{font-size:1.75rem;letter-spacing:-.015em;margin:var(--s-2xs) 0 var(--s-sm)}
 .latest .go{display:inline-block;margin-top:var(--s-md);font-size:var(--t-xs);font-weight:500;color:var(--accent-emph)}
 .latest .new{font-family:var(--mono);font-size:var(--t-2xs);color:var(--pos);margin-top:var(--s-sm);line-height:1.7}
 
+/* ── the two deliverables, side by side ─────────────────────── */
+.twoup{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-md);margin:var(--s-2xl) 0 var(--s-md)}
+@media (max-width:52rem){.twoup{grid-template-columns:1fr}}
+.deliv{display:flex;flex-direction:column;background:var(--bg);border:1.5px solid var(--accent);
+  border-radius:.75rem;padding:var(--s-lg);text-decoration:none;color:inherit;
+  box-shadow:0 2px 14px #068ef114}
+.deliv:hover{box-shadow:0 4px 20px #068ef126}
+.deliv.quiet{border-color:var(--bd);border-width:1px;box-shadow:none}
+.deliv.quiet:hover{border-color:var(--bd-emph)}
+.deliv .k{align-self:flex-start;font-family:var(--mono);font-size:var(--t-2xs);color:#fff;
+  background:var(--accent);letter-spacing:.08em;border-radius:625rem;padding:1px .5rem}
+.deliv.quiet .k{background:var(--faint);color:var(--muted)}
+.deliv h2{font-size:var(--t-lg);margin:var(--s-sm) 0 var(--s-xs)}
+.deliv p{font-size:var(--t-sm);color:var(--muted);line-height:1.6}
+.deliv .new{font-family:var(--mono);font-size:var(--t-2xs);color:var(--pos);margin-top:var(--s-sm);
+  line-height:1.7}
+.deliv .go{margin-top:auto;padding-top:var(--s-md);font-size:var(--t-xs);font-weight:500;
+  color:var(--accent-emph)}
 .side{display:block;background:var(--bg);border:1px solid var(--bd);border-radius:.75rem;
   padding:var(--s-md) var(--s-lg);text-decoration:none;color:inherit;margin-bottom:var(--s-3xl)}
 .side:hover{border-color:var(--bd-emph)}
@@ -80,22 +98,30 @@ footer{margin-top:var(--s-3xl);border-top:1px solid var(--bd);padding-top:var(--
   <p class="lede">Consensus remembers papers. It doesn’t remember research. Everything below runs on
   real captured data and Consensus’s own extracted design tokens. <b>Newest work is always at the top.</b></p>
 
-  <a class="latest" href="flow.html">
-    <span class="k">THE FLOW · START HERE</span>
-    <h2>Everything, assembled — five acts in one prototype</h2>
-    <p>Ask and get twenty papers back, with the funnel expanding to the <b>three literal sub-queries
-    Consensus already runs</b> and throws away. Hover any reference for <b>why this paper</b> — the
-    passage that actually matched, in the paper's own words, so it cannot be wrong about itself — and
-    when it missed, a quiet way out that asks <b>what you were hoping to find</b> and hands back an
-    editable search. Nothing is ever removed. Keep what matters by dragging it into the note. Ask what
-    you kept, and watch the scoped answer name a paper you had not kept — which appears in References
-    marked <b>not kept</b>, because an answer must not point at something the panel cannot show. Then
-    save it to a collection, and in My Library compare two notes across two threads.</p>
-    <p class="new">assembled from the working prototype, the Library, and Track A's why-and-redirect ·
-    39 assertions drive all five acts · the Library is now the sidebar tree the product actually has,
-    not a breadcrumb</p>
-    <span class="go">Open → &nbsp;·&nbsp; the plan: research/DEMO.md</span>
-  </a>
+  <div class="twoup">
+    <a class="deliv" href="hifi.html">
+      <span class="k">HI-FI · START HERE</span>
+      <h2>The concept inside Consensus’s real interface</h2>
+      <p>The same five acts, rebuilt in the shipped shell — the sidebar, the agent trace with its
+      three sub-queries, the reference cards with rank badge and <b>key takeaway</b>, the paper drawer
+      with its five tabs, the composer with Corpus and Deep. <b>Notes is the third thing the right
+      drawer can be</b>, opened beside References. <b>Why this paper</b> is woven into the hover card
+      and into the head of the Evidence tab, which is where the product already keeps the matches it
+      never shows you.</p>
+      <p class="new">every colour from the 212 extracted CDL tokens · 97 assertions drive all five
+      acts · every place our interaction had to bend is logged in research/HIFI.md</p>
+      <span class="go">Open → &nbsp;·&nbsp; the log: research/HIFI.md</span>
+    </a>
+    <a class="deliv quiet" href="flow.html">
+      <span class="k">LO-FI · THE ARGUMENT</span>
+      <h2>The same flow, stripped to its reasoning</h2>
+      <p>Built first, and kept deliberately. Nothing here is trying to look like the product, so every
+      element on screen is one the concept actually needs. This is where the object model was worked
+      out — thread, note, card, collection — and where the rules that survived were found.</p>
+      <p class="new">58 assertions · the object model: research/LOOP.md · the demo script: research/DEMO.md</p>
+      <span class="go">Open →</span>
+    </a>
+  </div>
 
   <a class="latest" href="option-24-app.html">
     <span class="k">LATEST · ROUND 16 · START HERE</span>

@@ -4,6 +4,15 @@ Single re-entry point for this project. Written 2026-08-04, mid-session, ahead o
 context compaction. If you are a fresh context: read this file, then `PLAN.md`, then open
 `prototypes/index.html`. Do not re-derive anything below.
 
+**There are now two prototypes of the same five acts, and both are deliverables.**
+`prototypes/flow.html` is the lo-fi — where the object model was worked out, and the
+argument in its clearest form (58 assertions, `scripts/drive-flow.mjs`).
+`prototypes/hifi.html` is the same flow rebuilt inside Consensus's shipped interface
+(97 assertions, `scripts/drive-hifi.mjs`). Before touching the hi-fi, read
+`research/HIFI.md` — it records what was matched against which screenshot, what was
+invented because no capture covers it, and the ten places our interaction had to bend
+to the product's pattern.
+
 ---
 
 ## 1. Corrections that MUST survive compaction
