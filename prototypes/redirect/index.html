@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wrong result → better search — four directions</title>
+<style>
+:root{
+--accent:#068ef1;--accent-emph:#006fce;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
+--bg:#fff;--mist:#fafafa;--faint:#f4f4f5;
+--fg:#18181b;--muted:#71717b;--bd:#e4e4e7;--bd-emph:#d4d4d8;--pos:#148d74;--warn:#a65f00;
+--paper:#fffcf0;--paper-bd:#ece0bd;
+--s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;--s-3xl:2.5rem;
+--t-2xs:.69rem;--t-xs:.81rem;--t-sm:.94rem;--t-base:1rem;--t-lg:1.13rem;
+--sans:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+--mono:"Reddit Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--fg);background:var(--mist);padding:var(--s-2xl) var(--s-lg) var(--s-3xl);-webkit-font-smoothing:antialiased}
+.wrap{max-width:58rem;margin:0 auto}
+.eyebrow{font-family:var(--mono);font-size:var(--t-2xs);text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+h1{font-size:1.6rem;letter-spacing:-.015em;margin:var(--s-2xs) 0 var(--s-sm)}
+.lede{font-size:var(--t-sm);color:var(--muted);max-width:42rem;line-height:1.65}
+.lede b{color:var(--fg);font-weight:500}
+h2.sec{font-size:var(--t-base);margin:var(--s-2xl) 0 var(--s-sm)}
+
+.rules{background:var(--bg);border:1px solid var(--bd);border-radius:.75rem;padding:var(--s-md) var(--s-lg);
+  margin-top:var(--s-lg)}
+.rules ol{margin:0;padding-left:1.1rem}
+.rules li{font-size:var(--t-xs);color:var(--muted);line-height:1.6;margin-bottom:var(--s-xs)}
+.rules li b{color:var(--fg);font-weight:500}
+.rules li:last-child{margin-bottom:0}
+
+.opt{display:block;background:var(--bg);border:1px solid var(--bd);border-radius:.75rem;
+  padding:var(--s-md) var(--s-lg);text-decoration:none;color:inherit;margin-bottom:var(--s-sm)}
+.opt:hover{border-color:var(--accent-bd);box-shadow:0 2px 14px #068ef114}
+.opt .top{display:flex;gap:var(--s-sm);align-items:baseline;flex-wrap:wrap}
+.opt h3{font-size:var(--t-base);font-weight:600}
+.tag{font-family:var(--mono);font-size:var(--t-2xs);border-radius:625rem;padding:1px .45rem;white-space:nowrap;
+  background:#eefaf6;color:var(--pos);border:1px solid #bfe6da}
+.opt p{font-size:var(--t-xs);color:var(--muted);line-height:1.6;margin-top:var(--s-2xs);max-width:44rem}
+.flow{font-family:var(--mono);font-size:var(--t-2xs);background:var(--faint);border-radius:.4rem;
+  padding:var(--s-xs) var(--s-sm);margin-top:var(--s-sm);line-height:1.7;color:var(--fg)}
+.flow b{color:var(--accent-emph);font-weight:400}
+.tr{display:grid;grid-template-columns:5rem 1fr;gap:var(--s-xs);margin-top:var(--s-sm);
+  font-size:var(--t-xs);line-height:1.55}
+.tr .l{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.tr .up{color:var(--fg)}
+.tr .dn{color:var(--muted)}
+.go{display:inline-block;margin-top:var(--s-sm);font-size:var(--t-xs);font-weight:500;color:var(--accent-emph)}
+footer{margin-top:var(--s-2xl);border-top:1px solid var(--bd);padding-top:var(--s-md);
+  font-size:var(--t-xs);color:var(--muted);line-height:1.65}
+footer b{color:var(--fg);font-weight:500}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Consensus · references · when a result misses</p>
+  <h1>Wrong result → better search</h1>
+  <p class="lede">Not “report a bad paper”. The click is a researcher saying <b>this isn’t what I’m
+  looking for</b>, and the useful reply is a better search, not a receipt. Four ways to catch that
+  and turn it into progress. <b>Nothing in any of them deletes, strikes through, or removes a
+  paper.</b> The earlier flag did, and that is precisely what made it feel risky to press.</p>
+
+  <div class="rules"><ol>
+    <li><b>Ask the goal, not the fault.</b> “What were you hoping to find?” is friendlier than
+      “what’s wrong with this?”, and it is a better signal: you learn the target, not just the miss.</li>
+    <li><b>Nothing disappears.</b> Set aside, reversible, always. No strikethrough anywhere.</li>
+    <li><b>Make it pay the user now.</b> Tidying a result set is useful to them; filing a report is a
+      chore for us. Feedback that does something for the user is not scary to press.</li>
+    <li><b>Scale the response to the evidence.</b> One miss in twenty is normal. Three is a pattern,
+      and only then is it fair to suggest a different angle.</li>
+    <li><b>Suggest, never fire.</b> The new query arrives pre-filled and editable; nothing runs
+      without a press.</li>
+    <li><b>Offer both scopes.</b> Search this thread, or start a new chat. The user knows which one
+      they need; we do not.</li>
+    <li><b>Silence is already data.</b> Someone who searches again and keeps nothing has told you
+      the results missed. That signal is free, it is bigger than any button, and it is the reason
+      not to over-build the button.</li>
+  </ol></div>
+
+  <h2 class="sec">Four directions</h2>
+
+  <a class="opt" href="redirect-1-ask-the-goal.html">
+    <div class="top"><h3>A · Ask what they were after</h3><span class="tag">one paper · three taps · no typing</span></div>
+    <p>The card asks a question instead of offering a verdict: <b>Not quite what you needed? →</b>
+    You pick a goal, not a fault, and get back a search you can edit, run here, or take to a new
+    chat. The paper stays exactly where it is either way.</p>
+    <div class="flow">hover → <b>Not quite what you needed?</b> → “what were you hoping to find?”<br>
+      → <b>I’m not asking about delivery</b> → try this instead: “Open questions in CRISPR
+      off-target effects in vivo, excluding delivery”<br>
+      → <b>Search this thread</b> · <b>Start a new chat</b> · not now</div>
+    <div class="tr"><span class="l">for</span><span class="up">Most direct path from “this is wrong” to a better question, and the goal is a far richer signal than a fault code. Reads as help, not as a complaint form.</span>
+      <span class="l">against</span><span class="dn">Asks a question about one paper when the researcher’s objection may be about the whole result set. Three taps is still three taps.</span></div>
+    <span class="go">Open →</span>
+  </a>
+
+  <a class="opt" href="redirect-2-set-aside.html">
+    <div class="top"><h3>B · Set aside first, ask later</h3><span class="tag">one is tidying · three is a pattern</span></div>
+    <p>The click does something for the <em>user</em>: <b>Set aside</b> collapses the paper into a
+    reversible group. No dialog, no question, no interruption. Only after <b>three</b> does a gentle
+    line appear offering a different angle, because one miss in twenty is normal and three is a
+    signal. <b>This is the answer to the one-bad-many-good balance.</b></p>
+    <div class="flow">set aside ×1 → “nothing is deleted, put it back any time”<br>
+      set aside ×3 → <b>Three of these are not landing.</b> Want to try a different angle?
+      The ones you kept stay exactly where they are.<br>
+      <span style="color:var(--muted)">nothing has changed yet</span></div>
+    <div class="tr"><span class="l">for</span><span class="up">Zero friction and zero fear: the first click is a tidy-up with an obvious undo. The system only asks for effort once it has earned the right to.</span>
+      <span class="l">against</span><span class="dn">A single decisive miss goes uninvestigated. If a user sets one aside and leaves, you get the click and never the reason.</span></div>
+    <span class="go">Open →</span>
+  </a>
+
+  <a class="opt" href="redirect-3-on-the-way-out.html">
+    <div class="top"><h3>C · Catch it on the way out</h3><span class="tag">no button at all</span></div>
+    <p>No control on the source. The strongest signal is already free: a researcher who searches
+    again without keeping anything has told you the results missed. So the question is asked at
+    exactly that moment, once, above the composer, and dismisses for good.</p>
+    <div class="flow">click the composer, nothing kept → <b>Searching again?</b> Nothing from the last
+      twenty was opened or kept. If you tell us what you were after, we can suggest a better
+      wording.<br>→ goal → suggested query → <b>Search this thread</b> · <b>Start a new chat</b> · dismiss</div>
+    <div class="tr"><span class="l">for</span><span class="up">Adds nothing to the result list, and catches the users who would never press a per-paper button. Naturally about the whole search rather than one paper, which is usually the real complaint.</span>
+      <span class="l">against</span><span class="dn">Interrupts at the moment someone has already decided to move on, which is when patience is lowest. Says nothing about <em>which</em> papers missed.</span></div>
+    <span class="go">Open →</span>
+  </a>
+
+  <a class="opt" href="redirect-4-narrow-it.html">
+    <div class="top"><h3>D · Offer the narrower search</h3><span class="tag">skips the question entirely</span></div>
+    <p>Asks nothing. The card offers the two or three narrowings that would have excluded this paper,
+    each with its cost shown: <b>would drop 2 of 6, keep 4</b>. The user picks an outcome instead of
+    describing a problem, and we learn the same thing from which one they pick.</p>
+    <div class="flow">hover → <b>Not quite? Narrow the search →</b><br>
+      → <b>Only detection and measurement</b> <span style="color:var(--muted)">would drop 3 of 6, keep 3</span><br>
+      → try this instead: “…open questions in CRISPR off-target effects — only detection and measurement”</div>
+    <div class="tr"><span class="l">for</span><span class="up">Fastest to a result, and the only one that shows the consequence before committing. Nobody has to articulate anything.</span>
+      <span class="l">against</span><span class="dn">Only offers narrowings the system can already think of. If the real objection is outside that list, the user is stuck with options that all miss.</span></div>
+    <span class="go">Open →</span>
+  </a>
+
+  <footer>
+    <b>Where I would land:</b> <b>B</b> as the default gesture and <b>A</b> as what happens when the
+    user wants to say more. They compose cleanly, because B’s nudge can open exactly A’s goal
+    question. That gives you a one-click action with no fear attached, a proportionate response to
+    the one-bad-many-good case, and a real redirect when the evidence justifies one. <b>C</b> is
+    worth running alongside either, since it costs nothing on the result list and catches the
+    silent majority. <b>D</b> is the one to test rather than assume: it is the fastest, but it only
+    works when the system’s guess about the narrowing is right.<br><br>
+    Real data throughout: six papers, three sub-queries and the funnel captured from the live CRISPR
+    thread. Suggested queries are generated from the paper that missed plus the question asked.
+  </footer>
+</div>
+</body>
+</html>
