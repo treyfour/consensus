@@ -83,6 +83,43 @@ h1{font-size:var(--h-md);letter-spacing:-.015em;flex:1;min-width:12rem}
 .grp{border:1px solid var(--paper-bd);border-radius:var(--r-md);background:var(--paper);margin-bottom:var(--s-sm);overflow:hidden}
 .grp-hd{display:flex;gap:var(--s-xs);align-items:center;padding:var(--s-sm) var(--s-md);cursor:pointer}
 .grp-hd .chev{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);width:.7rem;flex:none}
+/* a note is selectable as a whole, because comparing is something you do to notes */
+.gchk{flex:none;width:1rem;height:1rem;border:1.5px solid var(--bd-emph);border-radius:var(--r-xs);
+  background:#fff;cursor:pointer;position:relative}
+.grp-hd:hover .gchk{border-color:var(--accent-bd)}
+.grp.picked{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.grp.picked .gchk{background:var(--accent);border-color:var(--accent)}
+.grp.picked .gchk::after{content:'✓';position:absolute;inset:0;color:#fff;font-size:.68rem;line-height:1rem;text-align:center}
+
+/* ── comparing two notes ─────────────────────────────────────────────── */
+.cmp .back{display:block;font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);
+  background:none;border:0;cursor:pointer;padding:0;margin-bottom:var(--s-md);text-align:left}
+.cmp .back:hover{text-decoration:underline}
+.cmp .chip{display:inline-flex;align-items:center;gap:var(--s-2xs);font-family:var(--mono);font-size:var(--t-2xs);
+  color:var(--accent-emph);background:var(--accent-subtle);border:1px solid var(--accent-bd);
+  border-radius:625rem;padding:2px var(--s-xs);margin-bottom:var(--s-sm)}
+.cmp h2{font-size:var(--t-lg);font-weight:600;letter-spacing:-.01em;margin-bottom:var(--s-xs)}
+.cmp .fun{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-bottom:var(--s-lg)}
+.join{border:1px solid var(--pos);background:var(--pos-bg);border-radius:var(--r-md);
+  padding:var(--s-sm) var(--s-md);margin-bottom:var(--s-lg)}
+.join .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--pos);letter-spacing:.06em}
+.join p{font-size:var(--t-sm);line-height:1.6;margin-top:var(--s-2xs)}
+.blk{border-left:2px solid var(--paper-bd);padding-left:var(--s-md);margin-bottom:var(--s-lg)}
+.blk .hd{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-bottom:var(--s-2xs)}
+.blk .hd b{color:var(--fg);font-weight:500}
+.blk q{font-size:var(--t-sm);line-height:1.65;font-style:normal;display:block}
+.cmp .lede{font-size:var(--t-sm);line-height:1.7;margin-bottom:var(--s-lg);max-width:40rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-md);margin-bottom:var(--s-lg)}
+.col{border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md)}
+.col .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);letter-spacing:.04em}
+.col h4{font-size:var(--t-xs);font-weight:500;margin:var(--s-2xs) 0 var(--s-xs)}
+.col ul{list-style:none;font-size:var(--t-2xs);line-height:1.75;color:var(--muted)}
+.col li b{color:var(--fg);font-weight:500}
+.gapline{font-family:var(--mono);font-size:var(--t-2xs);color:var(--warn);background:#fdf6e7;
+  border:1px solid #e8d9b4;border-radius:var(--r-sm);padding:var(--s-xs) var(--s-sm);line-height:1.7;margin-bottom:var(--s-lg)}
+.cmpask{border:1px solid var(--accent-bd);border-radius:var(--r-md);padding:var(--s-xs) var(--s-sm);
+  box-shadow:0 0 0 3px var(--accent-subtle);max-width:40rem}
+.cmpask input{width:100%;border:0;outline:0;font-family:inherit;font-size:var(--t-sm);background:transparent}
 .grp-hd .t{flex:1;min-width:0}
 .grp-hd .t b{font-size:var(--t-sm);font-weight:500}
 .grp-hd .t .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:1px}
@@ -165,6 +202,11 @@ h1{font-size:var(--h-md);letter-spacing:-.015em;flex:1;min-width:12rem}
   <button id="sMove">＋ Add to collection</button>
   <span class="clr" id="sClr">clear</span>
 </div>
+<div class="selbar" id="notebar">
+  <span class="cnt" id="noteCount">0 notes</span>
+  <button class="go" id="nCompare">⇄ Compare</button>
+  <span class="clr" id="nClr">clear</span>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -210,6 +252,7 @@ const LIB={name:"My Library",kids:[
 ]};
 
 let path=[], tab='notes', sel=new Set(), activeTags=new Set(), query='', open=new Set();
+let selNotes=new Set(), compare=null;
 const $=id=>document.getElementById(id);
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');
   clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2400)}
@@ -298,6 +341,7 @@ function render(){
   find.appendChild(fi); bar.appendChild(find);
   tw.appendChild(bar);
 
+  if(compare){drawCompare(body);syncSel();return}
   if(tab==='threads') drawThreads(body,ts);
   if(tab==='sources') drawSources(body,ss);
   if(tab==='notes') drawNotes(body,cs);
@@ -384,9 +428,13 @@ function drawNotes(body,cs){
   groups.forEach(tid=>{
     const mine=vis.filter(c=>c.thread===tid);
     const srcs=new Set(); mine.forEach(c=>c.srcs.forEach(i=>srcs.add(i)));
-    const g=document.createElement('article'); g.className='grp'+(open.has(tid)?' open':'');
+    const g=document.createElement('article');
+    g.className='grp'+(open.has(tid)?' open':'')+(selNotes.has(tid)?' picked':'');
     const hd=document.createElement('div'); hd.className='grp-hd';
-    hd.innerHTML='<span class="chev"></span><div class="t"><b></b><div class="m"></div></div>';
+    hd.innerHTML='<span class="gchk"></span><span class="chev"></span>'+
+      '<div class="t"><b></b><div class="m"></div></div>';
+    hd.querySelector('.gchk').addEventListener('click',e=>{e.stopPropagation();
+      selNotes.has(tid)?selNotes.delete(tid):selNotes.add(tid); sel.clear(); render()});
     hd.querySelector('.chev').textContent=open.has(tid)?'▾':'▸';
     hd.querySelector('b').textContent='From '+THREADS[tid].name;
     hd.querySelector('.m').textContent=mine.length+(mine.length===1?' card · ':' cards · ')+
@@ -424,12 +472,100 @@ function drawNotes(body,cs){
         s.addEventListener('click',e=>{e.stopPropagation();
           activeTags.has(t)?activeTags.delete(t):activeTags.add(t);render()});f.appendChild(s)});
       cb.appendChild(f);
-      a.addEventListener('click',()=>{sel.has(c.id)?sel.delete(c.id):sel.add(c.id);render()});
+      a.addEventListener('click',()=>{sel.has(c.id)?sel.delete(c.id):sel.add(c.id);selNotes.clear();render()});
       bd.appendChild(a);
     });
     g.appendChild(bd);
     body.appendChild(g);
   });
+}
+
+/* ── comparing two or more notes ──────────────────────────────────────────
+   A thread will not fit in one question — this collection's two threads are
+   4 queries and 42 references between them. A note already is the reduction:
+   the researcher looked at all of it and kept seven cards. So notes are the
+   unit that can be compared, and they carry the one thing a source set cannot,
+   which is why each paper was kept. */
+function drawCompare(body){
+  const ids=compare;
+  const back=document.createElement('button'); back.className='back';
+  back.textContent='← '+here()+' · Notes';
+  back.addEventListener('click',()=>{compare=null;render()});
+  const wrap=document.createElement('div'); wrap.className='cmp';
+  wrap.appendChild(back);
+
+  const per=ids.map(t=>({t,cards:notesOf(t),srcs:srcsOfNote(t)}));
+  const allCards=per.reduce((a,x)=>a+x.cards.length,0);
+  const allSrcs=[...new Set(per.flatMap(x=>x.srcs))];
+  const shared=allSrcs.filter(i=>per.every(x=>x.srcs.includes(i)));
+
+  const chip=document.createElement('span'); chip.className='chip';
+  chip.textContent='📎 '+ids.length+' notes · '+allCards+' cards · '+allSrcs.length+' sources';
+  wrap.appendChild(chip);
+
+  const h=document.createElement('h2');
+  h.textContent=shared.length
+    ? 'Where these '+ids.length+' lines of enquiry meet, and where they do not'
+    : 'These '+ids.length+' notes share no sources at all';
+  wrap.appendChild(h);
+  const fn=document.createElement('div'); fn.className='fun';
+  fn.textContent=allCards+' cards · '+allSrcs.length+' sources · your own notes included · nothing re-retrieved';
+  wrap.appendChild(fn);
+
+  if(shared.length){
+    const j=document.createElement('div'); j.className='join';
+    j.innerHTML='<span class="k">THE JOIN</span><p></p>';
+    j.querySelector('p').innerHTML='Every one of these notes kept <b>'+
+      shared.map(i=>P[i].n).join('</b> and <b>')+'</b>. '+
+      (shared.length===1?'It is the only paper on both sides':'They are the only papers on every side')+
+      ', and each note leans on it for a different claim — which is why the threads were never as separate '+
+      'as their titles made them look.';
+    wrap.appendChild(j);
+  }
+
+  /* the researcher's own words, which is what a source set can never carry */
+  per.forEach((x,k)=>{
+    const c=x.cards.find(c=>c.text)||x.cards[0];
+    const b=document.createElement('div'); b.className='blk';
+    b.innerHTML='<div class="hd">'+(k?'And in':'You wrote, in')+' <b></b></div><q></q>';
+    b.querySelector('b').textContent=THREADS[x.t].name;
+    b.querySelector('q').textContent=c?c.text:'(sources only)';
+    wrap.appendChild(b);
+  });
+
+  const g=document.createElement('div'); g.className='grid2';
+  if(ids.length>2) g.style.gridTemplateColumns='repeat('+Math.min(ids.length,3)+',1fr)';
+  per.forEach(x=>{
+    const only=x.srcs.filter(i=>!per.some(y=>y.t!==x.t&&y.srcs.includes(i)));
+    const c=document.createElement('div'); c.className='col';
+    c.innerHTML='<span class="k">ONLY IN</span><h4></h4><ul></ul>';
+    c.querySelector('h4').textContent=THREADS[x.t].name;
+    const ul=c.querySelector('ul');
+    only.forEach(i=>{const li=document.createElement('li');
+      li.innerHTML='<b></b> — '+(prov(x.t,i)||P[i].m);
+      li.querySelector('b').textContent=P[i].n; ul.appendChild(li)});
+    if(!only.length) ul.innerHTML='<li>nothing exclusive to this note</li>';
+    g.appendChild(c);
+  });
+  wrap.appendChild(g);
+
+  /* what is in the collection but in none of these notes is the honest gap */
+  const inColl=[...new Set(cardsHere().flatMap(c=>c.srcs))];
+  const missed=inColl.filter(i=>!allSrcs.includes(i));
+  if(missed.length){
+    const m=document.createElement('div'); m.className='gapline';
+    m.textContent='In this collection but in none of these notes: '+
+      missed.map(i=>P[i].n).join(', ')+'. If that work matters to the question, both arguments are incomplete.';
+    wrap.appendChild(m);
+  }
+
+  const ask=document.createElement('div'); ask.className='cmpask';
+  ask.innerHTML='<input placeholder="Ask across all '+ids.length+' notes…">';
+  ask.querySelector('input').addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();e.target.value='';
+      toast('Scoped to '+allCards+' cards and '+allSrcs.length+' sources, with your own words as context.')}});
+  wrap.appendChild(ask);
+  body.appendChild(wrap);
 }
 
 function syncSel(){
@@ -438,8 +574,24 @@ function syncSel(){
   $('selCount').textContent=n+(n===1?' card · ':' cards · ')+srcs.size+(srcs.size===1?' source':' sources');
   $('sAsk').textContent='💬 Ask '+(srcs.size||'');
   $('selbar').classList.toggle('on',n>0);
-  $('toast').classList.toggle('on',false);
+  syncNotes();
 }
+const notesOf=tid=>cardsHere().filter(c=>c.thread===tid);
+const srcsOfNote=tid=>[...new Set(notesOf(tid).flatMap(c=>c.srcs))];
+function syncNotes(){
+  const ids=[...selNotes], cards=ids.reduce((a,t)=>a+notesOf(t).length,0);
+  const srcs=[...new Set(ids.flatMap(srcsOfNote))];
+  $('noteCount').textContent=ids.length+(ids.length===1?' note · ':' notes · ')+
+    cards+' cards · '+srcs.length+(srcs.length===1?' source':' sources');
+  $('nCompare').textContent=ids.length>1?'⇄ Compare '+ids.length+' notes':'💬 Ask this note';
+  $('notebar').classList.toggle('on',ids.length>0&&!sel.size&&!compare);
+}
+$('nClr').addEventListener('click',()=>{selNotes.clear();render()});
+$('nCompare').addEventListener('click',()=>{
+  const ids=[...selNotes];
+  if(ids.length<2){toast('📎 '+srcsOfNote(ids[0]).length+' sources attached — sources only');return}
+  compare=ids; render();
+});
 $('sClr').addEventListener('click',()=>{sel.clear();render()});
 $('sAsk').addEventListener('click',()=>{
   const srcs=new Set(); [...sel].forEach(id=>{const c=CARDS.find(x=>x.id===id);if(c)c.srcs.forEach(i=>srcs.add(i))});
