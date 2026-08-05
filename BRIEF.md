@@ -66,3 +66,22 @@ Two or three **clickable** HTML prototypes in `prototypes/`, added to
 `prototypes/index.html` newest-first, each with its trade-off written down. Answer direction
 3 explicitly in prose even if you do not build it — what happens to the note is the thing
 the merge will need, and it is cheaper to decide it here than during the merge.
+
+---
+
+## Running this worktree
+
+Serve the prototypes on **port 4603** so the three explorations do not collide:
+
+```
+cd .claude/worktrees/thread-split/prototypes && python3 -m http.server 4603
+```
+
+Screenshot and smoke-test without fighting over the shared MCP browser profile:
+
+```
+node scripts/shot.mjs http://localhost:4603/option-N.html out.png --full
+```
+
+It exits non-zero and prints the message if the page threw or logged a console
+error, so it is worth running after every change, not just for pictures.
