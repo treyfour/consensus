@@ -72,6 +72,11 @@ await p.waitForTimeout(200);
 ok('the switcher says this is a note from this thread',
   /from CRISPR Off Target Effects/.test(await p.evaluate(()=>document.getElementById('nsFrom').textContent)),
   await p.evaluate(()=>document.getElementById('nsFrom').textContent));
+/* step 6 of the script: write something, then tag, then filter */
+await p.evaluate(()=>document.querySelector('#noteList .card textarea').focus());
+await p.keyboard.type('This one is the thesis gap.');
+await p.waitForTimeout(250);
+ok('writing lands on one card only', await p.evaluate(()=>CARDS.filter(c=>c.text.trim()).length===1));
 await p.evaluate(()=>{CARDS[0].tags=['ch.3'];CARDS[1].tags=['ch.3'];CARDS[2].tags=['methods'];render()});
 await p.click('#filterBtn'); await p.waitForTimeout(300);
 await p.type('#fq','ch.3'); await p.keyboard.press('Enter'); await p.waitForTimeout(400);
@@ -82,6 +87,15 @@ await shot('pG-3-filtered.png');
 await p.click('#askNote'); await p.waitForTimeout(250);
 ok('the attachment names the filter',
   /filtered by ch\.3/.test(await p.evaluate(()=>document.getElementById('attLab').textContent)));
+/* what you wrote is not a public artefact — it goes in only if you say so */
+const inc=await p.evaluate(()=>({shown:document.getElementById('inclNotes').classList.contains('show'),
+  on:document.getElementById('inclNotes').classList.contains('on'),
+  t:document.getElementById('inclNotes').textContent}));
+ok('the opt-in is offered and starts off', inc.shown && !inc.on && /include my notes/.test(inc.t), JSON.stringify(inc));
+await p.click('#inclNotes'); await p.waitForTimeout(250);
+ok('turning it on says how many go in',
+  /notes? included/.test(await p.evaluate(()=>document.getElementById('inclNotes').textContent)),
+  await p.evaluate(()=>document.getElementById('inclNotes').textContent));
 
 console.log('\n7–8 · a contextual message, further down the chat');
 await p.click('#seedBtn'); await p.waitForTimeout(200);
@@ -89,8 +103,10 @@ ok('the demo key advances to the next scripted line',
   await p.evaluate(()=>document.getElementById('askInput').value.startsWith('Which of these disagree')),
   await p.evaluate(()=>document.getElementById('askInput').value));
 await p.click('#sendBtn'); await p.waitForTimeout(1100);
-ok('answered inside the note',
-  /nothing new retrieved/.test(await p.evaluate(()=>document.querySelector('#thread .scoped-mark').textContent)));
+const mk=await p.evaluate(()=>document.querySelector('#thread .scoped-mark').textContent);
+ok('answered inside the note', /nothing new retrieved/.test(mk), mk);
+ok('and the answer says whether your words went in',
+  /your own notes included|sources only/.test(mk), mk);
 
 console.log('\n9 · a new source is revealed, and kept');
 const raised=await p.evaluate(()=>(QUERIES[QUERIES.length-1].refs.find(r=>r.raised)||{}).p);

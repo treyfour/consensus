@@ -17,9 +17,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(--t-base);-webkit-font-smoothing:antialiased}
-.proto{background:var(--fg);color:#fff;padding:var(--s-xs) var(--s-md);display:flex;gap:var(--s-md);align-items:baseline;font-size:var(--t-xs)}
-.proto b{font-size:var(--t-sm);white-space:nowrap}.proto span{color:#a1a1aa}
-.app{display:grid;grid-template-columns:3.25rem 1fr;height:calc(100vh - 33px);overflow:hidden}
+.app{display:grid;grid-template-columns:3.25rem 1fr;height:100vh;overflow:hidden}
 .app>*{min-height:0}
 .rail{border-right:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;gap:var(--s-xs);padding:var(--s-sm) 0;background:var(--mist)}
 .rail button{width:2.1rem;height:2.1rem;border-radius:var(--r-sm);border:0;background:transparent;cursor:pointer;font-size:var(--t-base);line-height:1;color:var(--muted);position:relative}
@@ -74,6 +72,13 @@ body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(
 .attach{display:flex;align-items:center;gap:var(--s-2xs);font-family:var(--mono);font-size:var(--t-2xs);
   color:var(--accent-emph);background:var(--accent-subtle);border:1px solid var(--accent-bd);border-radius:625rem;padding:1px var(--s-xs)}
 .attach .x{cursor:pointer;color:var(--muted)}
+/* the sources are public artefacts; what you wrote about them is not, so it
+   goes in only when you say so */
+.incl{display:none;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);background:#fff;
+  border:1px dashed var(--bd-emph);border-radius:625rem;padding:1px var(--s-xs);cursor:pointer;white-space:nowrap}
+.incl.show{display:inline-block}
+.incl:hover{border-color:var(--accent-bd);color:var(--accent-emph)}
+.incl.on{border-style:solid;border-color:var(--paper-bd);background:var(--paper);color:var(--warn)}
 .ask .line{display:flex;gap:var(--s-xs);align-items:center}
 .ask input{flex:1;border:0;outline:0;font-family:inherit;font-size:var(--t-sm);background:transparent}
 /* a quiet demo affordance: fills the next scripted question, never fires it */
@@ -352,7 +357,7 @@ body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--acc
 </style>
 </head>
 <body>
-<div class="proto"><b>The flow</b><span>Ask · ask why a paper is here · keep what matters · ask what you kept · come back to it and across it. Real captured data throughout; only Wienert's 27 matching lines is a real count, the other five are placeholders.</span></div>
+
 
 <div class="app">
   <nav class="rail">
@@ -372,7 +377,8 @@ body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--acc
         <div class="ask" id="ask">
           <div class="askwrap">
           <div class="box">
-            <div class="attachrow"><span class="attach"><span id="attLab"></span><span class="x" id="attX">✕</span></span></div>
+            <div class="attachrow"><span class="attach"><span id="attLab"></span><span class="x" id="attX">✕</span></span>
+              <span class="incl" id="inclNotes">＋ include my notes</span></div>
             <div class="line"><input placeholder="Search 32.8M papers…" id="askInput">
               <button class="seed" id="seedBtn" title="Demo: fill the next question">✨</button>
               <button class="send" id="sendBtn">Search ↩</button></div>
@@ -698,6 +704,7 @@ function submit(){
     const q={q:text,title:text.charAt(0).toUpperCase()+text.slice(1).replace(/\?+$/,''),refs,
       scoped, att:scoped?('📎 '+noteSrcs().length+' sources from your note'):null,
       funnel:scoped?('answered within your note · '+pool.length+' sources'+
+                     (inclNotes?' · your own notes included':' · sources only')+
                      (filtered()?' · filtered by '+filterLabel():'')+' · nothing new retrieved')
                    :('keyword-matched over 6 captured papers · '+refs.length+' included'),
       paras:[]};
@@ -707,7 +714,7 @@ function submit(){
       if(raised!=null) q.paras.push('Nothing outside your note was retrieved. But the closest paper in '+
         'this thread that you have <b>not</b> kept is [['+raised+']] — it is in your references and not '+
         'in your note.');
-      $('ask').classList.remove('scoped'); attached=null;
+      $('ask').classList.remove('scoped'); attached=null; attachedCards=[]; inclNotes=false; drawIncl();
     } else {
       q.paras=['The strongest evidence here comes from [['+top[0]+']]'+(top[1]!=null?' and [['+top[1]+']]':'')+'.',
         top[2]!=null?'[['+top[2]+']] came back lower and is worth checking before you rely on it.':''].filter(Boolean);
@@ -972,12 +979,29 @@ function render(){
     :'Hover any reference for why it is here. Select and drag them into the note to keep them.';
   syncInNote();
 }
-let attached=null;
-function attach(n,srcs,label){if(!n){toast('Nothing to attach');return}
+let attached=null, attachedCards=[], inclNotes=false;
+function attach(n,srcs,label,cards){
+  if(!n){toast('Nothing to attach');return}
   attached=srcs||noteSrcs();
+  attachedCards=(cards||askCards()).filter(c=>c.text&&c.text.trim());
+  inclNotes=false;
   $('ask').classList.add('scoped');
-  $('attLab').textContent='📎 Papers · '+n+' attached'+(label?' · '+label:(filtered()&&!label?' · filtered by '+filterLabel():''));
-  $('sendBtn').textContent='Ask ↩';$('askInput').focus()}
+  $('attLab').textContent='📎 Papers · '+n+' attached'+
+    (label?' · '+label:(filtered()?' · filtered by '+filterLabel():''));
+  drawIncl();
+  $('sendBtn').textContent='Ask ↩';$('askInput').focus();
+}
+function drawIncl(){
+  const el=$('incl'+'Notes'), n=attachedCards.length;
+  el.classList.toggle('show',n>0);
+  el.classList.toggle('on',inclNotes);
+  el.textContent=inclNotes
+    ? '✓ '+n+(n===1?' note included':' notes included')
+    : '＋ include my notes ('+n+')';
+}
+$('inclNotes').addEventListener('click',()=>{inclNotes=!inclNotes;drawIncl();
+  toast(inclNotes?'Your own words go in with the sources'
+                 :'Sources only — what you wrote stays out of it')});
 /* a card can be dragged straight into the composer */
 $('ask').addEventListener('dragover',e=>{if(dragCard!=null){e.preventDefault();$('ask').classList.add('dropok')}});
 $('ask').addEventListener('dragleave',()=>$('ask').classList.remove('dropok'));
@@ -999,7 +1023,8 @@ function openCardMenu(btn,c){
   mk('Delete this card',()=>{CARDS=CARDS.filter(x=>x.id!==c.id);render();toast('Card deleted')});
   place(m,btn);
 }
-$('attX').addEventListener('click',()=>{$('ask').classList.remove('scoped');attached=null;$('sendBtn').textContent='Search ↩'});
+$('attX').addEventListener('click',()=>{$('ask').classList.remove('scoped');attached=null;
+  attachedCards=[];inclNotes=false;$('sendBtn').textContent='Search ↩'});
 $('askNote').addEventListener('click',()=>attach(askSrcs().length,askSrcs()));
 function renderChips(){
   const el=$('chips'); el.innerHTML=''; el.classList.toggle('on',filtered());
@@ -1220,7 +1245,8 @@ function askNotes(){
   const t=document.createElement('div'); t.className='turn';
   const qd=document.createElement('div'); qd.className='q';
   const att=document.createElement('span'); att.className='att';
-  att.textContent='📎 '+notes.length+' notes · '+cards+' cards · '+srcs.length+' sources';
+  att.textContent='📎 '+notes.length+' notes · '+cards+' cards · '+srcs.length+
+    ' sources · your own notes included';
   qd.appendChild(att); qd.appendChild(document.createTextNode(q));
   t.appendChild(qd);
   const m=document.createElement('div'); m.className='scoped-mark';
