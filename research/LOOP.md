@@ -220,3 +220,31 @@ Same discipline as `HANDOFF.md` §2 — nothing here reaches a slide without a r
 
 Built as `prototypes/option-21-ask.html`; round 12's version, with the automatic Library
 link and the thread-spawning Ask, is preserved at `prototypes/option-20-loop.html`.
+
+---
+
+## 7. The loop, walked end to end
+
+`prototypes/option-23-fullloop.html` is the whole argument as one continuous pass, both
+screens in a single file, driveable step by step and interactive between steps.
+
+| | Beat | What it proves |
+|---|---|---|
+| 1 | A question, and what came back | The starting point is today's product: thread, answer, References |
+| 2 | Hover a citation | Validation before commitment. Hovering peeks the paper — journal, recurrence, rank, abstract — without leaving the sentence. This is *not* the round-9 hover-to-add that was rejected; nothing is added, it only reads |
+| 3 | Drag the set in | Three references travel together and stage in the composer |
+| 4 | Say what they are | One note, so there is nothing to file into. The card lands underneath |
+| 5 | **Ask, inside the same chat** | The pivot. `📎 Papers · 3 attached from your note`, then an answer marked `answered within your note · 3 sources · no new retrieval`. Sources only; the written note stays out |
+| 6 | Catch what the answer surfaces | The scoped answer names a paper not yet kept, References marks it `new`, one drag adds it. **This is the loop closing** — asking the note grows the note |
+| 7 | Add to My Library | The picker opens on My Library and makes you choose a collection |
+| 8 | And back again | In the collection the note previews like a thread, and opening it returns to exactly the layout of beat 1 |
+
+Beat 6 is the one to watch in a walkthrough. Everything before it is capture; everything
+after is filing. Beat 6 is the only moment where the note *pays you back* — the pile you
+built produces a paper you would not otherwise have kept, which then joins the pile. If
+that beat does not land, the note is just a folder.
+
+**Honest about the demo:** the scripted path is smoother than a real session. A real one has
+dead ends, papers dragged in and pulled back out, and questions that return nothing useful.
+The prototype shows the happy path because the argument is about whether the *shape* holds,
+not about how often it succeeds.

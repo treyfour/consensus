@@ -1,0 +1,938 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>W · The full loop</title>
+<style>
+:root{
+--accent:#068ef1;--accent-emph:#006fce;--accent-muted:#dfeeff;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
+--bg:#fff;--mist:#fafafa;--faint:#f4f4f5;--subtle:#e4e4e7;
+--fg:#18181b;--muted:#71717b;--bd:#e4e4e7;--bd-emph:#d4d4d8;
+--pos:#148d74;--pos-bg:#eefaf6;--warn:#a65f00;--paper:#fffcf0;--paper-bd:#ece0bd;
+--r-xs:.25rem;--r-sm:.5rem;--r-md:.75rem;--r-lg:1rem;
+--s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;--s-3xl:2.5rem;
+--t-2xs:.69rem;--t-xs:.81rem;--t-sm:.94rem;--t-base:1rem;--t-lg:1.13rem;--h-sm:1.38rem;--h-md:1.6rem;
+--sans:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+--mono:"Reddit Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+--tour:4.4rem;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(--t-base);-webkit-font-smoothing:antialiased}
+.proto{background:var(--fg);color:#fff;padding:var(--s-xs) var(--s-md);display:flex;gap:var(--s-md);align-items:baseline;font-size:var(--t-xs)}
+.proto b{font-size:var(--t-sm);white-space:nowrap}.proto span{color:#a1a1aa}
+.app{display:grid;grid-template-columns:3.25rem 1fr;height:calc(100vh - 33px - var(--tour));overflow:hidden}
+.app>*{min-height:0}
+.rail{border-right:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;gap:var(--s-xs);padding:var(--s-sm) 0;background:var(--mist)}
+.rail button{width:2.1rem;height:2.1rem;border-radius:var(--r-sm);border:0;background:transparent;cursor:pointer;font-size:var(--t-base);line-height:1;color:var(--muted)}
+.rail button:hover{background:var(--faint);color:var(--fg)}
+.rail button.lit{color:var(--accent-emph);background:var(--accent-subtle)}
+.rail .sep{width:1.5rem;height:1px;background:var(--bd);margin:var(--s-2xs) 0}
+.stage{position:relative;min-height:0;overflow:hidden}
+.screen{position:absolute;inset:0;display:none}
+.screen.on{display:grid}
+
+/* ── the walkthrough ───────────────────────────────────────────── */
+.tour{position:fixed;left:0;right:0;bottom:0;height:var(--tour);z-index:80;background:var(--fg);color:#fff;
+  display:flex;align-items:center;gap:var(--s-md);padding:0 var(--s-lg)}
+.tour .n{font-family:var(--mono);font-size:var(--t-2xs);color:#ffffff8c;white-space:nowrap}
+.tour .txt{flex:1;min-width:0}
+.tour .txt b{font-size:var(--t-sm);display:block}
+.tour .txt span{font-size:var(--t-xs);color:#c9c9cf;line-height:1.4}
+.tour button{font-family:inherit;font-size:var(--t-xs);border:0;border-radius:var(--r-sm);padding:7px var(--s-md);
+  cursor:pointer;background:#ffffff21;color:#fff;white-space:nowrap}
+.tour button:hover{background:#ffffff36}
+.tour button.go{background:var(--accent)}
+.tour button.go:hover{background:var(--accent-emph)}
+.tour button:disabled{opacity:.35;cursor:default}
+.pips{display:flex;gap:4px}
+.pip{width:6px;height:6px;border-radius:625rem;background:#ffffff2e}
+.pip.done{background:#ffffff70}
+.pip.now{background:var(--accent);width:16px}
+.spot{position:fixed;z-index:70;border-radius:var(--r-md);pointer-events:none;
+  box-shadow:0 0 0 3px var(--accent),0 0 0 9999px #18181b40;transition:all .3s cubic-bezier(.2,.9,.3,1);opacity:0}
+.spot.on{opacity:1}
+
+/* ── thread screen ─────────────────────────────────────────────── */
+#threadScreen{grid-template-columns:1fr 21.5rem 20rem}
+#threadScreen>*{min-height:0}
+.mid{display:flex;flex-direction:column;min-height:0}
+.thread-hd{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-xs) var(--s-md);border-bottom:1px solid var(--bd);background:var(--bg)}
+.thread-hd .t{font-size:var(--t-sm);font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tgl{font-size:var(--t-xs);border:1px solid var(--bd);background:var(--bg);border-radius:var(--r-sm);padding:var(--s-2xs) var(--s-sm);display:flex;gap:var(--s-2xs);align-items:center}
+.tgl.on{background:var(--accent-subtle);border-color:var(--accent-bd);color:var(--accent-emph)}
+.tgl .n{font-family:var(--mono);font-size:var(--t-2xs)}
+.thread{flex:1;overflow-y:auto;padding:var(--s-xl) var(--s-2xl)}
+.q{background:var(--accent-subtle);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);font-size:var(--t-sm);max-width:26rem;margin-left:auto}
+.q .att{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);display:block;margin-bottom:var(--s-2xs)}
+.funnel{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin:var(--s-lg) 0}
+.scoped-mark{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);background:var(--accent-subtle);
+  border:1px solid var(--accent-bd);border-radius:625rem;padding:1px var(--s-xs);display:inline-block;margin:var(--s-lg) 0 var(--s-sm)}
+h1{font-size:var(--h-sm);margin-bottom:var(--s-sm);letter-spacing:-.01em}
+h2.a{font-size:var(--t-lg);margin-bottom:var(--s-sm);letter-spacing:-.01em}
+.ans p{font-size:var(--t-sm);line-height:1.7;margin-bottom:var(--s-md);max-width:40rem}
+.cite{font-family:var(--mono);font-size:var(--t-2xs);background:var(--faint);border-radius:var(--r-xs);padding:1px 5px;cursor:grab}
+.cite:hover{background:var(--accent-subtle);outline:1px solid var(--accent-bd)}
+.turn{opacity:0;transform:translateY(8px);transition:opacity .4s ease,transform .4s cubic-bezier(.2,.9,.3,1)}
+.turn.in{opacity:1;transform:none}
+
+/* hover a citation to check the paper before committing to it */
+.peek{position:fixed;z-index:65;width:23rem;background:#fff;border:1px solid var(--bd);border-radius:var(--r-md);
+  box-shadow:0 14px 34px #0000002e;padding:var(--s-sm) var(--s-md);display:none}
+.peek.on{display:block}
+.peek h4{font-size:var(--t-xs);font-weight:500;line-height:1.4}
+.peek .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs)}
+.peek .pv{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-xs);display:flex;gap:var(--s-2xs);align-items:center}
+.peek .ab{font-size:var(--t-2xs);color:var(--fg);line-height:1.55;margin-top:var(--s-xs);
+  border-top:1px solid var(--bd);padding-top:var(--s-xs)}
+.peek .chipz{display:flex;gap:var(--s-2xs);margin-top:var(--s-xs)}
+.peek .ch{font-family:var(--mono);font-size:var(--t-2xs);border:1px solid var(--bd);border-radius:625rem;padding:0 var(--s-xs);color:var(--muted)}
+.peek .ch.ok{color:var(--pos);border-color:#bfe6da;background:var(--pos-bg)}
+
+.ask{border-top:1px solid var(--bd);padding:var(--s-sm) var(--s-2xl);background:var(--mist);flex:none}
+.ask .box{background:var(--bg);border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-xs) var(--s-sm);max-width:40rem}
+.ask.scoped .box{border-color:var(--accent-bd);box-shadow:0 0 0 3px var(--accent-subtle)}
+.attachrow{display:none;align-items:center;gap:var(--s-xs);flex-wrap:wrap;margin-bottom:var(--s-xs)}
+.ask.scoped .attachrow{display:flex}
+.attach{display:flex;align-items:center;gap:var(--s-2xs);font-family:var(--mono);font-size:var(--t-2xs);
+  color:var(--accent-emph);background:var(--accent-subtle);border:1px solid var(--accent-bd);border-radius:625rem;padding:1px var(--s-xs)}
+.attach .x{cursor:pointer;color:var(--muted)}
+.incl{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);background:#fff;border:1px dashed var(--bd-emph);
+  border-radius:625rem;padding:1px var(--s-xs);cursor:pointer;white-space:nowrap}
+.incl:hover{border-color:var(--accent-bd);color:var(--accent-emph)}
+.incl.on{border-style:solid;border-color:var(--paper-bd);background:var(--paper);color:var(--warn)}
+.ask .line{display:flex;gap:var(--s-xs);align-items:center}
+.ask input{flex:1;border:0;outline:0;font-family:inherit;font-size:var(--t-sm);background:transparent}
+.ask input::placeholder{color:var(--muted)}
+.send{font-family:inherit;font-size:var(--t-2xs);border:0;background:var(--accent);color:#fff;border-radius:var(--r-sm);
+  padding:5px var(--s-sm);cursor:pointer;white-space:nowrap}
+.send:hover{background:var(--accent-emph)}
+
+.pane{display:flex;flex-direction:column;min-height:0;overflow:hidden;position:relative}
+.pane-hd{display:flex;align-items:baseline;gap:var(--s-xs);padding:var(--s-sm) var(--s-md);border-bottom:1px solid var(--bd);flex:none}
+.pane-hd b{font-size:var(--t-sm)}
+.pane-hd span{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.pane-hd .all{margin-left:auto;font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);background:none;border:0;cursor:pointer;text-decoration:underline}
+.pane-body{flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column}
+
+#notesPane{border-left:1px solid var(--paper-bd);background:var(--paper)}
+#notesPane .pane-hd{border-color:var(--paper-bd)}
+#notesBody{padding:var(--s-xs) var(--s-sm) var(--s-sm)}
+.notetop{flex:none;border-bottom:1px solid var(--paper-bd);background:var(--paper);padding:var(--s-xs) var(--s-sm) var(--s-sm)}
+.prov{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);line-height:1.5;display:flex;gap:var(--s-2xs);align-items:baseline}
+.prov b{color:var(--fg);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.band{position:relative;margin-top:var(--s-xs);min-height:4.15rem}
+.tools{display:flex;gap:var(--s-2xs);align-items:center;flex-wrap:wrap}
+.tools .r{display:flex;gap:var(--s-2xs);align-items:center;width:100%}
+.btn{font-family:inherit;font-size:var(--t-xs);border:1px solid var(--paper-bd);background:#fff;color:var(--fg);
+  border-radius:var(--r-sm);padding:4px var(--s-xs);cursor:pointer;white-space:nowrap;display:flex;gap:var(--s-2xs);align-items:center;justify-content:center}
+.btn:hover{border-color:var(--accent-bd);color:var(--accent-emph)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;flex:1}
+.btn.primary:hover{background:var(--accent-emph);border-color:var(--accent-emph);color:#fff}
+.btn.wide{flex:1}
+.btn .n{font-family:var(--mono);font-size:var(--t-2xs);opacity:.75}
+.composer{margin-top:var(--s-sm);background:#fff;border:1px dashed var(--paper-bd);border-radius:var(--r-md);padding:var(--s-xs) var(--s-sm)}
+.composer.armed,.composer.over{border-style:solid;border-color:var(--accent-bd);box-shadow:0 0 0 3px var(--accent-subtle)}
+.composer.over{border-color:var(--accent)}
+.composer textarea{width:100%;border:0;outline:0;resize:none;font-family:inherit;font-size:var(--t-xs);line-height:1.5;background:transparent;color:var(--fg);overflow:hidden}
+.composer textarea::placeholder{color:#b5b0a0}
+.composer .hint{display:none;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs)}
+.composer.armed .hint{display:block}
+
+#noteList{flex:none;padding-top:var(--s-sm)}
+.card{background:#fff;border:1px solid var(--paper-bd);border-radius:var(--r-md);margin-bottom:var(--s-sm);
+  box-shadow:0 1px 2px #0000000a;display:flex;gap:var(--s-xs);padding:var(--s-xs) var(--s-sm) var(--s-xs) var(--s-xs);position:relative}
+.card.land{animation:land .4s cubic-bezier(.2,.9,.3,1)}
+@keyframes land{0%{opacity:0;transform:translateY(-6px) scale(.98)}100%{opacity:1;transform:none}}
+.card.flash{animation:flash 1s ease}
+@keyframes flash{0%{box-shadow:0 0 0 4px var(--accent-muted)}100%{box-shadow:0 1px 2px #0000000a}}
+.chk{flex:none;width:.85rem;height:.85rem;border:1px solid var(--bd-emph);border-radius:625rem;margin-top:.3rem;cursor:pointer;background:#fff}
+.card:hover .chk{border-color:var(--accent-bd)}
+.card.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.card.sel .chk{background:var(--accent);border-color:var(--accent);box-shadow:inset 0 0 0 2px #fff}
+.cbody{flex:1;min-width:0}
+.card textarea{width:100%;border:0;outline:0;resize:none;font-family:inherit;font-size:var(--t-xs);line-height:1.5;background:transparent;color:var(--fg);overflow:hidden;padding:1px 0}
+.card textarea::placeholder{color:#b5b0a0}
+.pins{display:flex;flex-direction:column;gap:2px;margin-top:var(--s-xs)}
+.pin{display:flex;gap:var(--s-2xs);align-items:baseline;font-size:var(--t-2xs);line-height:1.35;background:var(--faint);border-radius:var(--r-xs);padding:2px var(--s-2xs)}
+.pin b{font-weight:500;white-space:nowrap;flex:none}
+.pin span{color:var(--muted);font-family:var(--mono);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pin .x{margin-left:auto;color:var(--muted);cursor:pointer;opacity:0;font-family:var(--mono);flex:none}
+.pin:hover .x{opacity:1}
+.foot{display:flex;gap:var(--s-2xs);margin-top:var(--s-xs);flex-wrap:wrap;align-items:center}
+.tag{font-family:var(--mono);font-size:var(--t-2xs);border:1px solid var(--bd);border-radius:625rem;padding:0 var(--s-xs);color:var(--muted);background:#fff;cursor:pointer;white-space:nowrap}
+.tag.on{border-color:var(--accent-bd);background:var(--accent-subtle);color:var(--accent-emph)}
+.tag.add{border-style:dashed}
+.inColl{font-family:var(--mono);font-size:var(--t-2xs);color:var(--pos);white-space:nowrap}
+.card.merge{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-muted)}
+.mergeBadge{display:none;position:absolute;top:-.6rem;right:var(--s-xs);background:var(--accent);color:#fff;font-family:var(--mono);font-size:var(--t-2xs);border-radius:625rem;padding:0 var(--s-xs);white-space:nowrap}
+.card.merge .mergeBadge{display:block}
+.dropline{height:0;border-top:2px solid var(--accent);border-radius:2px;margin:calc(var(--s-sm) * -1 + 1px) 0 var(--s-sm);position:relative}
+.dropline::after{content:attr(data-l);position:absolute;right:0;top:-.55rem;background:var(--accent);color:#fff;font-family:var(--mono);font-size:var(--t-2xs);border-radius:625rem;padding:0 var(--s-xs);white-space:nowrap}
+.tail{display:none;flex:1;min-height:5rem;border:1.5px dashed var(--paper-bd);border-radius:var(--r-md);align-items:center;justify-content:center;text-align:center;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);padding:var(--s-md);background:#ffffff80}
+body.dragging .tail{display:flex;border-color:var(--accent-bd)}
+.tail.over{border-color:var(--accent);background:var(--accent-subtle);color:var(--accent-emph);border-style:solid}
+body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--accent-bd)}
+
+#refsPane{border-left:1px solid var(--bd);background:var(--bg)}
+#refsBody{padding:var(--s-xs) var(--s-xs) 5.5rem;display:block}
+.src{border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-sm);margin-bottom:var(--s-xs);background:var(--bg);
+  position:relative;display:flex;gap:var(--s-xs);align-items:flex-start;cursor:grab;transition:border-color .12s ease,box-shadow .12s ease}
+.src:hover{border-color:var(--bd-emph)}
+.src.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);background:var(--accent-subtle)}
+.src.ghosting{opacity:.35}
+.src.fresh{border-color:var(--accent-bd)}
+.src .chk{margin-top:.15rem}
+.src.sel .chk{background:var(--accent);border-color:var(--accent);box-shadow:inset 0 0 0 2px #fff}
+.src h3{font-size:var(--t-xs);font-weight:500;line-height:1.35;padding-right:2.2rem}
+.src .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs)}
+.src .p{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-xs);display:flex;gap:var(--s-2xs);align-items:center}
+.src .in{font-family:var(--mono);font-size:var(--t-2xs);color:var(--pos);margin-top:var(--s-xs);display:none}
+.src.inNote .in{display:block}
+.src .newtag{position:absolute;top:var(--s-xs);right:var(--s-xs);font-family:var(--mono);font-size:var(--t-2xs);
+  background:var(--accent);color:#fff;border-radius:625rem;padding:0 var(--s-xs);display:none}
+.src.fresh .newtag{display:block}
+.dots{letter-spacing:-1px;color:var(--accent)}.dots i{color:var(--subtle);font-style:normal}
+.bar{position:absolute;left:var(--s-xs);right:var(--s-xs);bottom:var(--s-xs);z-index:20;background:var(--fg);color:#fff;
+  border-radius:var(--r-md);padding:var(--s-xs);box-shadow:0 10px 28px #0000003d;display:flex;flex-direction:column;gap:var(--s-xs);
+  opacity:0;transform:translateY(120%);transition:opacity .18s ease,transform .22s cubic-bezier(.2,.9,.3,1);pointer-events:none}
+.bar.on{opacity:1;transform:none;pointer-events:auto}
+.bar .cnt{font-family:var(--mono);font-size:var(--t-2xs);color:#ffffffb3;display:flex;align-items:center;gap:var(--s-2xs)}
+.bar .cnt .clr{margin-left:auto;color:#fff;cursor:pointer;text-decoration:underline}
+.bar .row{display:flex;gap:var(--s-2xs);flex-wrap:wrap}
+.bar button{font-family:inherit;font-size:var(--t-2xs);background:#ffffff21;border:0;color:#fff;border-radius:var(--r-xs);padding:4px var(--s-xs);cursor:pointer;white-space:nowrap}
+.bar button:hover{background:#ffffff36}
+.bar button.go{background:var(--accent)}
+
+/* ── library screen ────────────────────────────────────────────── */
+#libScreen{grid-template-columns:1fr;overflow-y:auto}
+.libinner{width:100%;max-width:54rem;margin:0 auto;padding:var(--s-xl) var(--s-2xl) var(--s-3xl)}
+.crumb{display:flex;flex-wrap:wrap;gap:var(--s-2xs);align-items:baseline;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-bottom:var(--s-sm)}
+.crumb a{color:var(--muted);cursor:pointer;text-decoration:none}
+.crumb a:hover{color:var(--accent-emph);text-decoration:underline}
+.crumb a.here{color:var(--fg);cursor:default}
+.libinner h1{font-size:var(--h-md);letter-spacing:-.015em;margin-bottom:var(--s-2xs)}
+.tallies{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-bottom:var(--s-xl)}
+.subs{display:grid;grid-template-columns:repeat(auto-fill,minmax(13rem,1fr));gap:var(--s-xs);margin-bottom:var(--s-2xl)}
+.sub{border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);cursor:pointer;background:var(--bg)}
+.sub:hover{border-color:var(--accent-bd);background:var(--accent-subtle)}
+.sub .n{font-size:var(--t-sm);font-weight:500}
+.sub .c{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs)}
+.tabs{display:flex;gap:var(--s-lg);border-bottom:1px solid var(--bd);align-items:flex-end;margin-bottom:var(--s-lg);flex-wrap:wrap}
+.tab{font-family:inherit;font-size:var(--t-sm);background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);
+  padding:0 0 var(--s-xs);cursor:pointer;display:flex;gap:var(--s-2xs);align-items:baseline;margin-bottom:-1px}
+.tab:hover{color:var(--fg)}
+.tab.on{color:var(--fg);border-bottom-color:var(--accent);font-weight:500}
+.tab .n{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+/* a note previews exactly like a thread, and opens back into the thread layout */
+.prev{border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);margin-bottom:var(--s-xs);background:var(--bg)}
+.prev.note{border-color:var(--paper-bd);background:var(--paper)}
+.prev .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);letter-spacing:.06em}
+.prev h3{font-size:var(--t-sm);font-weight:500;line-height:1.4;margin-top:2px}
+.prev .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs)}
+.prev .ex{font-size:var(--t-xs);color:var(--fg);line-height:1.55;margin-top:var(--s-xs);
+  border-left:2px solid var(--paper-bd);padding-left:var(--s-xs)}
+.prev .acts{display:flex;gap:var(--s-2xs);margin-top:var(--s-sm)}
+.prev .acts button{font-family:inherit;font-size:var(--t-2xs);border:1px solid var(--bd);background:#fff;color:var(--fg);
+  border-radius:var(--r-sm);padding:4px var(--s-sm);cursor:pointer}
+.prev .acts button.go{background:var(--accent);border-color:var(--accent);color:#fff}
+.prev .acts button:hover{border-color:var(--accent-bd);color:var(--accent-emph)}
+.prev .acts button.go:hover{background:var(--accent-emph);color:#fff}
+.back{margin-top:var(--s-sm);border-top:1px dashed var(--bd);padding-top:var(--s-xs);font-family:var(--mono);font-size:var(--t-2xs);line-height:1.7;color:var(--muted)}
+.back .why{color:var(--pos);background:var(--pos-bg);border-radius:625rem;padding:0 var(--s-xs);margin-right:var(--s-2xs)}
+
+.pop{position:fixed;z-index:75;background:#fff;border:1px solid var(--bd);border-radius:var(--r-sm);
+  box-shadow:0 12px 30px #00000024;padding:var(--s-2xs);min-width:15rem;display:none}
+.pop.on{display:block}
+.pop .lab{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);padding:var(--s-2xs) var(--s-xs);line-height:1.5}
+.pop button{display:flex;width:100%;gap:var(--s-xs);align-items:baseline;text-align:left;font-family:inherit;font-size:var(--t-xs);
+  background:none;border:0;color:var(--fg);padding:var(--s-xs);border-radius:var(--r-xs);cursor:pointer}
+.pop button:hover{background:var(--accent-subtle);color:var(--accent-emph)}
+.pop button .c{margin-left:auto;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.pop .sep{height:1px;background:var(--bd);margin:var(--s-2xs)}
+.pop input{width:100%;border:1px solid var(--bd);border-radius:var(--r-xs);outline:0;font-family:inherit;font-size:var(--t-xs);padding:4px var(--s-xs)}
+
+.fly{position:fixed;z-index:90;background:var(--fg);color:#fff;border-radius:625rem;padding:var(--s-2xs) var(--s-sm);
+  font-size:var(--t-xs);white-space:nowrap;box-shadow:0 8px 22px #00000040;pointer-events:none;
+  transition:all .6s cubic-bezier(.4,0,.2,1)}
+.dragghost{position:fixed;top:-500px;left:-500px;background:var(--fg);color:#fff;border-radius:625rem;padding:var(--s-2xs) var(--s-sm);font-size:var(--t-xs);white-space:nowrap}
+.toast{position:fixed;left:50%;bottom:calc(var(--tour) + 1rem);transform:translate(-50%,180%);z-index:60;background:var(--fg);color:#fff;
+  border-radius:625rem;padding:var(--s-xs) var(--s-md);font-size:var(--t-xs);box-shadow:0 10px 28px #00000040;
+  transition:transform .22s cubic-bezier(.2,.9,.3,1);white-space:nowrap}
+.toast.on{transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div class="proto"><b>W · The full loop</b><span>One pass, start to finish: search, check a source by hovering it, drag a set into the note, write the thought, ask the note back into the same chat, catch the paper the answer surfaces, save to My Library by choosing a collection, then open the note again from the Library and land back exactly here.</span></div>
+
+<div class="app">
+  <nav class="rail">
+    <button title="New thread">＋</button><button title="Home">⌂</button>
+    <button title="My Library" id="railLib">🔖</button><button title="History">⟲</button>
+    <div class="sep"></div><button title="Paper search">🔍</button><button title="Citation Graph">⁂</button>
+  </nav>
+
+  <div class="stage">
+    <!-- ── the thread ── -->
+    <div class="screen on" id="threadScreen">
+      <div class="mid">
+        <div class="thread-hd"><span class="t">CRISPR Off Target Effects</span>
+          <span class="tgl on">🗒 Note <span class="n" id="tnCount">0</span></span>
+          <span class="tgl on">References <span class="n" id="refCount">24</span></span></div>
+        <main class="thread" id="thread">
+          <div class="q">What are the open questions in CRISPR off-target effects for in vivo therapies?</div>
+          <div class="funnel">32.8M retrieved · 100 eligible · 20 included</div>
+          <h1>Open Questions in CRISPR Off-Target Effects for In Vivo Therapies</h1>
+          <div class="ans">
+            <p>Several unresolved questions persist across detection, biological variability, structural
+            variants, and clinical monitoring <span class="cite" data-p="0">WIENERT 2022</span>
+            <span class="cite" data-p="3">KALTER 2025</span>.</p>
+            <p>Large-scale aberrations remain far harder to detect than small indels using current
+            workflows <span class="cite" data-p="1">HÖIJER 2021</span>.</p>
+            <p>Human genetic diversity is an under-explored confound <span class="cite" data-p="2">CANCELLIERI 2022</span>.</p>
+            <p>There is no consensus on post-delivery monitoring <span class="cite" data-p="4">ANGELINI STEWART 2025</span>.</p>
+          </div>
+          <div id="turns"></div>
+        </main>
+        <div class="ask" id="ask">
+          <div class="box">
+            <div class="attachrow">
+              <span class="attach"><span id="attLab"></span><span class="x" id="attX">✕</span></span>
+              <span class="incl" id="inclNotes">＋ include my notes</span>
+            </div>
+            <div class="line">
+              <input placeholder="Ask a follow-up…" id="askInput">
+              <button class="send" id="sendBtn">Ask ↩</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="pane" id="notesPane">
+        <div class="pane-hd"><b>🗒 Note</b><span id="nSub">empty</span></div>
+        <div class="notetop">
+          <div class="prov">from this thread · <b>CRISPR Off Target Effects</b></div>
+          <div class="band">
+            <div class="tools">
+              <div class="r">
+                <button class="btn primary" id="askNote">💬 Ask <span class="n" id="askN">0</span></button>
+                <button class="btn" id="filterBtn">Filter ▾</button>
+              </div>
+              <div class="r"><button class="btn wide" id="libBtn">＋ Add to My Library</button></div>
+            </div>
+          </div>
+          <div class="composer" id="composer">
+            <textarea id="cText" rows="1" placeholder="Type a thought, or drag sources in…"></textarea>
+            <div class="pins" id="cPins"></div>
+            <div class="hint">⏎ save to the note · ⇧⏎ new line</div>
+          </div>
+        </div>
+        <div class="pane-body" id="notesBody">
+          <div id="noteList"></div>
+          <div class="tail" id="tail">Drop here to start a new card</div>
+        </div>
+      </aside>
+
+      <aside class="pane" id="refsPane">
+        <div class="pane-hd"><b>References</b><span id="refSub">ranked</span>
+          <button class="all" id="selAll">select all</button></div>
+        <div class="pane-body" id="refsBody"></div>
+        <div class="bar" id="bar">
+          <div class="cnt"><span id="barCount">0 selected</span><span class="clr" id="barClr">clear</span></div>
+          <div class="row">
+            <button class="go" id="barAdd">🗒 Add to note</button>
+            <button id="barAsk">💬 Ask</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- ── My Library ── -->
+    <div class="screen" id="libScreen">
+      <div class="libinner">
+        <div class="crumb" id="crumb"></div>
+        <h1 id="libTitle">My Library</h1>
+        <div class="tallies" id="tallies"></div>
+        <div class="subs" id="subs"></div>
+        <div id="tabsWrap"></div>
+        <div id="libBody"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="tour">
+  <span class="n" id="stepN">1 / 8</span>
+  <div class="pips" id="pips"></div>
+  <div class="txt"><b id="stepT"></b><span id="stepD"></span></div>
+  <button id="prevBtn">‹ Back</button>
+  <button class="go" id="nextBtn">Next ›</button>
+  <button id="restartBtn">↻ Restart</button>
+</div>
+
+<div class="spot" id="spot"></div>
+<div class="peek" id="peek"></div>
+<div class="pop" id="collPop"></div>
+<div class="dragghost" id="ghost"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const P=[
+ {n:"Wienert 2022",t:"CRISPR nuclease off-target activity and mitigation strategies",m:"2022 · 46 cites · Frontiers in Genome Editing",d:"●●● 3 of 3 searches · ranked #1",s:"●●● 3 of 3 · #1",
+  a:"Reviews the sources of Cas9 off-target activity and the mitigation strategies available, from guide design through high-fidelity variants."},
+ {n:"Höijer 2021",t:"CRISPR-Cas9 induces large structural variants at on- and off-target sites",m:"2021 · 149 cites · Nature Communications",d:"●●○ 2 of 3 searches · ranked #2",s:"●●○ 2 of 3 · #2",
+  a:"Long-read sequencing reveals large deletions and rearrangements that short-read, indel-focused assays systematically miss."},
+ {n:"Cancellieri 2022",t:"Human genetic diversity alters off-target outcomes of therapeutic gene editing",m:"2022 · 98 cites · Nature Genetics",d:"●○○ search 3 only · ranked #4",s:"●○○ search 3 · #4",
+  a:"Shows that individual genetic variation changes the off-target landscape, so a reference-genome analysis under-reports risk."},
+ {n:"Kalter 2025",t:"Off-target effects in CRISPR-Cas genome editing for human therapeutics",m:"2025 · 56 cites · Molecular Therapy Nucleic Acids",d:"●●○ 2 of 3 searches · ranked #3",s:"●●○ 2 of 3 · #3",
+  a:"Surveys detection methods for therapeutic editing and argues current standards do not agree on what counts as detected."},
+ {n:"Angelini Stewart 2025",t:"Measurement and clinical interpretation of CRISPR off-targets",m:"2025 · 6 cites · Nature Genetics",d:"●○○ search 2 only · ranked #9",s:"●○○ search 2 · #9",
+  a:"Proposes a framework for interpreting off-target measurements clinically, including what to monitor after delivery."},
+ {n:"Huang 2022",t:"In vivo delivery of CRISPR-Cas9 genome editing components",m:"2022 · 39 cites · Biomaterials",d:"●○○ search 1 only · ranked #12",s:"●○○ search 1 · #12",
+  a:"Compares viral and lipid nanoparticle delivery for in vivo editing, and the tropism constraints each imposes."}
+];
+const LIB={name:"My Library",kids:[
+ {name:"Chapter 3 · detection",kids:[{name:"Assay comparisons",kids:[]},{name:"Structural variants",kids:[]}]},
+ {name:"Methods draft",kids:[{name:"Delivery",kids:[]}]},
+ {name:"Unsorted",kids:[]}
+]};
+let CARDS=[], seq=1, sel=new Set(), drag=null, anchor=null, staged=[], inclNotes=false,
+    savedTo=null, path=[], tab='notes', busy=false;
+
+const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const noteList=$('noteList'), notesBody=$('notesBody'), tail=$('tail'), composer=$('composer'),
+      cText=$('cText'), cPins=$('cPins'), refsBody=$('refsBody'), bar=$('bar'), ask=$('ask'),
+      ghost=$('ghost'), peek=$('peek'), spot=$('spot'), collPop=$('collPop');
+const line=document.createElement('div'); line.className='dropline';
+function fit(t){t.style.height='auto';t.style.height=t.scrollHeight+'px'}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');
+  clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2600)}
+const byId=id=>CARDS.find(c=>c.id===id);
+function allSrcs(ids){const s=new Set();ids.forEach(id=>{const c=byId(id);if(c)c.srcs.forEach(i=>s.add(i))});return [...s]}
+const noteSrcs=()=>allSrcs(CARDS.map(c=>c.id));
+
+/* ── references ────────────────────────────────────────────────── */
+P.forEach((p,i)=>{
+  const d=document.createElement('div'); d.className='src'; d.dataset.p=i; d.draggable=true;
+  d.innerHTML='<span class="chk"></span><span class="newtag">new</span><div class="body"><h3></h3><div class="m"></div>'+
+    '<div class="p"><span class="dots"></span><span class="pd"></span></div><div class="in">✓ in your note</div></div>';
+  d.querySelector('h3').textContent=p.t;
+  d.querySelector('.m').textContent=p.m;
+  d.querySelector('.dots').textContent=p.d.slice(0,3);
+  d.querySelector('.pd').textContent=p.d.slice(4);
+  refsBody.appendChild(d);
+});
+const cards=[...refsBody.querySelectorAll('.src')];
+const refSel=()=>cards.filter(c=>c.classList.contains('sel'));
+function refSync(){
+  const n=refSel().length;
+  $('barCount').textContent=n+' selected';
+  $('barAdd').textContent='🗒 Add '+n+' to note';
+  $('barAsk').textContent='💬 Ask '+n;
+  bar.classList.toggle('on',n>0);
+}
+cards.forEach((c,i)=>{
+  c.addEventListener('click',e=>{
+    if(e.shiftKey&&anchor!=null){const a=Math.min(anchor,i),b=Math.max(anchor,i);
+      for(let k=a;k<=b;k++)cards[k].classList.add('sel')}
+    else {c.classList.toggle('sel');anchor=i}
+    refSync();
+  });
+  c.addEventListener('dragstart',e=>{
+    let g=refSel().map(x=>+x.dataset.p); if(!g.includes(i))g=[i];
+    drag=g; document.body.classList.add('dragging'); e.dataTransfer.effectAllowed='copy';
+    ghost.textContent=g.length>1?g.length+' sources':P[i].n;
+    e.dataTransfer.setDragImage(ghost,ghost.offsetWidth/2,ghost.offsetHeight/2);
+    g.forEach(k=>cards[k].classList.add('ghosting'));
+  });
+  c.addEventListener('dragend',endDrag);
+});
+$('selAll').addEventListener('click',()=>{
+  const all=refSel().length===cards.length;
+  cards.forEach(c=>c.classList.toggle('sel',!all));
+  $('selAll').textContent=all?'select all':'clear all'; refSync();
+});
+$('barClr').addEventListener('click',()=>{cards.forEach(c=>c.classList.remove('sel'));refSync()});
+$('barAdd').addEventListener('click',()=>{stage(refSel().map(c=>+c.dataset.p));
+  cards.forEach(c=>c.classList.remove('sel'));refSync()});
+$('barAsk').addEventListener('click',()=>attach(refSel().length,0));
+function endDrag(){drag=null;document.body.classList.remove('dragging');
+  cards.forEach(x=>x.classList.remove('ghosting'));clearViz();composer.classList.remove('over')}
+
+/* ── hover a citation to check it before committing ────────────── */
+function wireCites(root){
+  root.querySelectorAll('.cite').forEach(el=>{
+    if(el._w) return; el._w=1;
+    const i=+el.dataset.p;
+    el.draggable=true;
+    el.addEventListener('dragstart',e=>{drag=[i];document.body.classList.add('dragging');
+      e.dataTransfer.effectAllowed='copy';ghost.textContent=P[i].n;
+      e.dataTransfer.setDragImage(ghost,ghost.offsetWidth/2,ghost.offsetHeight/2);hidePeek()});
+    el.addEventListener('dragend',endDrag);
+    el.addEventListener('mouseenter',()=>showPeek(el,i));
+    el.addEventListener('mouseleave',hidePeek);
+  });
+}
+function showPeek(el,i){
+  const p=P[i], inNote=noteSrcs().includes(i);
+  peek.innerHTML='<h4></h4><div class="m"></div><div class="pv"><span class="dots"></span><span class="pd"></span></div>'+
+    '<div class="ab"></div><div class="chipz"><span class="ch">INDEXED</span><span class="ch">FULL TEXT</span><span class="ch ok"></span></div>';
+  peek.querySelector('h4').textContent=p.t;
+  peek.querySelector('.m').textContent=p.n+' · '+p.m;
+  peek.querySelector('.dots').textContent=p.d.slice(0,3);
+  peek.querySelector('.pd').textContent=p.d.slice(4);
+  peek.querySelector('.ab').textContent=p.a;
+  const ok=peek.querySelector('.ch.ok');
+  if(inNote) ok.textContent='✓ in your note'; else ok.remove();
+  const r=el.getBoundingClientRect();
+  peek.classList.add('on');
+  const h=peek.offsetHeight;
+  peek.style.left=Math.min(r.left,window.innerWidth-24*16-16)+'px';
+  peek.style.top=(r.top-h-8>60?r.top-h-8:r.bottom+8)+'px';
+}
+function hidePeek(){peek.classList.remove('on')}
+
+/* ── the note ──────────────────────────────────────────────────── */
+function render(){
+  noteList.innerHTML='';
+  CARDS.forEach(c=>{
+    const a=document.createElement('article');
+    a.className='card'+(sel.has(c.id)?' sel':''); a.dataset.id=c.id;
+    a.innerHTML='<span class="mergeBadge"></span><span class="chk"></span><div class="cbody"></div>';
+    const b=a.querySelector('.cbody');
+    const ta=document.createElement('textarea'); ta.rows=1; ta.value=c.text;
+    ta.placeholder=c.srcs.length?'What matters about these?':'A thought…';
+    ta.addEventListener('input',()=>{c.text=ta.value;fit(ta)});
+    ta.addEventListener('click',e=>e.stopPropagation());
+    b.appendChild(ta);
+    const pins=document.createElement('div'); pins.className='pins';
+    c.srcs.forEach(i=>{
+      const d=document.createElement('div'); d.className='pin';
+      d.innerHTML='<b></b><span></span><span class="x">✕</span>';
+      d.querySelector('b').textContent=P[i].n;
+      d.querySelector('span').textContent=P[i].s;
+      d.querySelector('.x').addEventListener('click',e=>{e.stopPropagation();
+        c.srcs=c.srcs.filter(x=>x!==i);render()});
+      pins.appendChild(d);
+    });
+    b.appendChild(pins);
+    const f=document.createElement('div'); f.className='foot';
+    c.tags.forEach(t=>{const s=document.createElement('span');s.className='tag on';s.textContent=t;f.appendChild(s)});
+    const add=document.createElement('span'); add.className='tag add'; add.textContent='＋';
+    f.appendChild(add);
+    if(savedTo){const s=document.createElement('span');s.className='inColl';s.textContent='⊞ '+savedTo;f.appendChild(s)}
+    b.appendChild(f);
+    a.addEventListener('click',()=>{sel.has(c.id)?sel.delete(c.id):sel.add(c.id);render()});
+    noteList.appendChild(a); fit(ta);
+  });
+  const s=noteSrcs();
+  $('nSub').textContent=CARDS.length
+    ? CARDS.length+(CARDS.length===1?' card · ':' cards · ')+s.length+(s.length===1?' source':' sources')
+    : 'empty';
+  $('tnCount').textContent=CARDS.length;
+  $('askN').textContent=s.length;
+  $('askNote').style.visibility=s.length?'visible':'hidden';
+  $('libBtn').style.visibility=CARDS.length?'visible':'hidden';
+  $('libBtn').textContent=savedTo?'⊞ in '+savedTo:'＋ Add to My Library';
+  cards.forEach((el,i)=>el.classList.toggle('inNote',s.includes(i)));
+}
+
+/* ── Ask attaches; the answer arrives in the same thread ───────── */
+function attach(n,c){
+  if(!n){toast('Nothing to attach');return}
+  ask.classList.add('scoped'); ask._n=n; ask._c=c; drawAttach(); $('askInput').focus();
+}
+function drawAttach(){
+  const n=ask._n||0, c=ask._c||0;
+  $('attLab').textContent='📎 Papers · '+n+' attached'+(inclNotes&&c?' · '+c+' notes':'');
+  $('inclNotes').textContent=inclNotes?'✓ my notes included':'＋ include my notes';
+  $('inclNotes').classList.toggle('on',inclNotes);
+  $('inclNotes').style.display=c?'':'none';
+}
+$('inclNotes').addEventListener('click',()=>{inclNotes=!inclNotes;drawAttach();
+  toast(inclNotes?'Your written notes are part of the question now':'Sources only — your notes stay private')});
+$('attX').addEventListener('click',()=>{ask.classList.remove('scoped');inclNotes=false});
+$('askNote').addEventListener('click',()=>attach(noteSrcs().length,CARDS.filter(c=>c.text.trim()).length));
+$('sendBtn').addEventListener('click',()=>submitAsk($('askInput').value.trim()||
+  'Which of these disagree about what counts as a detected off-target?'));
+$('askInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('sendBtn').click()});
+
+function submitAsk(text){
+  const n=ask._n||0;
+  const q=document.createElement('div'); q.className='q turn';
+  q.innerHTML='<span class="att"></span>';
+  q.querySelector('.att').textContent='📎 Papers · '+n+' attached from your note';
+  q.appendChild(document.createTextNode(text));
+  $('turns').appendChild(q);
+  const mark=document.createElement('div'); mark.className='scoped-mark turn';
+  mark.textContent='answered within your note · '+n+' sources · no new retrieval';
+  $('turns').appendChild(mark);
+  const a=document.createElement('div'); a.className='ans turn';
+  a.innerHTML='<h2 class="a">Where your sources disagree</h2>'+
+   '<p>Two of the papers you kept define detection differently. <span class="cite" data-p="3">KALTER 2025</span> '+
+   'treats a site as detected when an assay reports it above background, while '+
+   '<span class="cite" data-p="1">HÖIJER 2021</span> counts only events resolvable at full structural length.</p>'+
+   '<p><span class="cite" data-p="0">WIENERT 2022</span> sits between them and does not resolve the conflict.</p>'+
+   '<p>None of the three addresses what to monitor after delivery. The closest paper in this thread is '+
+   '<span class="cite" data-p="4">ANGELINI STEWART 2025</span>, which is not yet in your note.</p>';
+  $('turns').appendChild(a);
+  wireCites(a);
+  ask.classList.remove('scoped'); $('askInput').value='';
+  requestAnimationFrame(()=>document.querySelectorAll('.turn:not(.in)').forEach((t,k)=>
+    setTimeout(()=>t.classList.add('in'),k*140)));
+  cards[4].classList.add('fresh');
+  $('refSub').textContent='1 raised by your note';
+  setTimeout(()=>$('thread').scrollTop=$('thread').scrollHeight,300);
+}
+
+/* ── composer ──────────────────────────────────────────────────── */
+function pinRow(i,onRem){
+  const d=document.createElement('div'); d.className='pin';
+  d.innerHTML='<b></b><span></span><span class="x">✕</span>';
+  d.querySelector('b').textContent=P[i].n; d.querySelector('span').textContent=P[i].s;
+  d.querySelector('.x').addEventListener('click',e=>{e.stopPropagation();onRem()});
+  return d;
+}
+function drawStaged(){
+  cPins.innerHTML='';
+  staged.forEach(i=>cPins.appendChild(pinRow(i,()=>{staged=staged.filter(x=>x!==i);drawStaged();armed()})));
+}
+function armed(){composer.classList.toggle('armed',!!cText.value.trim()||!!staged.length)}
+function stage(idxs){
+  const fresh=idxs.filter(i=>!staged.includes(i));
+  staged.push(...fresh); drawStaged(); armed(); cText.focus();
+}
+function commit(){
+  const text=cText.value.trim();
+  if(!text&&!staged.length) return null;
+  const c={id:seq++,text,srcs:staged.slice(),tags:[]};
+  CARDS.unshift(c); staged=[]; cText.value=''; drawStaged();
+  composer.classList.remove('armed'); fit(cText); render();
+  const el=noteList.querySelector('[data-id="'+c.id+'"]');
+  if(el){el.classList.add('land');setTimeout(()=>el.classList.remove('land'),420)}
+  return c;
+}
+cText.addEventListener('input',()=>{fit(cText);armed()});
+cText.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();commit()}});
+composer.addEventListener('dragover',e=>{if(drag){e.preventDefault();e.stopPropagation();
+  composer.classList.add('over');clearViz()}});
+composer.addEventListener('dragleave',()=>composer.classList.remove('over'));
+composer.addEventListener('drop',e=>{if(!drag)return;e.preventDefault();e.stopPropagation();
+  composer.classList.remove('over');stage(drag.slice());
+  cards.forEach(c=>c.classList.remove('sel'));refSync()});
+
+/* ── drop targeting ────────────────────────────────────────────── */
+function clearViz(){line.remove();tail.classList.remove('over');
+  noteList.querySelectorAll('.card.merge').forEach(c=>c.classList.remove('merge'))}
+function targetAt(y){
+  const els=[...noteList.querySelectorAll('.card')];
+  for(const el of els){
+    const r=el.getBoundingClientRect();
+    if(y<r.top+r.height*0.30) return {mode:'insert',el,pos:'before'};
+    if(y<r.bottom-r.height*0.30) return {mode:'merge',el};
+    if(y<=r.bottom) return {mode:'insert',el,pos:'after'};
+  }
+  return {mode:'insert',el:null};
+}
+function showViz(t,n){
+  clearViz();
+  if(t.mode==='merge'){t.el.classList.add('merge');
+    t.el.querySelector('.mergeBadge').textContent='＋'+n+(n===1?' source':' sources')+' here'}
+  else{line.dataset.l='new card · '+n;
+    if(t.el)noteList.insertBefore(line,t.pos==='before'?t.el:t.el.nextSibling);
+    else{noteList.appendChild(line);tail.classList.add('over')}}
+}
+notesBody.addEventListener('dragover',e=>{if(!drag)return;e.preventDefault();
+  e.dataTransfer.dropEffect='copy';showViz(targetAt(e.clientY),drag.length)});
+notesBody.addEventListener('dragleave',e=>{if(!notesBody.contains(e.relatedTarget))clearViz()});
+notesBody.addEventListener('drop',e=>{
+  if(!drag)return; e.preventDefault();
+  const g=drag.slice(), t=targetAt(e.clientY); clearViz();
+  if(t.mode==='merge'){
+    const c=byId(+t.el.dataset.id), added=g.filter(i=>!c.srcs.includes(i));
+    c.srcs.push(...added); render(); flash(c.id);
+    toast(added.length?added.length+' added to this card':'Already on this card');
+  } else newCard(g,t.el?CARDS.findIndex(c=>c.id===+t.el.dataset.id)+(t.pos==='after'?1:0):CARDS.length);
+  cards.forEach(c=>c.classList.remove('sel')); refSync();
+});
+function newCard(srcs,idx){
+  const c={id:seq++,text:'',srcs:srcs.slice(),tags:[]};
+  CARDS.splice(idx,0,c); render();
+  const el=noteList.querySelector('[data-id="'+c.id+'"]');
+  if(el){el.classList.add('land');el.scrollIntoView({block:'nearest'});
+    setTimeout(()=>el.classList.remove('land'),420);el.querySelector('textarea').focus()}
+  return c;
+}
+function flash(id){
+  const el=noteList.querySelector('[data-id="'+id+'"]');
+  if(!el)return; el.classList.add('flash'); el.scrollIntoView({block:'nearest'});
+  setTimeout(()=>el.classList.remove('flash'),1000);
+}
+tail.addEventListener('click',()=>cText.focus());
+
+/* ── Add to My Library: choose a collection, or nothing happens ── */
+function openLibPop(btn){
+  const r=btn.getBoundingClientRect();
+  collPop.innerHTML='<div class="lab">MY LIBRARY / …<br>choose a collection — nothing lands on its own</div>';
+  LIB.kids.forEach(k=>{
+    const b=document.createElement('button');
+    b.innerHTML='<span class="nm"></span><span class="c"></span>';
+    b.querySelector('.nm').textContent='⊞ '+k.name;
+    b.querySelector('.c').textContent=k.kids.length?k.kids.length+' inside ›':'';
+    b.addEventListener('click',ev=>{ev.stopPropagation();saveTo(k.name)});
+    collPop.appendChild(b);
+  });
+  collPop.insertAdjacentHTML('beforeend','<div class="sep"></div>');
+  const inp=document.createElement('input'); inp.placeholder='New collection…';
+  inp.addEventListener('keydown',ev=>{ev.stopPropagation();
+    if(ev.key==='Enter'&&ev.target.value.trim()){LIB.kids.push({name:ev.target.value.trim(),kids:[]});
+      saveTo(ev.target.value.trim())}});
+  collPop.appendChild(inp);
+  collPop.style.left=Math.min(r.left,window.innerWidth-260)+'px';
+  collPop.style.top=(r.bottom+6)+'px';
+  /* opened from inside a click handler, so wait for that click to finish
+     bubbling to document — otherwise the close-on-outside-click eats it */
+  setTimeout(()=>collPop.classList.add('on'),0);
+}
+function saveTo(name){
+  savedTo=name; collPop.classList.remove('on'); render();
+  toast('Saved to My Library / '+name);
+}
+$('libBtn').addEventListener('click',e=>{e.stopPropagation();
+  if(collPop.classList.contains('on')){collPop.classList.remove('on');return}
+  openLibPop(e.currentTarget)});
+collPop.addEventListener('click',e=>e.stopPropagation());
+document.addEventListener('click',()=>collPop.classList.remove('on'));
+
+/* ── My Library screen ─────────────────────────────────────────── */
+function showScreen(which){
+  $('threadScreen').classList.toggle('on',which==='thread');
+  $('libScreen').classList.toggle('on',which==='lib');
+  $('railLib').classList.toggle('lit',which==='lib');
+  if(which==='lib') renderLib();
+}
+$('railLib').addEventListener('click',()=>showScreen('lib'));
+function nodeAt(p){let n=LIB;p.forEach(i=>n=n.kids[i]);return n}
+const collHere=()=>path.length?nodeAt(path).name:null;
+function renderLib(){
+  const crumb=$('crumb'); crumb.innerHTML='';
+  const mk=(l,idx,isHere)=>{const a=document.createElement('a');a.textContent=l;a.className=isHere?'here':'';
+    if(!isHere)a.addEventListener('click',()=>{path=path.slice(0,idx);renderLib()});return a};
+  crumb.appendChild(mk('My Library',0,!path.length));
+  path.forEach((k,d)=>{crumb.appendChild(document.createTextNode('/'));
+    crumb.appendChild(mk(nodeAt(path.slice(0,d+1)).name,d+1,d===path.length-1))});
+  $('libTitle').textContent=collHere()||'My Library';
+
+  const mine=savedTo&&savedTo===collHere();
+  const kids=nodeAt(path).kids;
+  const nCards=mine?CARDS.length:0, nSrc=mine?noteSrcs().length:0, nThr=mine?1:0;
+  $('tallies').textContent=path.length
+    ? kids.length+' sub-collections · '+nThr+(nThr===1?' thread · ':' threads · ')+
+      nSrc+(nSrc===1?' source · ':' sources · ')+nCards+(nCards===1?' note card':' note cards')
+    : LIB.kids.length+' collections'+(savedTo?' · 1 note saved just now':'');
+
+  const subs=$('subs'); subs.innerHTML='';
+  kids.forEach((k,i)=>{
+    const d=document.createElement('div'); d.className='sub';
+    const n=document.createElement('div'); n.className='n'; n.textContent='⊞ '+k.name;
+    const c=document.createElement('div'); c.className='c';
+    c.textContent=savedTo===k.name?CARDS.length+(CARDS.length===1?' note card':' note cards'):'empty';
+    d.append(n,c);
+    d.addEventListener('click',()=>{path=path.concat(i);renderLib()});
+    subs.appendChild(d);
+  });
+
+  const tw=$('tabsWrap'), body=$('libBody'); tw.innerHTML=''; body.innerHTML='';
+  if(!path.length){
+    body.innerHTML='<div class="prev"><div class="k">TIP</div><h3>Open a collection to see its threads, sources and notes.</h3></div>';
+    return;
+  }
+  const barEl=document.createElement('div'); barEl.className='tabs';
+  [['threads','Threads',nThr],['sources','Sources',nSrc],['notes','Notes',nCards]].forEach(([k,l,n])=>{
+    const b=document.createElement('button'); b.className='tab'+(tab===k?' on':'');
+    b.innerHTML='<span class="l"></span><span class="n"></span>';
+    b.querySelector('.l').textContent=l; b.querySelector('.n').textContent=n;
+    b.addEventListener('click',()=>{tab=k;renderLib()});
+    barEl.appendChild(b);
+  });
+  tw.appendChild(barEl);
+
+  if(!mine){body.innerHTML='<div class="prev"><h3>Nothing filed here yet.</h3></div>';return}
+
+  if(tab==='threads'){
+    const d=document.createElement('div'); d.className='prev';
+    d.innerHTML='<div class="k">THREAD</div><h3>CRISPR Off Target Effects</h3>'+
+      '<div class="m">4 queries · 24 references · saved just now</div>'+
+      '<div class="back"><span class="why">why it is here</span>'+CARDS.length+
+      (CARDS.length===1?' note card':' note cards')+' came from this thread</div>';
+    body.appendChild(d);
+  }
+  if(tab==='sources'){
+    noteSrcs().forEach(i=>{
+      const d=document.createElement('div'); d.className='prev';
+      d.innerHTML='<div class="k">SOURCE</div><h3></h3><div class="m"></div>'+
+        '<div class="back"><span class="why">why it is here</span><span class="bl"></span>'+
+        '<div>from CRISPR Off Target Effects · <span class="dots"></span><span class="pd"></span></div></div>';
+      d.querySelector('h3').textContent=P[i].t;
+      d.querySelector('.m').textContent=P[i].n+' · '+P[i].m;
+      const n=CARDS.filter(c=>c.srcs.includes(i)).length;
+      d.querySelector('.bl').textContent=n+(n===1?' card cites it':' cards cite it');
+      d.querySelector('.dots').textContent=P[i].d.slice(0,3);
+      d.querySelector('.pd').textContent=P[i].d.slice(4);
+      body.appendChild(d);
+    });
+  }
+  if(tab==='notes'){
+    /* the note previews exactly like a thread, and opens back into the thread layout */
+    const d=document.createElement('div'); d.className='prev note';
+    d.innerHTML='<div class="k">NOTE · FROM A THREAD</div><h3>From CRISPR Off Target Effects</h3>'+
+      '<div class="m"></div><div class="ex"></div>'+
+      '<div class="acts"><button class="go" id="openNote">Open the note ›</button>'+
+      '<button id="askFromLib">💬 Ask '+noteSrcs().length+'</button></div>';
+    d.querySelector('.m').textContent=CARDS.length+(CARDS.length===1?' card · ':' cards · ')+
+      noteSrcs().length+(noteSrcs().length===1?' source':' sources')+' · saved just now';
+    d.querySelector('.ex').textContent=(CARDS.find(c=>c.text)||{text:'(sources only)'}).text;
+    body.appendChild(d);
+    $('openNote').addEventListener('click',()=>{showScreen('thread');
+      toast('Back in the thread this note came from, exactly where you left it')});
+    $('askFromLib').addEventListener('click',()=>
+      toast('📎 Papers · '+noteSrcs().length+' attached — sources only, your notes stay private'));
+  }
+}
+
+/* ── the walkthrough ───────────────────────────────────────────── */
+function fly(fromEl,toEl,label){
+  const a=fromEl.getBoundingClientRect(), b=toEl.getBoundingClientRect();
+  const f=document.createElement('div'); f.className='fly'; f.textContent=label;
+  f.style.left=a.left+'px'; f.style.top=(a.top+a.height/2)+'px';
+  document.body.appendChild(f);
+  requestAnimationFrame(()=>{f.style.left=(b.left+16)+'px';f.style.top=(b.top+b.height/2)+'px';f.style.opacity='0'});
+  setTimeout(()=>f.remove(),640);
+}
+function light(el){
+  if(!el){spot.classList.remove('on');return}
+  const r=el.getBoundingClientRect();
+  spot.style.left=(r.left-6)+'px'; spot.style.top=(r.top-6)+'px';
+  spot.style.width=(r.width+12)+'px'; spot.style.height=(r.height+12)+'px';
+  spot.classList.add('on');
+}
+function unlight(){spot.classList.remove('on')}
+
+async function typeInto(el,text,speed){
+  el.focus();
+  for(let k=0;k<text.length;k++){el.value=text.slice(0,k+1);el.dispatchEvent(new Event('input'));await sleep(speed||18)}
+}
+function resetAll(){
+  CARDS=[]; seq=1; sel.clear(); staged=[]; savedTo=null; inclNotes=false; path=[]; tab='notes';
+  $('turns').innerHTML=''; cText.value=''; drawStaged(); composer.classList.remove('armed');
+  ask.classList.remove('scoped'); $('askInput').value='';
+  cards.forEach(c=>c.classList.remove('sel','fresh')); refSync();
+  $('refSub').textContent='ranked'; collPop.classList.remove('on');
+  showScreen('thread'); renderLib(); render(); fit(cText); hidePeek(); unlight();
+}
+
+const STEPS=[
+ {t:'A question, and what came back',
+  d:'The thread answers, and References opens with the 20 papers that made it through the funnel.',
+  run:async()=>{resetAll(); light($('refsPane')); await sleep(900); unlight()}},
+
+ {t:'Check a source before you commit to it',
+  d:'Hovering a citation in the answer peeks at the paper — journal, recurrence, rank, abstract — without leaving the sentence.',
+  run:async()=>{
+    const el=document.querySelector('.ans .cite[data-p="1"]');
+    el.scrollIntoView({block:'center'}); await sleep(300);
+    showPeek(el,1); await sleep(2600); hidePeek();
+  }},
+
+ {t:'Drag the set into the note',
+  d:'Select three references and drag them together. They stage in the composer, so you can say what they are before they land.',
+  run:async()=>{
+    [0,1,3].forEach(i=>cards[i].classList.add('sel')); refSync();
+    light($('refsPane')); await sleep(700); unlight();
+    [0,1,3].forEach((i,k)=>setTimeout(()=>fly(cards[i],composer,P[i].n),k*130));
+    await sleep(700);
+    stage([0,1,3]); cards.forEach(c=>c.classList.remove('sel')); refSync();
+    light(composer); await sleep(700); unlight();
+  }},
+
+ {t:'Say what they are',
+  d:'One note, so there is nothing to file into. Type the thought and the card lands underneath.',
+  run:async()=>{
+    if(!staged.length) stage([0,1,3]);
+    await typeInto(cText,'These three are my detection core. Two of them define detection differently.');
+    await sleep(500); commit(); await sleep(400);
+  }},
+
+ {t:'Ask the note, inside the same chat',
+  d:'Ask attaches everything the note holds as scope. The answer arrives in this thread, against your sources only — no new retrieval, and your written notes stay out of it.',
+  run:async()=>{
+    if(!CARDS.length){stage([0,1,3]);cText.value='These three are my detection core.';commit()}
+    $('askNote').click(); light($('ask')); await sleep(900); unlight();
+    await typeInto($('askInput'),'Which of these disagree about what counts as a detected off-target?',14);
+    await sleep(500); submitAsk($('askInput').value); await sleep(1200);
+  }},
+
+ {t:'Catch what the answer surfaces',
+  d:'The scoped answer names a paper you had not kept. References marks it, and one drag adds it to the same note.',
+  run:async()=>{
+    if(!$('turns').children.length) return;
+    cards[4].classList.add('fresh'); cards[4].scrollIntoView({block:'center'});
+    light(cards[4]); await sleep(1100); unlight();
+    fly(cards[4],noteList.firstElementChild||notesBody,P[4].n); await sleep(620);
+    const c=CARDS[0];
+    if(c&&!c.srcs.includes(4)){c.srcs.push(4);render();flash(c.id)}
+    cards[4].classList.remove('fresh'); $('refSub').textContent='ranked';
+    await sleep(500);
+  }},
+
+ {t:'Add to My Library — and choose where',
+  d:'Nothing lands on its own. The button opens My Library and makes you pick a collection.',
+  run:async()=>{
+    openLibPop($('libBtn')); light($('libBtn')); await sleep(1600); unlight();
+    saveTo('Chapter 3 · detection'); await sleep(700);
+  }},
+
+ {t:'And back again, from the Library',
+  d:'In the collection the note previews like a thread does. Open it and you are back in exactly the layout you started in.',
+  run:async()=>{
+    if(!savedTo) saveTo('Chapter 3 · detection');
+    showScreen('lib'); await sleep(700);
+    path=[0]; tab='notes'; renderLib(); await sleep(900);
+    const el=document.querySelector('.prev.note'); if(el){el.scrollIntoView({block:'center'});light(el)}
+    await sleep(1600); unlight();
+  }}
+];
+
+let step=-1;
+function drawTour(){
+  $('stepN').textContent=(step+1)+' / '+STEPS.length;
+  $('stepT').textContent=STEPS[step].t;
+  $('stepD').textContent=STEPS[step].d;
+  $('prevBtn').disabled=step<=0||busy;
+  $('nextBtn').disabled=busy;
+  $('nextBtn').textContent=step>=STEPS.length-1?'Done':'Next ›';
+  const pips=$('pips'); pips.innerHTML='';
+  STEPS.forEach((_,i)=>{const d=document.createElement('span');
+    d.className='pip'+(i===step?' now':i<step?' done':''); pips.appendChild(d)});
+}
+async function goTo(i){
+  if(busy||i<0||i>=STEPS.length) return;
+  busy=true; step=i; drawTour();
+  try{await STEPS[i].run()}catch(e){console.error(e)}
+  busy=false; drawTour();
+}
+async function replayTo(i){
+  busy=true;
+  for(let k=0;k<=i;k++){step=k;drawTour();try{await STEPS[k].run()}catch(e){console.error(e)}}
+  busy=false; drawTour();
+}
+$('nextBtn').addEventListener('click',()=>{if(step<STEPS.length-1)goTo(step+1)});
+$('prevBtn').addEventListener('click',()=>{if(step>0)replayTo(step-1)});
+$('restartBtn').addEventListener('click',()=>goTo(0));
+
+wireCites(document);
+resetAll();
+goTo(0);
+</script>
+</body>
+</html>
