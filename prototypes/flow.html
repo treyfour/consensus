@@ -882,15 +882,15 @@ function dropSources(idxs,targetId,atIndex){
     toast(added.length?'Added to this card':'Already on this card',viewNote());
     return;
   }
-  /* a drop lands where you dropped it; only a drop with no position — onto the
-     closed Notes button, or from the References bar — goes to the top */
+  /* sources dragged together arrive together — one card, because you selected
+     them as a set and the thought you write will be about the set */
   const at=(atIndex==null?0:atIndex);
-  idxs.forEach((i,k)=>{const c={id:seq++,text:'',srcs:[i],tags:[],coll:savedTo||''};
-    CARDS.splice(at+k,0,c); made.push(c.id)});
+  const c={id:seq++,text:'',srcs:idxs.slice(),tags:[],coll:savedTo||''};
+  CARDS.splice(at,0,c); made.push(c.id);
   render();
   made.forEach(id=>{const el=$('noteList').querySelector('[data-id="'+id+'"]');
     if(el){el.classList.add('land');setTimeout(()=>el.classList.remove('land'),420)}});
-  toast(made.length===1?'Added to note':made.length+' added to note, one card each',viewNote());
+  toast(idxs.length===1?'Added to note':idxs.length+' sources added to note',viewNote());
 }
 function cardUnder(y){
   const els=[...$('noteList').querySelectorAll('.card')];

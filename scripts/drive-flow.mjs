@@ -49,15 +49,15 @@ ok('with the passage and its count',
 console.log('\n5–6 · keep, tag, filter, ask');
 for(const i of [0,1,3]) await p.click('#refs .row[data-p="'+i+'"]');
 await p.click('#barAdd'); await p.waitForTimeout(400);
-ok('three cards, panel still closed', await p.evaluate(()=>CARDS.length===3
+/* dragged as a set, kept as a set — one card holding all three */
+ok('one card, panel still closed', await p.evaluate(()=>CARDS.length===1
   && document.getElementById('notesPane').style.display==='none'));
-ok('three sources became three separate cards',
-  await p.evaluate(()=>CARDS.every(c=>c.srcs.length===1)));
+ok('holding all three sources', await p.evaluate(()=>CARDS[0].srcs.length===3));
 /* a drop is confirmed, not negotiated: no popup, no offer to write */
 ok('no popup', await p.evaluate(()=>!document.getElementById('dropPop')));
 const tst=await p.evaluate(()=>({t:document.getElementById('toast').textContent,
   act:document.querySelector('#toast .tact')?.textContent}));
-ok('the toast says it was added', /added to note/i.test(tst.t), tst.t);
+ok('the toast counts what it added', /3 sources added to note/.test(tst.t), tst.t);
 ok('and offers View while the panel is closed', tst.act==='View', JSON.stringify(tst));
 await p.click('#toast .tact'); await p.waitForTimeout(400);
 ok('View opens the note',
@@ -67,22 +67,25 @@ await shot('pG-2b-added.png');
 await p.click('#refs .row[data-p="2"]'); await p.click('#barAdd'); await p.waitForTimeout(400);
 ok('no View offered once the note is visible',
   await p.evaluate(()=>!document.querySelector('#toast .tact')));
-await p.evaluate(()=>{CARDS=CARDS.filter(c=>c.srcs[0]!==2);render()});
-await p.waitForTimeout(200);
+ok('a second drop is a second card', await p.evaluate(()=>CARDS.length===2));
 ok('the switcher says this is a note from this thread',
   /from CRISPR Off Target Effects/.test(await p.evaluate(()=>document.getElementById('nsFrom').textContent)),
   await p.evaluate(()=>document.getElementById('nsFrom').textContent));
-/* step 6 of the script: write something, then tag, then filter */
-await p.evaluate(()=>document.querySelector('#noteList .card textarea').focus());
-await p.keyboard.type('This one is the thesis gap.');
+/* step 6: write on the card holding the set, then tag, then filter to it */
+const setIdx=await p.evaluate(()=>CARDS.findIndex(c=>c.srcs.length>1));
+ok('the set is one card among the others', setIdx>=0, 'setIdx='+setIdx);
+await p.evaluate(i=>document.querySelectorAll('#noteList .card textarea')[i].focus(),setIdx);
+await p.keyboard.type('These three are my detection core.');
 await p.waitForTimeout(250);
 ok('writing lands on one card only', await p.evaluate(()=>CARDS.filter(c=>c.text.trim()).length===1));
-await p.evaluate(()=>{CARDS[0].tags=['ch.3'];CARDS[1].tags=['ch.3'];CARDS[2].tags=['methods'];render()});
+ok('and it is the card holding the set',
+  await p.evaluate(()=>CARDS.find(c=>c.text.trim()).srcs.length>1));
+await p.evaluate(i=>{CARDS.forEach((c,k)=>c.tags=[k===i?'ch.3':'methods']);render()},setIdx);
 await p.click('#filterBtn'); await p.waitForTimeout(300);
 await p.type('#fq','ch.3'); await p.keyboard.press('Enter'); await p.waitForTimeout(400);
 const vis=await p.evaluate(()=>document.querySelectorAll('#noteList .card:not(.hidden)').length);
 const askTxt=await p.evaluate(()=>document.getElementById('askNote').textContent.trim());
-ok('filtering narrows and Ask follows', vis===2 && / of /.test(askTxt), vis+' visible · '+askTxt);
+ok('filtering narrows and Ask follows', vis===1 && / of /.test(askTxt), vis+' visible · '+askTxt);
 await shot('pG-3-filtered.png');
 await p.click('#askNote'); await p.waitForTimeout(250);
 ok('the attachment names the filter',
