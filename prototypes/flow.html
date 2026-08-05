@@ -101,13 +101,15 @@ body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(
   color:var(--accent-emph);border-radius:625rem;padding:0 var(--s-xs);cursor:pointer;white-space:nowrap}
 .chips .shown{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-left:auto}
 .card.hidden{display:none}
-/* per-card actions, so a single card can reach the chat without a selection */
-.cardacts{display:flex;gap:var(--s-2xs);align-items:center;margin-top:var(--s-xs);opacity:0;transition:opacity .12s}
-.card:hover .cardacts,.card:focus-within .cardacts{opacity:1}
-.cardacts button{font-family:inherit;font-size:var(--t-2xs);border:1px solid var(--paper-bd);background:#fff;
-  color:var(--muted);border-radius:var(--r-sm);padding:2px var(--s-xs);cursor:pointer}
-.cardacts button:hover{border-color:var(--accent-bd);color:var(--accent-emph)}
-.cardacts .grip{margin-left:auto;font-family:var(--mono);font-size:var(--t-2xs);color:var(--bd-emph);cursor:grab}
+/* one control in the corner; everything it can do lives in its menu */
+.card{position:relative}
+.cardmore{position:absolute;top:var(--s-2xs);right:var(--s-2xs);font-family:var(--mono);font-size:var(--t-xs);
+  line-height:1;border:0;background:none;color:var(--muted);border-radius:var(--r-xs);padding:3px var(--s-2xs);
+  cursor:pointer;opacity:0;transition:opacity .12s}
+.card:hover .cardmore,.card:focus-within .cardmore,.cardmore:focus{opacity:1}
+.cardmore:hover{background:var(--faint);color:var(--fg)}
+.grip{margin-left:auto;font-family:var(--mono);font-size:var(--t-2xs);color:var(--bd-emph);cursor:grab;opacity:0;transition:opacity .12s}
+.card:hover .grip{opacity:1}
 .card.dragging{opacity:.4}
 .ask.dropok .box{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-muted)}
 /* the drop confirmation: offers a note, never demands one */
@@ -145,7 +147,7 @@ body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(
 @keyframes land{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}
 .card.flash{animation:flash 1s ease}
 @keyframes flash{0%{box-shadow:0 0 0 4px var(--accent-muted)}100%{box-shadow:0 1px 2px #0000000a}}
-.card textarea{width:100%;min-height:1.35rem;border:0;outline:0;resize:none;font-family:inherit;font-size:var(--t-xs);line-height:1.5;background:transparent;color:var(--fg);overflow:hidden}
+.card textarea{width:100%;min-height:1.35rem;padding-right:1.2rem;border:0;outline:0;resize:none;font-family:inherit;font-size:var(--t-xs);line-height:1.5;background:transparent;color:var(--fg);overflow:hidden}
 .card textarea::placeholder{color:#b5b0a0}
 .pins{display:flex;flex-direction:column;gap:2px;margin-top:var(--s-xs)}
 .pin{display:flex;gap:var(--s-2xs);align-items:baseline;font-size:var(--t-2xs);line-height:1.35;background:var(--faint);border-radius:var(--r-xs);padding:2px var(--s-2xs)}
@@ -865,16 +867,12 @@ function render(){
     add.addEventListener('click',e=>{e.stopPropagation();openTagPop(add,c)});
     f.appendChild(add);
     if(c.coll){const s=document.createElement('span');s.className='inColl';s.textContent='⊞ '+c.coll;f.appendChild(s)}
-    const acts=document.createElement('div'); acts.className='cardacts';
-    const ask=document.createElement('button'); ask.textContent='💬 Ask '+(c.srcs.length||'');
-    ask.disabled=!c.srcs.length;
-    ask.addEventListener('click',e=>{e.stopPropagation();
-      attach(c.srcs.length,c.srcs.slice(),'this card')});
-    const more=document.createElement('button'); more.textContent='⋯';
+    const more=document.createElement('button'); more.className='cardmore'; more.textContent='⋯';
+    more.title='Actions for this card';
     more.addEventListener('click',e=>{e.stopPropagation();openCardMenu(more,c)});
+    a.appendChild(more);
     const grip=document.createElement('span'); grip.className='grip'; grip.textContent='⣿ drag to chat';
-    acts.append(ask,more,grip);
-    a.appendChild(acts);
+    f.appendChild(grip);
     a.appendChild(f); host.appendChild(a); fit(ta);
   });
   const s=noteSrcs(), as=askSrcs();
@@ -912,7 +910,8 @@ function openCardMenu(btn,c){
   const m=$('cardMenu'); m.innerHTML='';
   const mk=(label,fn)=>{const b=document.createElement('button');b.textContent=label;
     b.addEventListener('click',e=>{e.stopPropagation();m.classList.remove('on');fn()});m.appendChild(b)};
-  mk('💬 Ask this card',()=>attach(c.srcs.length,c.srcs.slice(),'this card'));
+  if(c.srcs.length) mk('💬 Ask this card · '+c.srcs.length+
+    (c.srcs.length===1?' source':' sources'),()=>attach(c.srcs.length,c.srcs.slice(),'this card'));
   mk('＋ Tag…',()=>openTagPop(btn,c));
   mk('⊞ Add to a collection',()=>$('libBtn').click());
   mk('Copy citations',()=>toast(c.srcs.length+' citations copied'));
