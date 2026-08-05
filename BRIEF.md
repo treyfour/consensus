@@ -64,3 +64,22 @@ Two or three **clickable** HTML prototypes in `prototypes/`, each with its trade
 written down, added to `prototypes/index.html` newest-first. State plainly which one still
 works at fifteen turns and which quietly stops being true — the Margin's anchoring failed
 exactly that way and saying so was more useful than the prototype.
+
+---
+
+## Running this worktree
+
+Serve the prototypes on **port 4602** so the three explorations do not collide:
+
+```
+cd .claude/worktrees/thread-structure/prototypes && python3 -m http.server 4602
+```
+
+Screenshot and smoke-test without fighting over the shared MCP browser profile:
+
+```
+node scripts/shot.mjs http://localhost:4602/option-N.html out.png --full
+```
+
+It exits non-zero and prints the message if the page threw or logged a console
+error, so it is worth running after every change, not just for pictures.
