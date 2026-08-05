@@ -182,8 +182,22 @@ svg{display:block;flex:none}
 .comp{max-width:36rem;margin:0 auto;pointer-events:auto;background:var(--bg);border:1px solid var(--bd);
   border-radius:var(--r-lg);box-shadow:var(--elev-pop);padding:var(--s-sm);transition:border-color var(--dur)}
 .comp.over,.comp.dropok{border-color:var(--accent);background:var(--accent-subtle)}
+#compAtt{display:flex;flex-wrap:wrap;align-items:flex-start;gap:var(--s-xs);margin-bottom:var(--s-xs)}
+#compAtt:empty{display:none}
 .chipatt{position:relative;display:inline-flex;align-items:flex-start;gap:var(--s-xs);background:var(--faint);
-  border-radius:var(--r-sm);padding:var(--s-xs) var(--s-sm);margin-bottom:var(--s-xs);max-width:100%}
+  border:1px solid transparent;border-radius:var(--r-sm);padding:var(--s-xs) var(--s-sm);max-width:100%}
+/* The comments are a second thing you MAY attach, so they sit beside the
+   sources in the same place, in the same grammar — dashed while they are out,
+   solid once they are in. They are not a mode control, so they do not belong
+   in the row with Corpus and Deep. */
+.chipopt{display:inline-flex;align-items:flex-start;gap:var(--s-xs);background:none;
+  border:1px dashed var(--bd-emph);border-radius:var(--r-sm);padding:var(--s-xs) var(--s-sm);
+  cursor:pointer;text-align:left;color:var(--muted)}
+.chipopt:hover{border-color:var(--accent);color:var(--accent-emph)}
+.chipopt.on{border-style:solid;border-color:var(--accent-bd);background:var(--accent-subtle);
+  color:var(--accent-emph)}
+.chipopt b{display:block;font-size:var(--t-xs);font-weight:var(--w-med)}
+.chipopt span{font-size:var(--t-2xs);opacity:.85}
 .chipatt .tx{min-width:0}
 .chipatt b{display:block;font-size:var(--t-xs);font-weight:var(--w-med);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chipatt span{font-size:var(--t-2xs);color:var(--muted)}
@@ -205,9 +219,6 @@ svg{display:block;flex:none}
 .dashed{border-style:dashed;color:var(--muted)}
 .dashed .deep{color:var(--accent)}
 .comp .grow{flex:1}
-#inclComments{display:none}
-#inclComments.show{display:inline-flex}
-#inclComments.on{background:var(--accent-subtle);border-color:var(--accent-bd);color:var(--accent-emph)}
 .thinking{display:flex;align-items:center;gap:var(--s-xs);font-size:var(--t-xs);color:var(--muted);
   margin-top:var(--s-md)}
 .thinking i{width:.3rem;height:.3rem;border-radius:var(--r-circle);background:var(--placeholder);
@@ -572,7 +583,6 @@ body.dragging .ref,body.dragging .card{cursor:grabbing}
               <button class="circ" id="btnPlus" title="Attach"></button>
               <button class="pill sm" id="btnCorpus">Corpus</button>
               <button class="pill sm dashed" id="btnDeep"><span class="deep"></span>Deep +</button>
-              <button class="pill sm" id="inclComments"></button>
               <span class="grow"></span>
               <button class="circ ghost" id="seedBtn" title="Fill the next question in this walkthrough"></button>
               <button class="circ ghost" title="Dictate"></button>
@@ -1575,27 +1585,28 @@ function drawAtt(){
     const c=el('div','chipatt',svg('doc',15)+'<span class="tx"><b></b><span></span></span>'+
       '<button class="x">'+svg('x',11)+'</button>');
     c.querySelector('b').textContent=attached.length+
-      (attached.length===1?' source':' sources')+(label?' from '+label:'');
-    /* two different kinds of thing are on the table, so the chip names both —
-       silence about the comments is what made this confusing */
-    c.querySelector('.tx span').textContent=(
-      !n ? 'sources only · nothing written on these yet'
-         : inclComments ? 'with '+n+(n===1?' comment':' comments')+' you wrote'
-                     : 'sources only · your '+n+(n===1?' comment stays':' comments stay')+' out')
-      +(filtered()?' · filtered by '+filterLabel():'');
+      (attached.length===1?' source':' sources');
+    c.querySelector('.tx span').textContent=(label?'from '+label:'attached')+
+      (filtered()?' · filtered by '+filterLabel():'');
     c.querySelector('.x').addEventListener('click',clearAttach);
     a.appendChild(c);
+    /* the second chip is the comments: offered, never assumed */
+    if(n){
+      const o=el('button','chipopt'+(inclComments?' on':''),
+        svg(inclComments?'check':'plus',15)+'<span class="tx"><b></b><span></span></span>');
+      o.id='optComments';
+      o.querySelector('b').textContent=n+(n===1?' comment':' comments')+' you wrote';
+      o.querySelector('.tx span').textContent=inclComments?'going in with the sources':'left out';
+      o.title=inclComments?'Leave your comments out of this question'
+                          :'Send your comments along with the sources';
+      o.addEventListener('click',()=>{inclComments=!inclComments;drawAtt();
+        toast(inclComments?'Your comments go in alongside the sources'
+                          :'Sources only — the comments you wrote stay out')});
+      a.appendChild(o);
+    }
   }
-  const b=$('inclComments');
-  b.classList.toggle('show',!!attached&&n>0);
-  b.classList.toggle('on',inclComments);
-  b.innerHTML=inclComments?svg('check',15)+n+(n===1?' comment included':' comments included')
-                       :svg('plus',15)+'include '+n+(n===1?' comment':' comments');
   $('askInput').placeholder=attached?'Ask inside what you kept…':'Ask a research question…';
 }
-$('inclComments').addEventListener('click',()=>{inclComments=!inclComments;drawAtt();
-  toast(inclComments?'Your comments go in alongside the sources'
-                 :'Sources only — the comments you wrote stay out')});
 $('askNote').addEventListener('click',()=>
   attach(askSrcs(),filtered()?filterLabel():'your note',askCards()));
 

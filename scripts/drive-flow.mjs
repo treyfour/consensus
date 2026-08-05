@@ -96,18 +96,16 @@ const inc=await p.evaluate(()=>({shown:document.getElementById('inclNotes').clas
   t:document.getElementById('inclNotes').textContent}));
 /* what you write on a card is a COMMENT — a different kind of thing from the
    sources, so the opt-in has to say which one it is offering */
-ok('the opt-in is offered and starts off', inc.shown && !inc.on && /include \d+ comment/.test(inc.t),
-  JSON.stringify(inc));
-ok('and the label names the comments it is leaving out',
-  /sources only, your 1 comment stays out/.test(await p.evaluate(()=>document.getElementById('attLab').textContent)),
+/* the comments are a second chip beside the sources — offered, visibly not taken */
+ok('the opt-in is a chip of its own and starts off',
+  inc.shown && !inc.on && /1 comment you wrote · left out/.test(inc.t), JSON.stringify(inc));
+ok('and the sources chip does not also explain it — it is said once',
+  !/comment/.test(await p.evaluate(()=>document.getElementById('attLab').textContent)),
   await p.evaluate(()=>document.getElementById('attLab').textContent));
 await p.click('#inclNotes'); await p.waitForTimeout(250);
-ok('turning it on says how many go in',
-  /1 comment included/.test(await p.evaluate(()=>document.getElementById('inclNotes').textContent)),
+ok('clicking it opts in and it says so',
+  /1 comment you wrote · going in/.test(await p.evaluate(()=>document.getElementById('inclNotes').textContent)),
   await p.evaluate(()=>document.getElementById('inclNotes').textContent));
-ok('and the label follows it',
-  /with 1 comment you wrote/.test(await p.evaluate(()=>document.getElementById('attLab').textContent)),
-  await p.evaluate(()=>document.getElementById('attLab').textContent));
 
 console.log('\n7–8 · a contextual message, further down the chat');
 await p.click('#seedBtn'); await p.waitForTimeout(200);

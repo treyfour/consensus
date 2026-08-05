@@ -105,15 +105,18 @@ it is not yet built.
 A card's sources and a card's *comment* are different kinds of thing. The sources are
 public artefacts; the comment is the researcher thinking out loud, and some of it is
 `Ask Sarah whether anyone has run this on liver-directed guides`. Attaching therefore
-scopes to **sources only** by default, with one explicit, reversible opt-in beside the
-attachment chip: `＋ include N comments`.
+scopes to **sources only** by default.
 
-**The default has to be stated, not just implied.** Silence about the comments is what
-made this confusing: the chip said `sources only` and left the reader to work out what
-else there might have been. It now names both kinds every time —
-`3 sources from your note / sources only · your 1 comment stays out`, becoming
-`with 1 comment you wrote` when the opt-in is on — and the answer's own funnel line
-repeats it.
+**Two things you may attach, shown as two chips.** The sources chip is solid, because
+they are attached. Beside it, the comments chip is **dashed** — `＋ 1 comment you wrote ·
+left out` — and turns solid when you take it: `✓ 1 comment you wrote · going in`. The
+answer's funnel line then repeats which world you were in.
+
+Two earlier versions of this were wrong in opposite directions. First the chip said only
+`sources only`, leaving the reader to work out what else there might have been. Then the
+opt-in became a button in the row with `Corpus` and `Deep`, which made it read as a mode
+you had to decide about, and said the same thing twice. An offered attachment belongs
+where attachments live, stated once, visibly not taken.
 
 **Comments travel with the note, never with a paper.** Asking a single paper from
 References, from the hover card, or from the paper drawer offers no comments at all,

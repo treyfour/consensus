@@ -162,21 +162,28 @@ ok('the chip clears it', await p.evaluate(()=>!activeTags.size));
 console.log('\n7 · asking attaches the note as scope');
 await p.click('#askNote'); await p.waitForTimeout(250);
 ok('the composer shows how many sources are attached',
-  /3 sources from your note/.test(await txt('#compAtt')), await txt('#compAtt'));
-/* the whole point: it names the other kind of thing it is NOT sending */
-ok('and names the comments it is leaving out',
-  /sources only · your 1 comment stays out/.test(await txt('#compAtt')), await txt('#compAtt'));
-ok('including them is an opt-in, off by default',
-  await p.evaluate(()=>document.getElementById('inclComments').classList.contains('show')
-    &&!document.getElementById('inclComments').classList.contains('on')));
-ok('the opt-in says comments, not notes',
-  /include 1 comment/.test(await txt('#inclComments')), await txt('#inclComments'));
-await p.click('#inclComments'); await p.waitForTimeout(200);
-ok('and it can be turned on', await p.evaluate(()=>inclComments===true));
-ok('the chip now says the comment goes with it',
-  /with 1 comment you wrote/.test(await txt('#compAtt')), await txt('#compAtt'));
-ok('and it still says where the sources came from',
-  /3 sources from your note/.test(await txt('#compAtt')), await txt('#compAtt'));
+  /3 sources/.test(await txt('.chipatt'))&&/from your note/.test(await txt('.chipatt')),
+  await txt('.chipatt'));
+/* the comments are a SECOND chip beside the sources, not a control in the row
+   with Corpus and Deep — offered, and visibly not taken */
+ok('the comments are a second chip in the attachment area',
+  await p.evaluate(()=>{const a=document.getElementById('compAtt');
+    return a.children.length===2 && a.children[1].id==='optComments'}));
+ok('it is not in the row with Corpus and Deep',
+  await p.evaluate(()=>!document.querySelector('.comp .row2 #optComments')));
+ok('it reads as available but out, and is dashed',
+  /1 comment you wrote/.test(await txt('#optComments'))
+  && /left out/.test(await txt('#optComments'))
+  && await p.evaluate(()=>getComputedStyle(document.getElementById('optComments')).borderStyle==='dashed'),
+  await txt('#optComments'));
+await p.click('#optComments'); await p.waitForTimeout(200);
+ok('clicking it opts in', await p.evaluate(()=>inclComments===true));
+ok('and it turns solid and says so',
+  /going in with the sources/.test(await txt('#optComments'))
+  && await p.evaluate(()=>getComputedStyle(document.getElementById('optComments')).borderStyle==='solid'),
+  await txt('#optComments'));
+ok('the sources chip is untouched by the choice',
+  /3 sources/.test(await txt('.chipatt')), await txt('.chipatt'));
 await shot('h-7-attached.png');
 await p.fill('#askInput','Which of these disagree about what counts as a detected off-target?');
 await p.click('#sendBtn'); await p.waitForTimeout(1100);
@@ -203,8 +210,7 @@ await shot('h-8-raised.png');
 await p.click('#refs .ref[data-p="2"] .chk'); await p.waitForTimeout(150);
 await p.click('#selAsk'); await p.waitForTimeout(250);
 ok('asking a paper from References offers no comments',
-  await p.evaluate(()=>attachedCards.length===0
-    &&!document.getElementById('inclComments').classList.contains('show')));
+  await p.evaluate(()=>attachedCards.length===0&&!document.getElementById('optComments')));
 ok('and its chip does not mention them', !/comment/.test(await txt('#compAtt')), await txt('#compAtt'));
 await p.click('#compAtt .x'); await p.waitForTimeout(200);
 

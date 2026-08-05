@@ -995,25 +995,24 @@ function attach(n,srcs,label,cards){
   drawAttLab(); drawIncl();
   $('sendBtn').textContent='Ask ↩';$('askInput').focus();
 }
-/* Two different kinds of thing are on the table, so the label names both — and
-   keeps naming them as the toggle flips. Silence about the comments is exactly
-   what made this confusing. */
+/* The sources chip says what the sources are. The comments are a second chip
+   beside it and speak for themselves — saying it twice is what made this read
+   as a decision you had to make rather than an option you could take. */
 function drawAttLab(){
   if(!attLabel)return;
-  const n=attLabel.n, label=attLabel.label, nc=attachedCards.length;
+  const n=attLabel.n, label=attLabel.label;
   $('attLab').textContent='📎 '+n+(n===1?' source':' sources')+
-    (label?' · '+label:(filtered()?' · filtered by '+filterLabel():''))+
-    (nc?(inclNotes?' · with '+nc+(nc===1?' comment':' comments')+' you wrote'
-                  :' · sources only, your '+nc+(nc===1?' comment stays':' comments stay')+' out')
-       :' · sources only');
+    (label?' · '+label:(filtered()?' · filtered by '+filterLabel():''));
 }
+/* offered, never assumed — dashed while it is out, solid once it is in */
 function drawIncl(){
   const el=$('incl'+'Notes'), n=attachedCards.length;
   el.classList.toggle('show',n>0);
   el.classList.toggle('on',inclNotes);
-  el.textContent=inclNotes
-    ? '✓ '+n+(n===1?' comment included':' comments included')
-    : '＋ include '+n+(n===1?' comment':' comments');
+  el.textContent=(inclNotes?'✓ ':'＋ ')+n+(n===1?' comment':' comments')+' you wrote'+
+    (inclNotes?' · going in':' · left out');
+  el.title=inclNotes?'Leave your comments out of this question'
+                    :'Send your comments along with the sources';
 }
 $('inclNotes').addEventListener('click',()=>{inclNotes=!inclNotes;drawIncl();drawAttLab();
   toast(inclNotes?'Your comments go in alongside the sources'

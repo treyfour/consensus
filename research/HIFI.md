@@ -66,11 +66,18 @@ The concept adds one noun — the **note** — and nothing else.
 - **Recurrence** rides as one more badge in the reference card's existing badge row
   — `●●○○ 2 OF 3 SEARCHES` — because per-query rank already has a home (the black
   circle) and recurrence does not.
-- **`＋ include N comments`** is a pill in the composer's bottom row, next to
-  `Corpus`. Corpus is the control that already answers *what am I searching*, so
-  that is where an opt-in to search your own words belongs. Off by default, and the
-  attachment chip names both kinds every time rather than only the one it is
-  sending: `3 sources from your note / sources only · your 1 comment stays out`.
+- **The comments are a second chip in the attachment area**, beside the sources
+  chip, in the same grammar: `📄 3 sources / from your note` and next to it
+  `＋ 1 comment you wrote / left out`, which turns solid and accented —
+  `✓ 1 comment you wrote / going in with the sources` — when you take it.
+
+  It lived in the composer's bottom row next to `Corpus` and `Deep` first, and read
+  as a mode you had to decide about rather than something you could take or leave.
+  Two things you may attach belong in the place attachments live, not among the
+  permanent controls. **Dashed is the product's own word for this**: `Deep +` is
+  dashed in `screens/03` precisely because it is an optional add-on, so an offered
+  attachment inherits that.
+
   What you write on a card is a **comment**; the note is the container. See
   `research/LOOP.md` R4a.
 - **`Notes (N)`** is a third tab in a collection, beside the product's `Items` and
