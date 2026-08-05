@@ -51,7 +51,24 @@ for(const i of [0,1,3]) await p.click('#refs .row[data-p="'+i+'"]');
 await p.click('#barAdd'); await p.waitForTimeout(400);
 ok('three cards, panel still closed', await p.evaluate(()=>CARDS.length===3
   && document.getElementById('notesPane').style.display==='none'));
-await p.click('#tNotes'); await p.waitForTimeout(350);
+ok('three sources became three separate cards',
+  await p.evaluate(()=>CARDS.every(c=>c.srcs.length===1)));
+/* a drop is confirmed, not negotiated: no popup, no offer to write */
+ok('no popup', await p.evaluate(()=>!document.getElementById('dropPop')));
+const tst=await p.evaluate(()=>({t:document.getElementById('toast').textContent,
+  act:document.querySelector('#toast .tact')?.textContent}));
+ok('the toast says it was added', /added to note/i.test(tst.t), tst.t);
+ok('and offers View while the panel is closed', tst.act==='View', JSON.stringify(tst));
+await p.click('#toast .tact'); await p.waitForTimeout(400);
+ok('View opens the note',
+  await p.evaluate(()=>document.getElementById('notesPane').style.display!=='none'));
+await shot('pG-2b-added.png');
+/* with the panel open there is nothing to navigate to, so no action */
+await p.click('#refs .row[data-p="2"]'); await p.click('#barAdd'); await p.waitForTimeout(400);
+ok('no View offered once the note is visible',
+  await p.evaluate(()=>!document.querySelector('#toast .tact')));
+await p.evaluate(()=>{CARDS=CARDS.filter(c=>c.srcs[0]!==2);render()});
+await p.waitForTimeout(200);
 ok('the switcher says this is a note from this thread',
   /from CRISPR Off Target Effects/.test(await p.evaluate(()=>document.getElementById('nsFrom').textContent)),
   await p.evaluate(()=>document.getElementById('nsFrom').textContent));
