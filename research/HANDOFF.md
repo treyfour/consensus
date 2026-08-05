@@ -46,6 +46,9 @@ instead of clicking. Before any claim goes in the deck, it belongs in one of the
 | Claim | Status | Proof |
 |---|---|---|
 | Retrieval funnel is shipped and strong (32.8M → 100 → 20, real queries, pool sizes) | **Verified** | `screens/04` |
+| **The answer embeds a generated “Evidence Coverage Across Key Open Questions” matrix — open questions × dimensions, counts in the cells, and a literal `GAP` cell** | **Verified** — added 2026-08-04, Track A. Anyone proposing gap detection must name this first | `screens/03`, `screens/05` |
+| Whether that matrix's cells are clickable | **UNKNOWN** — no Pro messages left to find out | — |
+| A reference carries a per-(paper, query) `28 SUPPORTING QUOTES` count | **Verified** | `screens/05` |
 | References are per-query, with an "All cited papers" union | **Verified** | `screens/05`, `06`, `07` |
 | The union carries no origin, rank or recurrence per paper | **Verified** | `screens/07` |
 | Table view is an Elicit-style matrix, Pro-gated | **Verified** | `screens/06`, `08` |
@@ -69,7 +72,9 @@ instead of clicking. Before any claim goes in the deck, it belongs in one of the
 - **Live: https://consensus-kappa.vercel.app**
 - Five prototypes + index: `prototypes/option-{1..5}-*.html`, `prototypes/index.html`
 - Journey diagram: `prototypes/journey.html` (includes the brief's scope and scoring)
-- Research: `AUDIT.md`, `COMPETITIVE.md`, `BUILD.md`, `PLAN.md`, this file
+- Research: `AUDIT.md`, `COMPETITIVE.md`, `BUILD.md`, `PLAN.md`, `LOOP.md`, `RELEVANCE.md`, this file
+- Track A (`explore/relevance`, round 17): `option-25-carry.html`, `option-26-gap.html`,
+  reasoning in `RELEVANCE.md`
 - Design tokens: `research/cdl-tokens.css` (145 `--cdl-*`, both themes, from the live DOM)
 - 20+ screenshots in `research/screens/`
 
@@ -97,6 +102,7 @@ Rejects matter more than decisions here. A fresh context re-proposes them within
 | "Add an Elicit-style compare matrix" | **Already shipped** as Table view, Pro-gated |
 | "Add source scoping to the composer" | **Already shipped** |
 | "Add seed-paper relevance feedback" | **Already shipped** as the Citation Graph tool |
+| "Show where the evidence is thin / add a coverage matrix" | **Already shipped inside the answer** as *Evidence Coverage Across Key Open Questions*, `GAP` cell included. What is *not* shipped is that matrix being live, naming papers, or telling a gap from a search failure — see `RELEVANCE.md` §0 before proposing anything here |
 | **E · The Weave** as the built direction | Provenance-bearing chips are ~2× a plain citation chip; they wrap and break prose. Two refinement passes did not fix it. Structural, not polish |
 | **C · The Board** as the built direction | It is a stage-5 synthesis tool and the pain is at stages 1–3. Kept as a stretch state for gap detection only |
 | Redesigning the product / multiple workflows | Brief says depth over breadth, explicitly |
