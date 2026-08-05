@@ -161,20 +161,30 @@ ok('the chip clears it', await p.evaluate(()=>!activeTags.size));
 
 console.log('\n7 · asking attaches the note as scope');
 await p.click('#askNote'); await p.waitForTimeout(250);
-ok('the composer shows what is attached', /3 papers attached/.test(await txt('#compAtt')));
-ok('sources only, by default', /sources only/.test(await txt('#compAtt')));
-ok('including your own words is an opt-in',
-  await p.evaluate(()=>document.getElementById('inclNotes').classList.contains('show')
-    &&!document.getElementById('inclNotes').classList.contains('on')));
-await p.click('#inclNotes'); await p.waitForTimeout(200);
-ok('and it can be turned on', await p.evaluate(()=>inclNotes===true));
-ok('the chip says so now', /your own notes included/.test(await txt('#compAtt')));
+ok('the composer shows how many sources are attached',
+  /3 sources from your note/.test(await txt('#compAtt')), await txt('#compAtt'));
+/* the whole point: it names the other kind of thing it is NOT sending */
+ok('and names the comments it is leaving out',
+  /sources only · your 1 comment stays out/.test(await txt('#compAtt')), await txt('#compAtt'));
+ok('including them is an opt-in, off by default',
+  await p.evaluate(()=>document.getElementById('inclComments').classList.contains('show')
+    &&!document.getElementById('inclComments').classList.contains('on')));
+ok('the opt-in says comments, not notes',
+  /include 1 comment/.test(await txt('#inclComments')), await txt('#inclComments'));
+await p.click('#inclComments'); await p.waitForTimeout(200);
+ok('and it can be turned on', await p.evaluate(()=>inclComments===true));
+ok('the chip now says the comment goes with it',
+  /with 1 comment you wrote/.test(await txt('#compAtt')), await txt('#compAtt'));
+ok('and it still says where the sources came from',
+  /3 sources from your note/.test(await txt('#compAtt')), await txt('#compAtt'));
 await shot('h-7-attached.png');
 await p.fill('#askInput','Which of these disagree about what counts as a detected off-target?');
 await p.click('#sendBtn'); await p.waitForTimeout(1100);
 ok('the scoped answer says it retrieved nothing',
   /nothing new retrieved/.test(await txt('.turn:last-child .scopeline')));
-ok('and that your notes went in', /your own notes included/.test(await txt('.turn:last-child .scopeline')));
+ok('and that the comment went in with them',
+  /1 comment of yours included/.test(await txt('.turn:last-child .scopeline')),
+  await txt('.turn:last-child .scopeline'));
 ok('the drawer came back to References for the new answer', await p.evaluate(()=>dmode==='refs'));
 
 console.log('\n8 · a scoped answer may name a paper you did not keep');
@@ -188,6 +198,15 @@ ok('carrying no rank, because it was not retrieved for you',
   await p.evaluate(()=>!!document.querySelector('#refs .ref .rank.none')));
 ok('the attachment cleared after sending', await p.evaluate(()=>attached===null));
 await shot('h-8-raised.png');
+
+/* asking a paper is not asking your note, so no comment prompt appears */
+await p.click('#refs .ref[data-p="2"] .chk'); await p.waitForTimeout(150);
+await p.click('#selAsk'); await p.waitForTimeout(250);
+ok('asking a paper from References offers no comments',
+  await p.evaluate(()=>attachedCards.length===0
+    &&!document.getElementById('inclComments').classList.contains('show')));
+ok('and its chip does not mention them', !/comment/.test(await txt('#compAtt')), await txt('#compAtt'));
+await p.click('#compAtt .x'); await p.waitForTimeout(200);
 
 console.log('\n9 · the paper drawer is theirs, with one verb added');
 await p.click('#refs .ref[data-p="0"] h3'); await p.waitForTimeout(300);

@@ -11,7 +11,7 @@ There is exactly **one** deliberate exception, and it is §3.1: Notes is a secon
 right-hand panel, where the product has only one. It is called out first, in full,
 with everything it cost.
 
-Proof: `node scripts/drive-hifi.mjs` — 104 assertions, console clean, walks all five
+Proof: `node scripts/drive-hifi.mjs` — 108 assertions, console clean, walks all five
 acts end to end. Screenshots land in `/tmp` or `SHOTS=…`.
 
 ---
@@ -66,9 +66,13 @@ The concept adds one noun — the **note** — and nothing else.
 - **Recurrence** rides as one more badge in the reference card's existing badge row
   — `●●○○ 2 OF 3 SEARCHES` — because per-query rank already has a home (the black
   circle) and recurrence does not.
-- **`＋ include my notes (N)`** is a pill in the composer's bottom row, next to
+- **`＋ include N comments`** is a pill in the composer's bottom row, next to
   `Corpus`. Corpus is the control that already answers *what am I searching*, so
-  that is where an opt-in to search your own words belongs. Off by default.
+  that is where an opt-in to search your own words belongs. Off by default, and the
+  attachment chip names both kinds every time rather than only the one it is
+  sending: `3 sources from your note / sources only · your 1 comment stays out`.
+  What you write on a card is a **comment**; the note is the container. See
+  `research/LOOP.md` R4a.
 - **`Notes (N)`** is a third tab in a collection, beside the product's `Items` and
   `Threads`.
 - One sentence under the agent trace: *Consensus computes all of this to write the
@@ -105,6 +109,8 @@ and it is an extension rather than a bend, so it is stated as one.
      `View`.
    - The Paper drawer's action bar had to lose two of its four icon buttons to fit
      25rem. `Ask`, `＋ Add to note`, `Save ⌄`, quote, link and `PDF ↗` remain.
+   - `Ask` on that bar attaches the paper and **no comments** — asking a paper is not
+     asking your note.
 2. **The lo-fi's floating action bar for reference selection is gone.** The product
    shows no floating bar in that panel (`screens/05`), and one would land on top of
    the composer. Selecting references now swaps the panel's own `Results N` row for

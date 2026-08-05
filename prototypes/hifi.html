@@ -205,9 +205,9 @@ svg{display:block;flex:none}
 .dashed{border-style:dashed;color:var(--muted)}
 .dashed .deep{color:var(--accent)}
 .comp .grow{flex:1}
-#inclNotes{display:none}
-#inclNotes.show{display:inline-flex}
-#inclNotes.on{background:var(--accent-subtle);border-color:var(--accent-bd);color:var(--accent-emph)}
+#inclComments{display:none}
+#inclComments.show{display:inline-flex}
+#inclComments.on{background:var(--accent-subtle);border-color:var(--accent-bd);color:var(--accent-emph)}
 .thinking{display:flex;align-items:center;gap:var(--s-xs);font-size:var(--t-xs);color:var(--muted);
   margin-top:var(--s-md)}
 .thinking i{width:.3rem;height:.3rem;border-radius:var(--r-circle);background:var(--placeholder);
@@ -572,7 +572,7 @@ body.dragging .ref,body.dragging .card{cursor:grabbing}
               <button class="circ" id="btnPlus" title="Attach"></button>
               <button class="pill sm" id="btnCorpus">Corpus</button>
               <button class="pill sm dashed" id="btnDeep"><span class="deep"></span>Deep +</button>
-              <button class="pill sm" id="inclNotes"></button>
+              <button class="pill sm" id="inclComments"></button>
               <span class="grow"></span>
               <button class="circ ghost" id="seedBtn" title="Fill the next question in this walkthrough"></button>
               <button class="circ ghost" title="Dictate"></button>
@@ -598,7 +598,7 @@ body.dragging .ref,body.dragging .card{cursor:grabbing}
           </div>
           <div class="chips" id="chips"></div>
           <div class="ncomp" id="ncomp">
-            <textarea id="cText" rows="1" placeholder="Write a note…"></textarea>
+            <textarea id="cText" rows="1" placeholder="Write a comment…"></textarea>
             <div class="pins" id="cPins"></div>
           </div>
           <div class="dbody" id="notesBody">
@@ -813,7 +813,7 @@ let QUERIES=[], CARDS=[], seq=1, activeQ=0, freshSet=new Set(),
     selRef=new Set(), drag=null, dragCard=null, staged=[], savedTo=null,
     dmode='refs', showNotes=false, paperOn=null, pTab='overview', screen='thread',
     coll=null, tab='items', selNotes=new Set(), openNote=null,
-    activeTags=new Set(), query='', attached=null, attachedCards=[], inclNotes=false;
+    activeTags=new Set(), query='', attached=null, attachedCards=[], inclComments=false, attLabel=null;
 const dropline=el('div','dropline');
 
 /* ══ chrome ══════════════════════════════════════════════════════════════ */
@@ -1112,7 +1112,8 @@ function submit(){
       att:scoped?(attached.length+' sources from your note'):null,paras:[]};
     if(scoped){
       q.scopedText='Answered inside your note · '+pool.length+' sources · '+
-        (inclNotes?'your own notes included':'sources only')+
+        (inclComments?attachedCards.length+(attachedCards.length===1?' comment':' comments')+
+          ' of yours included':'sources only, no comments')+
         (filtered()?' · filtered by '+filterLabel():'')+' · nothing new retrieved';
       q.paras=['Working only from what you kept: '+
         refs.filter(r=>!r.raised).map(r=>'[['+r.p+']]').join(', ')+'.'];
@@ -1451,7 +1452,7 @@ function render(){
       e.dataTransfer.setDragImage($('ghost'),20,10)});
     a.addEventListener('dragend',endDrag);
     const ta=el('textarea'); ta.rows=1; ta.value=c.text;
-    ta.placeholder=c.srcs.length?'What matters about these?':'A thought…';
+    ta.placeholder=c.srcs.length?'Comment on these sources…':'Write a comment…';
     ta.addEventListener('input',()=>{c.text=ta.value;fit(ta)});
     a.appendChild(ta);
     const pins=el('div','pins');
@@ -1485,7 +1486,7 @@ function render(){
   $('tail').classList.toggle('quiet',CARDS.length>0);
   $('tail').textContent=CARDS.length?'':'Nothing here yet.\nDrag references onto the Notes button, or type above.';
   $('hint').textContent=CARDS.length
-    ?'Ask attaches this note as scope — sources only, and nothing new is retrieved.'
+    ?'Ask attaches this note as scope — its sources, and your comments only if you say so.'
     :'Hover any reference for why it is here. Select them and drag them here to keep them.';
   syncSwitch();
   if(dmode==='refs')renderRefs();
@@ -1556,37 +1557,47 @@ function switchNote(id){
 }
 
 /* ══ ask, with the note attached ════════════════════════════════════════ */
+/* `cards` is only passed when the thing being asked IS part of the note — the
+   whole note, or one card. Asking a paper from References or the paper drawer
+   carries no comments, because you did not ask about your note. */
 function attach(srcs,label,cards){
   if(!srcs||!srcs.length){toast('Nothing to attach');return}
   attached=srcs.slice();
-  attachedCards=(cards||askCards()).filter(c=>c.text&&c.text.trim());
-  inclNotes=false;
-  drawAtt(label); $('askInput').focus();
+  attachedCards=(cards||[]).filter(c=>c.text&&c.text.trim());
+  inclComments=false; attLabel=label||null;
+  drawAtt(); $('askInput').focus();
 }
-function clearAttach(){attached=null;attachedCards=[];inclNotes=false;drawAtt()}
-function drawAtt(label){
-  const a=$('compAtt'); a.innerHTML='';
+function clearAttach(){attached=null;attachedCards=[];inclComments=false;attLabel=null;drawAtt()}
+function drawAtt(){
+  const a=$('compAtt'), label=attLabel; a.innerHTML='';
+  const n=attachedCards.length;
   if(attached){
     const c=el('div','chipatt',svg('doc',15)+'<span class="tx"><b></b><span></span></span>'+
       '<button class="x">'+svg('x',11)+'</button>');
     c.querySelector('b').textContent=attached.length+
-      (attached.length===1?' paper attached':' papers attached')+(label?' · '+label:'');
-    c.querySelector('.tx span').textContent=(inclNotes?'your own notes included'
-      :'sources only')+(filtered()?' · filtered by '+filterLabel():'');
+      (attached.length===1?' source':' sources')+(label?' from '+label:'');
+    /* two different kinds of thing are on the table, so the chip names both —
+       silence about the comments is what made this confusing */
+    c.querySelector('.tx span').textContent=(
+      !n ? 'sources only · nothing written on these yet'
+         : inclComments ? 'with '+n+(n===1?' comment':' comments')+' you wrote'
+                     : 'sources only · your '+n+(n===1?' comment stays':' comments stay')+' out')
+      +(filtered()?' · filtered by '+filterLabel():'');
     c.querySelector('.x').addEventListener('click',clearAttach);
     a.appendChild(c);
   }
-  const n=attachedCards.length, b=$('inclNotes');
+  const b=$('inclComments');
   b.classList.toggle('show',!!attached&&n>0);
-  b.classList.toggle('on',inclNotes);
-  b.innerHTML=inclNotes?svg('check',15)+n+(n===1?' note included':' notes included')
-                       :svg('plus',15)+'include my notes ('+n+')';
+  b.classList.toggle('on',inclComments);
+  b.innerHTML=inclComments?svg('check',15)+n+(n===1?' comment included':' comments included')
+                       :svg('plus',15)+'include '+n+(n===1?' comment':' comments');
   $('askInput').placeholder=attached?'Ask inside what you kept…':'Ask a research question…';
 }
-$('inclNotes').addEventListener('click',()=>{inclNotes=!inclNotes;drawAtt();
-  toast(inclNotes?'Your own words go in with the sources'
-                 :'Sources only — what you wrote stays out of it')});
-$('askNote').addEventListener('click',()=>attach(askSrcs(),filtered()?filterLabel():null));
+$('inclComments').addEventListener('click',()=>{inclComments=!inclComments;drawAtt();
+  toast(inclComments?'Your comments go in alongside the sources'
+                 :'Sources only — the comments you wrote stay out')});
+$('askNote').addEventListener('click',()=>
+  attach(askSrcs(),filtered()?filterLabel():'your note',askCards()));
 
 /* ══ popovers ═══════════════════════════════════════════════════════════ */
 const POPS=()=>[$('collPop'),$('tagPop'),$('filterPop'),$('menu')];
@@ -1821,7 +1832,7 @@ function renderLib(){
       tr.innerHTML='<td><span class="gchk"></span></td><td class="ti"></td><td></td>';
       tr.children[1].textContent=n.name;
       tr.children[2].innerHTML='<span></span><span class="sub"></span>';
-      tr.children[2].firstChild.textContent=first?first.text:'(sources only)';
+      tr.children[2].firstChild.textContent=first?first.text:'(no comment yet)';
       tr.children[2].lastChild.textContent=n.cards.length+
         (n.cards.length===1?' note card · ':' note cards · ')+srcsOfNote(n).length+' sources kept';
       tr.addEventListener('click',()=>{tab='notes';openNote=n.key;renderLib()});
@@ -1829,7 +1840,7 @@ function renderLib(){
   }
   if(tab==='notes'){
     body.innerHTML='<table class="tbl"><thead><tr><th class="cw"></th><th>From</th>'+
-      '<th>What you wrote</th><th>Sources</th></tr></thead><tbody id="ntb"></tbody></table>';
+      '<th>Comment</th><th>Sources</th></tr></thead><tbody id="ntb"></tbody></table>';
     notes.forEach(n=>{const s=srcsOfNote(n), first=n.cards.find(c=>c.text);
       const tr=el('tr','pick');
       tr.innerHTML='<td><span class="gchk'+(selNotes.has(n.key)?' on':'')+'">'+svg('check',12)+
@@ -1837,7 +1848,7 @@ function renderLib(){
       tr.children[1].innerHTML='<span></span><span class="sub"></span>';
       tr.children[1].firstChild.textContent=n.name;
       tr.children[1].lastChild.textContent=n.cards.length+(n.cards.length===1?' card':' cards');
-      tr.children[2].textContent=first?first.text:'(sources only)';
+      tr.children[2].textContent=first?first.text:'(no comment yet)';
       tr.children[3].innerHTML='<span></span><span class="sub"></span>';
       tr.children[3].firstChild.textContent=s.length;
       tr.children[3].lastChild.textContent=s.slice(0,2).map(i=>P[i].n).join(', ')+
@@ -1863,7 +1874,7 @@ function drawNoteView(body,notes){
     ' sources · thread-scoped, so it stays with the question it came from';
   n.cards.forEach(c=>{
     const a=el('div','card'); a.style.cursor='default';
-    a.appendChild(el('div',null,'')).textContent=c.text||'(sources only)';
+    a.appendChild(el('div',null,'')).textContent=c.text||'(no comment yet)';
     a.firstChild.style.cssText='font-size:var(--t-xs);line-height:var(--lh-sm)';
     const pins=el('div','pins');
     c.srcs.forEach(i=>pins.appendChild(pinRow(i,null)));
@@ -1901,7 +1912,7 @@ function askNotes(){
   $('threadName').textContent=notes.map(n=>n.name).join(' + ');
   QUERIES=[{q,title:'',refs:srcs.map((p,k)=>({p,rank:k+1})),paras:[],scoped:true,
     att:notes.length+' notes · '+cards+' cards · '+srcs.length+' sources',
-    scopedText:'Answered across '+notes.length+' notes · your own notes included · nothing retrieved',
+    scopedText:'Answered across '+notes.length+' notes · with the comments you wrote · nothing retrieved',
     block:compareBlock(notes)}];
   activeQ=0;
   /* the two compared notes are attached to the question, not being written into —

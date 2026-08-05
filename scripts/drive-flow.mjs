@@ -94,11 +94,20 @@ ok('the attachment names the filter',
 const inc=await p.evaluate(()=>({shown:document.getElementById('inclNotes').classList.contains('show'),
   on:document.getElementById('inclNotes').classList.contains('on'),
   t:document.getElementById('inclNotes').textContent}));
-ok('the opt-in is offered and starts off', inc.shown && !inc.on && /include my notes/.test(inc.t), JSON.stringify(inc));
+/* what you write on a card is a COMMENT — a different kind of thing from the
+   sources, so the opt-in has to say which one it is offering */
+ok('the opt-in is offered and starts off', inc.shown && !inc.on && /include \d+ comment/.test(inc.t),
+  JSON.stringify(inc));
+ok('and the label names the comments it is leaving out',
+  /sources only, your 1 comment stays out/.test(await p.evaluate(()=>document.getElementById('attLab').textContent)),
+  await p.evaluate(()=>document.getElementById('attLab').textContent));
 await p.click('#inclNotes'); await p.waitForTimeout(250);
 ok('turning it on says how many go in',
-  /notes? included/.test(await p.evaluate(()=>document.getElementById('inclNotes').textContent)),
+  /1 comment included/.test(await p.evaluate(()=>document.getElementById('inclNotes').textContent)),
   await p.evaluate(()=>document.getElementById('inclNotes').textContent));
+ok('and the label follows it',
+  /with 1 comment you wrote/.test(await p.evaluate(()=>document.getElementById('attLab').textContent)),
+  await p.evaluate(()=>document.getElementById('attLab').textContent));
 
 console.log('\n7–8 · a contextual message, further down the chat');
 await p.click('#seedBtn'); await p.waitForTimeout(200);
@@ -108,8 +117,8 @@ ok('the demo key advances to the next scripted line',
 await p.click('#sendBtn'); await p.waitForTimeout(1100);
 const mk=await p.evaluate(()=>document.querySelector('#thread .scoped-mark').textContent);
 ok('answered inside the note', /nothing new retrieved/.test(mk), mk);
-ok('and the answer says whether your words went in',
-  /your own notes included|sources only/.test(mk), mk);
+ok('and the answer says whether your comments went in',
+  /comments? of yours included|sources only, no comments/.test(mk), mk);
 
 console.log('\n9 · a new source is revealed, and kept');
 const raised=await p.evaluate(()=>(QUERIES[QUERIES.length-1].refs.find(r=>r.raised)||{}).p);
@@ -210,8 +219,12 @@ ok('it offers Ask and Add to note, in the product’s words',
   JSON.stringify(acts)==='["💬 Ask","＋ Add to note"]', JSON.stringify(acts));
 await p.click('#whyAsk'); await p.waitForTimeout(300);
 ok('Ask from the hover card attaches just that paper',
-  /1 attached · Wienert 2022/.test(await p.evaluate(()=>document.getElementById('attLab').textContent)),
+  /1 source · Wienert 2022/.test(await p.evaluate(()=>document.getElementById('attLab').textContent)),
   await p.evaluate(()=>document.getElementById('attLab').textContent));
+/* asking a paper is not asking your note, so no comments are on offer */
+ok('and offers no comments, because you did not ask about your note',
+  await p.evaluate(()=>attachedCards.length===0
+    && !document.getElementById('inclNotes').classList.contains('show')));
 await p.click('#attX');
 
 console.log('\nDETAIL · the way out of a wrong reference');

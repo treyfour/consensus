@@ -38,12 +38,19 @@ the rule is wrong, not the sentence.
 | **Thread** | a question, its answer, its References | one line of enquiry | shipped |
 | **My Library** | papers, flat, with metadata | account | shipped |
 | **Citation Graph** | seed-paper expansion | a tool, not a container | shipped |
-| **Note** | *cards* — a thought plus the sources that provoked it | **one thread, by default** | proposed |
+| **Note** | *cards* — a comment plus the sources that provoked it | **one thread, by default** | proposed |
 | **Collection** | a named set of cards spanning threads | account, lives in My Library | proposed |
 
-A **card** is the atom: optional text, zero or more sources, zero or more tags. One
-source can appear on several cards; one card can carry several sources. That is the
+A **card** is the atom: an optional **comment**, zero or more sources, zero or more tags.
+One source can appear on several cards; one card can carry several sources. That is the
 whole schema.
+
+> **Naming, settled after round 22.** The prose you write on a card is a **comment**, not
+> "a note". The note is the container; the comment is what you added to it. The two were
+> the same word until the opt-in beside the composer read `＋ include my notes` while the
+> panel you were sitting in was called Notes — which asks whether to include the thing you
+> have obviously already included. Sources and comments are different kinds of object and
+> the interface now says so everywhere. See R4a.
 
 ---
 
@@ -94,13 +101,25 @@ The orphan-thread problem does not disappear, it moves: whatever thread the atta
 question opens must still carry `← from your note`. That is R4's remaining obligation and
 it is not yet built.
 
-**R4a · Your written notes are not part of the question unless you say so.**
-A card's sources and a card's *text* are different things. The sources are public
-artefacts; the text is the researcher thinking out loud, and some of it is
+**R4a · Your comments are not part of the question unless you say so.**
+A card's sources and a card's *comment* are different kinds of thing. The sources are
+public artefacts; the comment is the researcher thinking out loud, and some of it is
 `Ask Sarah whether anyone has run this on liver-directed guides`. Attaching therefore
 scopes to **sources only** by default, with one explicit, reversible opt-in beside the
-attachment chip: `＋ include my notes`. The toast says which world you are in
-(`Sources only — your notes stay private`).
+attachment chip: `＋ include N comments`.
+
+**The default has to be stated, not just implied.** Silence about the comments is what
+made this confusing: the chip said `sources only` and left the reader to work out what
+else there might have been. It now names both kinds every time —
+`3 sources from your note / sources only · your 1 comment stays out`, becoming
+`with 1 comment you wrote` when the opt-in is on — and the answer's own funnel line
+repeats it.
+
+**Comments travel with the note, never with a paper.** Asking a single paper from
+References, from the hover card, or from the paper drawer offers no comments at all,
+because you did not ask about your note. Only *Ask the note* and *Ask this card* carry
+them. Offering the opt-in on a question that has nothing to do with your note is how the
+prompt turned into noise.
 
 This is a privacy default, not a feature. Get it backwards and the first time someone
 notices is the worst possible time.
