@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scope fence — five options</title>
+<style>
+:root{--accent:#068ef1;--accent-emph:#006fce;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
+--bg:#fff;--mist:#fafafa;--faint:#f4f4f5;--fg:#18181b;--muted:#71717b;--bd:#e4e4e7;--bd-emph:#d4d4d8;
+--pos:#148d74;--warn:#a65f00;
+--s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;--s-3xl:2.5rem;
+--t-2xs:.69rem;--t-xs:.81rem;--t-sm:.94rem;--t-base:1rem;--t-lg:1.13rem;
+--sans:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+--mono:"Reddit Mono",ui-monospace,SFMono-Regular,Menlo,monospace;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--fg);background:var(--mist);padding:var(--s-2xl) var(--s-lg) var(--s-3xl)}
+.wrap{max-width:62rem;margin:0 auto}
+.eyebrow{font-family:var(--mono);font-size:var(--t-2xs);text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+h1{font-size:1.7rem;letter-spacing:-.015em;margin:var(--s-2xs) 0 var(--s-sm)}
+.lede{font-size:var(--t-sm);color:var(--muted);max-width:44rem;line-height:1.65}
+.lede b{color:var(--fg)}
+.scen{background:var(--bg);border:1px solid var(--bd);border-radius:.75rem;padding:var(--s-md) var(--s-lg);margin:var(--s-xl) 0 var(--s-2xl)}
+.scen .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);letter-spacing:.06em}
+.scen ol{margin:var(--s-xs) 0 0 var(--s-md);font-size:var(--t-xs);line-height:1.9;color:var(--muted)}
+.scen ol b{color:var(--fg);font-weight:500}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(17rem,1fr));gap:var(--s-md)}
+.card{border:1px solid var(--bd);border-radius:.75rem;background:var(--bg);overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:inherit}
+.card:hover{border-color:var(--bd-emph)}
+.card.rec{border-color:var(--accent)}
+.card .top{padding:var(--s-md);border-bottom:1px solid var(--bd)}
+.card .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);letter-spacing:.06em}
+.card h4{font-size:var(--t-base);margin:var(--s-2xs) 0}
+.card .w{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.card .body{padding:var(--s-md);font-size:var(--t-xs);line-height:1.6;flex:1}
+.card .lab{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);letter-spacing:.06em}
+.card .up{color:var(--pos);margin-bottom:var(--s-xs)}
+.card .dn{color:var(--warn)}
+.card .go{padding:var(--s-sm) var(--s-md);border-top:1px solid var(--bd);background:var(--faint);color:var(--accent-emph);font-size:var(--t-xs);font-weight:500}
+.tag{display:inline-block;font-family:var(--mono);font-size:var(--t-2xs);background:var(--accent);color:#fff;border-radius:625rem;padding:1px .45rem;margin-left:var(--s-2xs)}
+footer{margin-top:var(--s-3xl);border-top:1px solid var(--bd);padding-top:var(--s-md);font-size:var(--t-xs);color:var(--muted);line-height:1.7}
+</style></head><body><div class="wrap">
+<p class="eyebrow">Consensus · scope fence · five options</p>
+<h1>Am I still searching everything?</h1>
+<p class="lede">A researcher narrows to a few sources by adding them to the note. From that point on, retrieval
+should be limited to those sources — and the interface has to say so, or the researcher spends the rest of the
+thread unsure. <b>The variable across these five is how the fence is communicated and how you get out of it.</b>
+Same scenario, same data, same eject requirement in all of them.</p>
+
+<div class="scen"><span class="k">THE SCENARIO, IDENTICAL IN ALL FIVE</span>
+<ol>
+<li>Eight turns already asked. References shows <b>everything retrieved so far</b>.</li>
+<li>Select three sources on the right, then <b>Add 3 to note — and search only these</b>.</li>
+<li>The fence is set. Three sources dim out; References says <b>your 3 sources only</b>.</li>
+<li>Ask again. The funnel says <b>your 3 sources · nothing new retrieved</b>, and retrieval really is limited.</li>
+<li><b>Eject.</b> Everything comes back. The note and every turn survive.</li>
+</ol></div>
+
+<div class="grid">
+<a class="card rec" href="option-29-hairline.html"><div class="top"><span class="k">AB · HAIRLINE</span><span class="tag">lightest that works</span>
+<h4>Hairline</h4><p class="w">a 1px rule and four words</p></div>
+<div class="body"><p class="lab">GIVES</p><p class="up">A boundary you can see without being told about. Present at the moment of narrowing, silent afterwards, and the eject hides in hover.</p>
+<p class="lab">COSTS</p><p class="dn">Scrolled past, the line is out of sight and the state is only in the panel.</p></div>
+<div class="go">Open →</div></a>
+
+<a class="card" href="option-30-composer.html"><div class="top"><span class="k">AC · IN THE COMPOSER</span>
+<h4>In the composer</h4><p class="w">no line at all; a chip where you type</p></div>
+<div class="body"><p class="lab">GIVES</p><p class="up">Always visible, because the composer never scrolls away. The answer to “what am I about to search?” sits next to the thing you are about to search with.</p>
+<p class="lab">COSTS</p><p class="dn">The thread has no record of where the narrowing began — scroll back and nothing marks it.</p></div>
+<div class="go">Open →</div></a>
+
+<a class="card" href="option-31-ambient.html"><div class="top"><span class="k">AD · AMBIENT</span>
+<h4>Ambient</h4><p class="w">a tinted rail down the fenced span</p></div>
+<div class="body"><p class="lab">GIVES</p><p class="up">Scope as continuous state rather than an announcement, and the only option that shows <b>how far</b> the fence reaches without being asked.</p>
+<p class="lab">COSTS</p><p class="dn">A tint is a convention you have to learn once; on first encounter it is decoration.</p></div>
+<div class="go">Open →</div></a>
+
+<a class="card" href="option-32-pill.html"><div class="top"><span class="k">AE · THE PILL</span><span class="tag">most explicit</span>
+<h4>The pill</h4><p class="w">drag it to change what is scoped</p></div>
+<div class="body"><p class="lab">GIVES</p><p class="up">The fence becomes an object with extent. Drag it up to cover earlier turns, past the end to release. Setting and ejecting are the same gesture.</p>
+<p class="lab">COSTS</p><p class="dn">Heaviest of the five, and drag is undiscoverable without the label that makes it heavier still.</p></div>
+<div class="go">Open →</div></a>
+
+<a class="card" href="option-33-funnel.html"><div class="top"><span class="k">AF · IN THE FUNNEL</span>
+<h4>In the funnel</h4><p class="w">stated only where retrieval is reported</p></div>
+<div class="body"><p class="lab">GIVES</p><p class="up">No new furniture at all. The funnel line already reports what retrieval did, so the fence is one more fact in the place facts already live.</p>
+<p class="lab">COSTS</p><p class="dn"><b>Says nothing at the moment of narrowing</b> — it can only speak once an answer exists. Verified, not assumed. That is precisely the uncertainty this is meant to remove.</p></div>
+<div class="go">Open →</div></a>
+</div>
+
+<footer>Real data: the six papers captured from the CRISPR off-target thread, the real first-query funnel
+(32.8M → 100 → 20) and the real ranks; later turns are keyword-matched over those six and say so. Tokens are
+Consensus’s own CDL. Verified by <code>scripts/drive-fence.mjs</code> — 90 assertions, every option driven through
+narrow → ask → eject, asserting that retrieval is genuinely limited and that ejecting keeps the note and the turns.</footer>
+</div></body></html>
