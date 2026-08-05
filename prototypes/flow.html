@@ -94,7 +94,35 @@ body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(
 .notetop{flex:none;border-bottom:1px solid var(--paper-bd);padding:var(--s-xs) var(--s-sm) var(--s-sm)}
 .prov{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);line-height:1.5}
 .prov b{color:var(--fg);font-weight:500}
-.composer{margin-top:var(--s-xs);margin-bottom:var(--s-sm);background:#fff;border:1px dashed var(--paper-bd);border-radius:var(--r-md);padding:var(--s-xs) var(--s-sm)}
+.tools{margin-top:var(--s-xs)}
+.chips{display:none;gap:var(--s-2xs);align-items:center;flex-wrap:wrap;margin-top:var(--s-xs)}
+.chips.on{display:flex}
+.chip{font-family:var(--mono);font-size:var(--t-2xs);border:1px solid var(--accent-bd);background:var(--accent-subtle);
+  color:var(--accent-emph);border-radius:625rem;padding:0 var(--s-xs);cursor:pointer;white-space:nowrap}
+.chips .shown{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-left:auto}
+.card.hidden{display:none}
+/* per-card actions, so a single card can reach the chat without a selection */
+.cardacts{display:flex;gap:var(--s-2xs);align-items:center;margin-top:var(--s-xs);opacity:0;transition:opacity .12s}
+.card:hover .cardacts,.card:focus-within .cardacts{opacity:1}
+.cardacts button{font-family:inherit;font-size:var(--t-2xs);border:1px solid var(--paper-bd);background:#fff;
+  color:var(--muted);border-radius:var(--r-sm);padding:2px var(--s-xs);cursor:pointer}
+.cardacts button:hover{border-color:var(--accent-bd);color:var(--accent-emph)}
+.cardacts .grip{margin-left:auto;font-family:var(--mono);font-size:var(--t-2xs);color:var(--bd-emph);cursor:grab}
+.card.dragging{opacity:.4}
+.ask.dropok .box{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-muted)}
+/* the drop confirmation: offers a note, never demands one */
+.droppop{position:fixed;left:50%;bottom:1.25rem;transform:translate(-50%,180%);z-index:80;
+  background:var(--fg);color:#fff;border-radius:625rem;padding:var(--s-xs) var(--s-sm);
+  display:flex;gap:var(--s-xs);align-items:center;box-shadow:0 12px 30px #00000038;
+  font-size:var(--t-xs);white-space:nowrap;transition:transform .22s cubic-bezier(.2,.9,.3,1);pointer-events:none}
+.droppop.on{transform:translate(-50%,0);pointer-events:auto}
+.droppop .ok{color:#6ee7c4}
+.droppop button{font-family:inherit;font-size:var(--t-2xs);border:0;border-radius:var(--r-sm);
+  padding:4px var(--s-xs);cursor:pointer;background:#ffffff21;color:#fff}
+.droppop button:hover{background:#ffffff36}
+.droppop .add{background:var(--accent)}
+.droppop .add:hover{background:var(--accent-emph)}
+.composer{margin-top:var(--s-sm);background:#fff;border:1px dashed var(--paper-bd);border-radius:var(--r-md);padding:var(--s-xs) var(--s-sm)}
 .composer.armed,.composer.over{border-style:solid;border-color:var(--accent-bd);box-shadow:0 0 0 3px var(--accent-subtle)}
 .composer.over{border-color:var(--accent)}
 .composer textarea{width:100%;min-height:1.35rem;border:0;outline:0;resize:none;font-family:inherit;font-size:var(--t-xs);line-height:1.5;background:transparent;color:var(--fg);overflow:hidden}
@@ -331,14 +359,16 @@ body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--acc
           <button class="x" id="closeNotes">✕</button></div>
         <div class="notetop">
           <div class="prov">from this thread · <b>CRISPR Off Target Effects</b></div>
-          <div class="composer" id="composer">
-            <textarea id="cText" rows="1" placeholder="Write a note, or drag sources in…"></textarea>
-            <div class="pins" id="cPins"></div>
-            <div class="hint">⏎ save to the note · ⇧⏎ new line</div>
-          </div>
           <div class="tools">
             <button class="btn primary" id="askNote">💬 Ask <span class="n" id="askN">0</span></button>
+            <button class="btn" id="filterBtn">Filter ▾</button>
             <button class="btn" id="libBtn">＋ My Library</button>
+          </div>
+          <div class="chips" id="chips"></div>
+          <div class="composer" id="composer">
+            <textarea id="cText" rows="1" placeholder="Write a note…"></textarea>
+            <div class="pins" id="cPins"></div>
+            <div class="hint">⏎ save to the note · ⇧⏎ new line</div>
           </div>
         </div>
         <div class="pbody" id="notesBody"><div id="noteList"></div><div class="tail" id="tail"></div></div>
@@ -383,6 +413,13 @@ body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--acc
   <div class="top"><span class="cnt" id="noteCount"></span><span class="clr" id="nClr">clear</span></div>
   <div class="line"><input id="nAsk" placeholder="Ask across these notes…"><button class="send" id="nGo">Ask ↩</button></div>
 </div>
+<div class="droppop" id="dropPop"></div>
+<div class="pop" id="filterPop">
+  <input id="fq" placeholder="Type to filter, or find a tag…">
+  <div class="lab">TAGS</div><div id="fTags"></div>
+  <div class="sep"></div><div id="fText"></div>
+</div>
+<div class="pop" id="cardMenu"></div>
 <div class="pop" id="collPop"></div>
 <div class="pop" id="tagPop"></div>
 <div class="dragghost" id="ghost"></div>
@@ -462,6 +499,7 @@ const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');
   clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2800)}
 
+let dragCard=null;
 let QUERIES=[JSON.parse(JSON.stringify(Q0))], CARDS=[], seq=1, activeQ=0, freshSet=new Set(),
     selRef=new Set(), anchor=null, drag=null, staged=[], savedTo=null,
     showNotes=false, showRefs=true, screen='thread',
@@ -477,6 +515,19 @@ function provOf(i){const rec=recurrence(i),tot=QUERIES.length,rank=rankIn(active
     r:(tot===1?'this search':rec+' of '+tot+' searches')+(rank&&activeQ!=='all'?' · ranked #'+rank:'')}}
 const provStr=i=>{const x=provOf(i);return x.d+' '+x.r};
 const noteSrcs=()=>[...new Set(CARDS.flatMap(c=>c.srcs))];
+let activeTags=new Set(), query='';
+const filtered=()=>!!(activeTags.size||query);
+function cardVisible(c){
+  if(activeTags.size&&!c.tags.some(t=>activeTags.has(t))) return false;
+  if(query){const hay=(c.text+' '+c.tags.join(' ')+' '+c.srcs.map(i=>P[i].n+' '+P[i].t).join(' ')).toLowerCase();
+    if(!hay.includes(query)) return false}
+  return true;
+}
+/* a filter is a way of asking part of a note, so Ask follows the filter */
+const askCards=()=>filtered()?CARDS.filter(cardVisible):CARDS;
+const askSrcs=()=>[...new Set(askCards().flatMap(c=>c.srcs))];
+const filterLabel=()=>[...activeTags].concat(query?['“'+query+'”']:[]).join(' + ');
+const toggleTag=t=>{activeTags.has(t)?activeTags.delete(t):activeTags.add(t);render()};
 
 /* ══ acts 1 & 4 · thread ═══════════════════════════════════════════════ */
 function fit(t){t.style.height='auto';t.style.height=Math.max(t.scrollHeight,21)+'px'}
@@ -536,7 +587,7 @@ $('closeRefs').addEventListener('click',()=>{showRefs=false;layout()});
 $('tNotes').addEventListener('dragover',e=>{if(drag){e.preventDefault();$('tNotes').classList.add('drop')}});
 $('tNotes').addEventListener('dragleave',()=>$('tNotes').classList.remove('drop'));
 $('tNotes').addEventListener('drop',e=>{if(!drag)return;e.preventDefault();$('tNotes').classList.remove('drop');
-  showNotes=true;layout();stage(drag.slice());clearRefSel()});
+  dropSources(drag.slice(),null);clearRefSel()});
 
 function runSearch(text,pool){
   const q=text.toLowerCase();
@@ -559,7 +610,7 @@ function submit(){
   $('thread').appendChild(t); $('thread').scrollTop=$('thread').scrollHeight;
   setTimeout(()=>{
     $('sendBtn').disabled=false;
-    const pool=scoped?noteSrcs():null;
+    const pool=scoped?(attached&&attached.length?attached:noteSrcs()):null;
     const refs=runSearch(text,pool);
     const top=refs.slice(0,3).map(r=>r.p);
     /* A scoped answer can still point at something you did not keep. If it does,
@@ -575,7 +626,8 @@ function submit(){
     }
     const q={q:text,title:text.charAt(0).toUpperCase()+text.slice(1).replace(/\?+$/,''),refs,
       scoped, att:scoped?('📎 '+noteSrcs().length+' sources from your note'):null,
-      funnel:scoped?('answered within your note · '+noteSrcs().length+' sources · nothing new retrieved')
+      funnel:scoped?('answered within your note · '+pool.length+' sources'+
+                     (filtered()?' · filtered by '+filterLabel():'')+' · nothing new retrieved')
                    :('keyword-matched over 6 captured papers · '+refs.length+' included'),
       paras:[]};
     if(scoped){
@@ -584,7 +636,7 @@ function submit(){
       if(raised!=null) q.paras.push('Nothing outside your note was retrieved. But the closest paper in '+
         'this thread that you have <b>not</b> kept is [['+raised+']] — it is in your references and not '+
         'in your note.');
-      $('ask').classList.remove('scoped');
+      $('ask').classList.remove('scoped'); attached=null;
     } else {
       q.paras=['The strongest evidence here comes from [['+top[0]+']]'+(top[1]!=null?' and [['+top[1]+']]':'')+'.',
         top[2]!=null?'[['+top[2]+']] came back lower and is worth checking before you rely on it.':''].filter(Boolean);
@@ -701,7 +753,7 @@ function syncBar(){const n=selRef.size;
 function syncInNote(){const s=noteSrcs();
   $('refs').querySelectorAll('.row').forEach(el=>el.classList.toggle('inNote',s.includes(+el.dataset.p)))}
 $('barClr').addEventListener('click',clearRefSel);
-$('barAdd').addEventListener('click',()=>{showNotes=true;layout();stage([...selRef]);clearRefSel()});
+$('barAdd').addEventListener('click',()=>{dropSources([...selRef],null);clearRefSel()});
 $('barAsk').addEventListener('click',()=>{attach(selRef.size);clearRefSel()});
 function endDrag(){drag=null;document.body.classList.remove('dragging');
   document.querySelectorAll('.ghosting').forEach(x=>x.classList.remove('ghosting'));
@@ -725,20 +777,81 @@ function commit(){const text=$('cText').value.trim();
   const el=$('noteList').firstElementChild; if(el){el.classList.add('land');setTimeout(()=>el.classList.remove('land'),420)}}
 $('cText').addEventListener('input',()=>{fit($('cText'));armed()});
 $('cText').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();commit()}});
-['composer','notesBody'].forEach(id=>{
-  const el=$(id);
-  el.addEventListener('dragover',e=>{if(drag){e.preventDefault();e.stopPropagation();
-    (id==='composer'?$('composer'):$('tail')).classList.add(id==='composer'?'over':'over')}});
-  el.addEventListener('dragleave',()=>{$('composer').classList.remove('over');$('tail').classList.remove('over')});
-  el.addEventListener('drop',e=>{if(!drag)return;e.preventDefault();e.stopPropagation();
-    $('composer').classList.remove('over');$('tail').classList.remove('over');
-    stage(drag.slice());clearRefSel()});
-});
+/* Dropping is a complete act. Two sources dropped are two cards, because they
+   are two things — a note about them is optional and offered afterwards, not
+   demanded before. Dropping ONTO a card stacks into that card instead. */
+function dropSources(idxs,targetId){
+  const made=[];
+  if(targetId!=null){
+    const c=CARDS.find(x=>x.id===targetId);
+    const added=idxs.filter(i=>!c.srcs.includes(i));
+    c.srcs.push(...added); render();
+    const el=$('noteList').querySelector('[data-id="'+targetId+'"]');
+    if(el){el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1000)}
+    dropPop(added.length?added.length+(added.length===1?' source':' sources')+' stacked onto this card'
+                        :'already on this card',[targetId]);
+    return;
+  }
+  idxs.forEach(i=>{const c={id:seq++,text:'',srcs:[i],tags:[],coll:savedTo||''};CARDS.unshift(c);made.push(c.id)});
+  render();
+  made.forEach(id=>{const el=$('noteList').querySelector('[data-id="'+id+'"]');
+    if(el){el.classList.add('land');setTimeout(()=>el.classList.remove('land'),420)}});
+  dropPop(made.length+(made.length===1?' card added':' cards added — one per source'),made);
+}
+/* the popup is the whole confirmation: it does not steal focus and it does not
+   open the panel, because a drag is not a request to start writing */
+let popT=null;
+function dropPop(msg,ids){
+  const el=$('dropPop');
+  el.innerHTML='<span class="ok">✓</span><span class="msg"></span>'+
+    '<button class="add">＋ add a note</button><button class="undo">undo</button>';
+  el.querySelector('.msg').textContent=msg;
+  el.querySelector('.add').addEventListener('click',()=>{
+    showNotes=true; layout(); el.classList.remove('on');
+    const t=$('noteList').querySelector('[data-id="'+ids[0]+'"] textarea');
+    if(t){t.scrollIntoView({block:'nearest'});t.focus()}});
+  el.querySelector('.undo').addEventListener('click',()=>{
+    CARDS=CARDS.filter(c=>!ids.includes(c.id)); render(); el.classList.remove('on'); toast('Undone')});
+  /* bottom-centre, where this prototype already puts confirmations — anchoring it
+     to the Notes button covered the note's own header, which is what you just changed */
+  el.classList.add('on');
+  clearTimeout(popT); popT=setTimeout(()=>el.classList.remove('on'),5000);
+}
+function cardUnder(y){
+  const els=[...$('noteList').querySelectorAll('.card')];
+  for(const el of els){const r=el.getBoundingClientRect();
+    if(y>=r.top&&y<=r.bottom) return +el.dataset.id}
+  return null;
+}
+/* the composer still stages, because typing first is a different intention */
+$('composer').addEventListener('dragover',e=>{if(drag){e.preventDefault();e.stopPropagation();$('composer').classList.add('over')}});
+$('composer').addEventListener('dragleave',()=>$('composer').classList.remove('over'));
+$('composer').addEventListener('drop',e=>{if(!drag)return;e.preventDefault();e.stopPropagation();
+  $('composer').classList.remove('over');stage(drag.slice());clearRefSel()});
+$('notesBody').addEventListener('dragover',e=>{if(!drag)return;e.preventDefault();
+  const id=cardUnder(e.clientY);
+  $('noteList').querySelectorAll('.card').forEach(el=>el.classList.toggle('merge',+el.dataset.id===id));
+  $('tail').classList.toggle('over',id==null)});
+$('notesBody').addEventListener('dragleave',e=>{if(!$('notesBody').contains(e.relatedTarget)){
+  $('tail').classList.remove('over');$('noteList').querySelectorAll('.merge').forEach(e=>e.classList.remove('merge'))}});
+$('notesBody').addEventListener('drop',e=>{if(!drag)return;e.preventDefault();
+  const id=cardUnder(e.clientY);
+  $('tail').classList.remove('over');$('noteList').querySelectorAll('.merge').forEach(e=>e.classList.remove('merge'));
+  dropSources(drag.slice(),id); clearRefSel()});
 
 function render(){
   const host=$('noteList'); host.innerHTML='';
   CARDS.forEach(c=>{
-    const a=document.createElement('article'); a.className='card'; a.dataset.id=c.id;
+    const a=document.createElement('article');
+    a.className='card'+(cardVisible(c)?'':' hidden'); a.dataset.id=c.id;
+    a.draggable=true;
+    a.addEventListener('dragstart',e=>{
+      if(e.target.tagName==='TEXTAREA'){e.preventDefault();return}
+      dragCard=c.id; a.classList.add('dragging');
+      e.dataTransfer.effectAllowed='copy';
+      $('ghost').textContent=c.srcs.length+(c.srcs.length===1?' source':' sources')+' from your note';
+      e.dataTransfer.setDragImage($('ghost'),20,10)});
+    a.addEventListener('dragend',()=>{dragCard=null;a.classList.remove('dragging');$('ask').classList.remove('dropok')});
     const ta=document.createElement('textarea'); ta.rows=1; ta.value=c.text;
     ta.placeholder=c.srcs.length?'What matters about these?':'A thought…';
     ta.addEventListener('input',()=>{c.text=ta.value;fit(ta)});
@@ -752,12 +865,27 @@ function render(){
     add.addEventListener('click',e=>{e.stopPropagation();openTagPop(add,c)});
     f.appendChild(add);
     if(c.coll){const s=document.createElement('span');s.className='inColl';s.textContent='⊞ '+c.coll;f.appendChild(s)}
+    const acts=document.createElement('div'); acts.className='cardacts';
+    const ask=document.createElement('button'); ask.textContent='💬 Ask '+(c.srcs.length||'');
+    ask.disabled=!c.srcs.length;
+    ask.addEventListener('click',e=>{e.stopPropagation();
+      attach(c.srcs.length,c.srcs.slice(),'this card')});
+    const more=document.createElement('button'); more.textContent='⋯';
+    more.addEventListener('click',e=>{e.stopPropagation();openCardMenu(more,c)});
+    const grip=document.createElement('span'); grip.className='grip'; grip.textContent='⣿ drag to chat';
+    acts.append(ask,more,grip);
+    a.appendChild(acts);
     a.appendChild(f); host.appendChild(a); fit(ta);
   });
-  const s=noteSrcs();
+  const s=noteSrcs(), as=askSrcs();
   $('nSub').textContent=CARDS.length?CARDS.length+(CARDS.length===1?' card · ':' cards · ')+s.length+(s.length===1?' source':' sources'):'empty';
   $('tnCount').textContent=CARDS.length;
-  $('askN').textContent=s.length; $('askNote').disabled=!s.length;
+  $('askN').textContent=as.length+(filtered()?' of '+s.length:'');
+  $('askNote').disabled=!as.length;
+  $('askNote').title=!filtered()?'Ask everything in this note'
+    :as.length?'Ask the '+askCards().length+' cards matching '+filterLabel()
+              :'The cards matching '+filterLabel()+' carry no sources';
+  renderChips();
   $('libBtn').style.visibility=CARDS.length?'visible':'hidden';
   $('libBtn').textContent=savedTo?'⊞ in '+savedTo:'＋ My Library';
   $('tail').classList.toggle('quiet',CARDS.length>0);
@@ -766,11 +894,68 @@ function render(){
     :'Hover any reference for why it is here. Select and drag them into the note to keep them.';
   syncInNote();
 }
-function attach(n){if(!n){toast('Nothing to attach');return}
-  $('ask').classList.add('scoped');$('attLab').textContent='📎 Papers · '+n+' attached';
+let attached=null;
+function attach(n,srcs,label){if(!n){toast('Nothing to attach');return}
+  attached=srcs||noteSrcs();
+  $('ask').classList.add('scoped');
+  $('attLab').textContent='📎 Papers · '+n+' attached'+(label?' · '+label:(filtered()&&!label?' · filtered by '+filterLabel():''));
   $('sendBtn').textContent='Ask ↩';$('askInput').focus()}
-$('attX').addEventListener('click',()=>{$('ask').classList.remove('scoped');$('sendBtn').textContent='Search ↩'});
-$('askNote').addEventListener('click',()=>attach(noteSrcs().length));
+/* a card can be dragged straight into the composer */
+$('ask').addEventListener('dragover',e=>{if(dragCard!=null){e.preventDefault();$('ask').classList.add('dropok')}});
+$('ask').addEventListener('dragleave',()=>$('ask').classList.remove('dropok'));
+$('ask').addEventListener('drop',e=>{
+  if(dragCard==null)return; e.preventDefault(); $('ask').classList.remove('dropok');
+  const c=CARDS.find(x=>x.id===dragCard);
+  if(c) attach(c.srcs.length,c.srcs.slice(),'this card');
+});
+function openCardMenu(btn,c){
+  const m=$('cardMenu'); m.innerHTML='';
+  const mk=(label,fn)=>{const b=document.createElement('button');b.textContent=label;
+    b.addEventListener('click',e=>{e.stopPropagation();m.classList.remove('on');fn()});m.appendChild(b)};
+  mk('💬 Ask this card',()=>attach(c.srcs.length,c.srcs.slice(),'this card'));
+  mk('＋ Tag…',()=>openTagPop(btn,c));
+  mk('⊞ Add to a collection',()=>$('libBtn').click());
+  mk('Copy citations',()=>toast(c.srcs.length+' citations copied'));
+  m.insertAdjacentHTML('beforeend','<div class="sep"></div>');
+  mk('Delete this card',()=>{CARDS=CARDS.filter(x=>x.id!==c.id);render();toast('Card deleted')});
+  place(m,btn);
+}
+$('attX').addEventListener('click',()=>{$('ask').classList.remove('scoped');attached=null;$('sendBtn').textContent='Search ↩'});
+$('askNote').addEventListener('click',()=>attach(askSrcs().length,askSrcs()));
+function renderChips(){
+  const el=$('chips'); el.innerHTML=''; el.classList.toggle('on',filtered());
+  if(!filtered()) return;
+  activeTags.forEach(t=>{const c=document.createElement('span');c.className='chip';c.textContent=t+' ✕';
+    c.addEventListener('click',()=>toggleTag(t));el.appendChild(c)});
+  if(query){const c=document.createElement('span');c.className='chip';c.textContent='“'+query+'” ✕';
+    c.addEventListener('click',()=>{query='';$('fq').value='';render()});el.appendChild(c)}
+  const n=document.createElement('span'); n.className='shown';
+  n.textContent=CARDS.filter(cardVisible).length+' of '+CARDS.length; el.appendChild(n);
+}
+$('filterBtn').addEventListener('click',e=>{e.stopPropagation();
+  const pop=$('filterPop');
+  if(pop.classList.contains('on')){pop.classList.remove('on');return}
+  $('fq').value=query; drawFilter(); place(pop,e.currentTarget); setTimeout(()=>$('fq').focus(),10)});
+function drawFilter(){
+  const raw=$('fq').value.trim(), q=raw.toLowerCase();
+  const list=$('fTags'); list.innerHTML='';
+  const hits=TAGS.filter(t=>t.toLowerCase().includes(q));
+  if(!hits.length) list.innerHTML='<div class="lab">no tag matches</div>';
+  hits.forEach(t=>{const n=CARDS.filter(c=>c.tags.includes(t)).length;
+    const b=document.createElement('button'); b.textContent=(activeTags.has(t)?'✓ ':'')+t+'  ·  '+n;
+    b.addEventListener('click',ev=>{ev.stopPropagation();toggleTag(t);drawFilter()});list.appendChild(b)});
+  const ft=$('fText'); ft.innerHTML='';
+  if(raw){const b=document.createElement('button'); b.textContent='Filter text for “'+raw+'”';
+    b.addEventListener('click',ev=>{ev.stopPropagation();query=q;render();$('filterPop').classList.remove('on')});
+    ft.appendChild(b)}
+  else ft.innerHTML='<div class="lab">or type any text to search the note</div>';
+}
+$('fq').addEventListener('input',drawFilter);
+$('fq').addEventListener('keydown',e=>{e.stopPropagation();
+  if(e.key==='Enter'){e.preventDefault();const q=$('fq').value.trim().toLowerCase();if(!q)return;
+    const hit=TAGS.find(t=>t.toLowerCase()===q)||TAGS.filter(t=>t.toLowerCase().includes(q))[0];
+    if(hit)toggleTag(hit);else{query=q;render()} $('filterPop').classList.remove('on')}
+  if(e.key==='Escape')$('filterPop').classList.remove('on')});
 
 function openTagPop(btn,card){
   const pop=$('tagPop');
@@ -796,12 +981,13 @@ function openTagPop(btn,card){
   i.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Escape')pop.classList.remove('on')});
   draw(); place(pop,btn); setTimeout(()=>i.focus(),10);
 }
-function place(pop,btn){[$('collPop'),$('tagPop')].forEach(p=>p.classList.remove('on'));
+function place(pop,btn){POPS().forEach(p=>p.classList.remove('on'));
   const r=btn.getBoundingClientRect();
   pop.style.left=Math.min(r.left,window.innerWidth-260)+'px';
   pop.style.top=(r.bottom+6)+'px'; setTimeout(()=>pop.classList.add('on'),0)}
-[$('collPop'),$('tagPop')].forEach(p=>p.addEventListener('click',e=>e.stopPropagation()));
-document.addEventListener('click',()=>[$('collPop'),$('tagPop')].forEach(p=>p.classList.remove('on')));
+const POPS=()=>[$('collPop'),$('tagPop'),$('filterPop'),$('cardMenu')];
+POPS().forEach(p=>p.addEventListener('click',e=>e.stopPropagation()));
+document.addEventListener('click',()=>POPS().forEach(p=>p.classList.remove('on')));
 
 function walk(node,depth,out){node.kids.forEach(k=>{out.push({name:k.name,depth});walk(k,depth+1,out)});return out}
 $('libBtn').addEventListener('click',e=>{e.stopPropagation();
