@@ -26,6 +26,9 @@ h2.sec{font-size:var(--t-base);margin:var(--s-2xl) 0 var(--s-sm)}
 .opt{display:block;background:var(--bg);border:1px solid var(--bd);border-radius:.75rem;
   padding:var(--s-md) var(--s-lg);text-decoration:none;color:inherit;margin-bottom:var(--s-sm)}
 .opt:hover{border-color:var(--accent-bd);box-shadow:0 2px 14px #068ef114}
+.opt.pick{border:1.5px solid var(--accent);box-shadow:0 2px 14px #068ef114;margin-bottom:var(--s-xl)}
+.opt.pick h3{color:var(--accent-emph)}
+.opt .go{display:inline-block;margin-top:var(--s-sm);font-size:var(--t-xs);font-weight:500;color:var(--accent-emph)}
 .opt .top{display:flex;gap:var(--s-sm);align-items:baseline;flex-wrap:wrap}
 .opt h3{font-size:var(--t-base);font-weight:600}
 .cost{font-family:var(--mono);font-size:var(--t-2xs);border-radius:625rem;padding:1px .45rem;white-space:nowrap}
@@ -54,7 +57,26 @@ footer b{color:var(--fg);font-weight:500}
   from and what it costs to produce</b>, because at twenty sources a result set that is cheap and one
   that is not are different products.</p>
 
-  <h2 class="sec">The five</h2>
+  <a class="opt pick" href="option-4-flag.html">
+    <div class="top"><h3>Chosen · 4, plus a one-click flag</h3><span class="cost zero">one click · optional detail</span></div>
+    <p><b>Option 4 with a way to say we got it wrong.</b> One click on <b>⚑ not relevant</b> records
+    it and is finished. Everything after that is optional: five reasons you can tap, a free-text
+    box, or nothing at all. The card says <em>already recorded either way</em>, and there is an undo
+    at every step.</p>
+    <p>The pairing matters. Because the card already showed you the <em>passage</em> it picked, a
+    bare “no” is not a vague thumbs-down — it says <em>that passage did not justify this paper for
+    my question</em>, against a known query, rank, sub-query and quote. The record is specific
+    before the user types anything, which is what makes one click enough.</p>
+    <div class="samp">query&nbsp; “What are the open questions in CRISPR off-ta…”<br>
+      paper&nbsp; <b>Huang 2022</b> · rank #12 · from search 3 of 3<br>
+      shown as why&nbsp; “compares viral and lipid nanoparticle delivery for in vivo…”<br>
+      verdict&nbsp; <b>not relevant</b> · Not about my question · “I meant off-target detection, not delivery”</div>
+    <div class="tr"><span class="l">for</span><span class="up">One click is the whole requirement; detail is opt-in and never blocks. Separates <em>right paper, wrong quote</em> from a retrieval mistake, which are fixed in different places.</span>
+      <span class="l">against</span><span class="dn">A flag inside a hover card needs a grace period so the card survives the mouse travel, and hover is a poor home for anything on touch.</span></div>
+    <span class="go">Open →</span>
+  </a>
+
+  <h2 class="sec">The five it came from</h2>
 
   <a class="opt" href="option-1-assembled.html">
     <div class="top"><h3>1 · Assembled</h3><span class="cost zero">zero extra compute</span></div>
@@ -106,7 +128,7 @@ footer b{color:var(--fg);font-weight:500}
   </a>
 
   <footer>
-    <b>If you want one:</b> ship <b>4</b>, and fall back to <b>1</b> where no passage scored well.
+    <b>Decided:</b> <b>4</b>, with a fallback to <b>1</b> where no passage scored well.
     It is free, it cannot be wrong, it shows evidence rather than a summary of evidence, and it needs
     no new pipeline stage. <b>2</b> is the one to test against it if the quote turns out to read
     badly at a glance; it is the cheapest way to get language that sounds like an explanation.
