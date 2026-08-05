@@ -85,7 +85,12 @@ body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(
 .pane-hd{padding:var(--s-sm) var(--s-md);border-bottom:1px solid var(--bd);flex:none;display:flex;align-items:center;gap:var(--s-xs)}
 .pane-hd b{font-size:var(--t-sm)}
 .pane-hd .c{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
-.pane-hd .x{margin-left:auto;background:none;border:0;color:var(--muted);cursor:pointer;font-size:var(--t-sm);padding:2px}
+/* filing sits on the note's own line; the row below is only for working with it */
+.filebtn{margin-left:auto;font-family:inherit;font-size:var(--t-2xs);border:1px solid var(--paper-bd);
+  background:#fff;color:var(--muted);border-radius:625rem;padding:3px var(--s-xs);cursor:pointer;
+  white-space:nowrap;max-width:9.5rem;overflow:hidden;text-overflow:ellipsis}
+.filebtn:hover{border-color:var(--accent-bd);color:var(--accent-emph)}
+.pane-hd .x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:var(--t-sm);padding:2px}
 .pane-hd .x:hover{color:var(--fg)}
 .pbody{flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column;padding:var(--s-xs)}
 
@@ -358,13 +363,13 @@ body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--acc
 
       <aside class="pane" id="notesPane">
         <div class="pane-hd"><b>🗒 Note</b><span class="c" id="nSub">empty</span>
+          <button class="filebtn" id="libBtn">＋ Library</button>
           <button class="x" id="closeNotes">✕</button></div>
         <div class="notetop">
           <div class="prov">from this thread · <b>CRISPR Off Target Effects</b></div>
           <div class="tools">
             <button class="btn primary" id="askNote">💬 Ask <span class="n" id="askN">0</span></button>
             <button class="btn" id="filterBtn">Filter ▾</button>
-            <button class="btn" id="libBtn">＋ My Library</button>
           </div>
           <div class="chips" id="chips"></div>
           <div class="composer" id="composer">
@@ -876,7 +881,7 @@ function render(){
     a.appendChild(f); host.appendChild(a); fit(ta);
   });
   const s=noteSrcs(), as=askSrcs();
-  $('nSub').textContent=CARDS.length?CARDS.length+(CARDS.length===1?' card · ':' cards · ')+s.length+(s.length===1?' source':' sources'):'empty';
+  $('nSub').textContent=CARDS.length?CARDS.length+(CARDS.length===1?' card':' cards'):'empty';
   $('tnCount').textContent=CARDS.length;
   $('askN').textContent=as.length+(filtered()?' of '+s.length:'');
   $('askNote').disabled=!as.length;
@@ -885,7 +890,8 @@ function render(){
               :'The cards matching '+filterLabel()+' carry no sources';
   renderChips();
   $('libBtn').style.visibility=CARDS.length?'visible':'hidden';
-  $('libBtn').textContent=savedTo?'⊞ in '+savedTo:'＋ My Library';
+  $('libBtn').textContent=savedTo?'⊞ '+savedTo:'＋ Library';
+  $('libBtn').title=savedTo?'Saved to My Library / '+savedTo:'Add this note to a collection in My Library';
   $('tail').classList.toggle('quiet',CARDS.length>0);
   $('tail').textContent=CARDS.length?'':'Nothing here yet.\nDrag references in, or type above.';
   $('hint').textContent=CARDS.length?'Ask attaches your note as scope — sources only, and nothing new is retrieved.'
