@@ -152,8 +152,15 @@ ok('Notes is closed after landing in the chat',
 await p.click('#tNotes'); await p.waitForTimeout(300);
 await p.click('#noteSwitch'); await p.waitForTimeout(250);
 const sw=await p.evaluate(()=>[...document.querySelectorAll('#cardMenu button')].map(b=>b.textContent));
-ok('the switcher lists both notes and offers a new one',
-  sw.length===3 && /New note/.test(sw[2]), JSON.stringify(sw));
+/* landing from a comparison starts a fresh note rather than silently picking
+   one of the two that were attached */
+ok('the active note is blank, not one of the compared ones',
+  await p.evaluate(()=>CARDS.length===0) && /✓ .*0 cards/.test(sw.join('|')), JSON.stringify(sw));
+ok('and the header shows no count for it',
+  !/cards/.test(await p.evaluate(()=>document.getElementById('nsFrom').textContent)),
+  await p.evaluate(()=>document.getElementById('nsFrom').textContent));
+ok('the switcher lists every note and offers a new one',
+  sw.length===4 && /New note/.test(sw[3]), JSON.stringify(sw));
 await p.evaluate(()=>[...document.querySelectorAll('#cardMenu button')][1].click());
 await p.waitForTimeout(350);
 ok('switching changes which note you write into',

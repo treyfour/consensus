@@ -8,7 +8,7 @@
 --accent:#068ef1;--accent-emph:#006fce;--accent-muted:#dfeeff;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
 --bg:#fff;--mist:#fafafa;--faint:#f4f4f5;--subtle:#e4e4e7;
 --fg:#18181b;--muted:#71717b;--bd:#e4e4e7;--bd-emph:#d4d4d8;
---pos:#148d74;--pos-bg:#eefaf6;--warn:#a65f00;--warn-bg:#fdf6e7;--paper:#fffcf0;--paper-bd:#ece0bd;
+--pos:#148d74;--pos-bg:#eefaf6;--warn:#a65f00;--warn-bg:#fdf6e7;--paper:#fdfcf8;--paper-bd:#e9e5da;
 --r-xs:.25rem;--r-sm:.5rem;--r-md:.75rem;--r-lg:1rem;
 --s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;--s-3xl:2.5rem;
 --t-2xs:.69rem;--t-xs:.81rem;--t-sm:.94rem;--t-base:1rem;--t-lg:1.13rem;--h-md:1.6rem;
@@ -65,8 +65,9 @@ body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(
 .thinking i{width:5px;height:5px;border-radius:625rem;background:var(--accent);display:inline-block;animation:pulse 1s infinite}
 .thinking i:nth-child(2){animation-delay:.16s}.thinking i:nth-child(3){animation-delay:.32s}
 @keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
-.ask{border-top:1px solid var(--bd);padding:var(--s-sm) var(--s-2xl);background:var(--mist);flex:none}
-.ask .box{background:var(--bg);border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-xs) var(--s-sm);max-width:38rem}
+.ask{border-top:1px solid var(--bd);padding:var(--s-sm) var(--s-2xl) var(--s-md);background:var(--mist);flex:none}
+.askwrap{max-width:46rem;margin:0 auto}
+.ask .box{background:var(--bg);border:1px solid var(--bd);border-radius:625rem;padding:var(--s-xs) var(--s-sm) var(--s-xs) var(--s-md)}
 .ask.scoped .box{border-color:var(--accent-bd);box-shadow:0 0 0 3px var(--accent-subtle)}
 .attachrow{display:none;align-items:center;gap:var(--s-xs);flex-wrap:wrap;margin-bottom:var(--s-xs)}
 .ask.scoped .attachrow{display:flex}
@@ -85,7 +86,7 @@ body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(
 .blank b{font-size:var(--t-lg);color:var(--fg);font-weight:600;letter-spacing:-.01em}
 .blank span{font-family:var(--mono);font-size:var(--t-2xs);line-height:1.8}
 .send:hover{background:var(--accent-emph)}
-.hintline{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs);max-width:40rem;line-height:1.6}
+.hintline{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-xs);line-height:1.6;text-align:center}
 
 .pane{display:flex;flex-direction:column;min-height:0;overflow:hidden;position:relative;border-left:1px solid var(--bd)}
 .pane-hd{padding:var(--s-sm) var(--s-md);border-bottom:1px solid var(--bd);flex:none;display:flex;align-items:center;gap:var(--s-xs)}
@@ -223,8 +224,8 @@ body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--acc
 .why .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);letter-spacing:.06em;display:block}
 .why q{display:block;font-size:var(--t-xs);line-height:1.6;margin-top:var(--s-2xs);font-style:normal}
 .why .tagline{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);display:block;margin-top:var(--s-2xs)}
-/* the two things you actually do to a paper you have just been shown */
-.rowacts{display:flex;gap:var(--s-2xs);margin-top:var(--s-sm)}
+/* the two things you actually do to a paper, at the foot of the card */
+.rowacts{display:flex;gap:var(--s-2xs);margin-top:var(--s-sm);border-top:1px solid var(--bd);padding-top:var(--s-sm)}
 .mini{font-family:inherit;font-size:var(--t-2xs);border:1px solid var(--bd);background:#fff;color:var(--fg);
   border-radius:var(--r-sm);padding:5px var(--s-xs);cursor:pointer;flex:1}
 .mini:hover{border-color:var(--accent-bd);color:var(--accent-emph);background:var(--accent-subtle)}
@@ -369,6 +370,7 @@ body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--acc
           <button class="tgl on" id="tRefs">References <span class="n" id="trCount">6</span></button></div>
         <main class="thread" id="thread"></main>
         <div class="ask" id="ask">
+          <div class="askwrap">
           <div class="box">
             <div class="attachrow"><span class="attach"><span id="attLab"></span><span class="x" id="attX">✕</span></span></div>
             <div class="line"><input placeholder="Search 32.8M papers…" id="askInput">
@@ -376,6 +378,7 @@ body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--acc
               <button class="send" id="sendBtn">Search ↩</button></div>
           </div>
           <div class="hintline" id="hint"></div>
+          </div>
         </div>
       </div>
 
@@ -745,10 +748,10 @@ function showWhy(i,el,side){
     /* the explanation is the paper's own words, so it cannot be wrong about itself */
     '<div class="why"><span class="k">WHY THIS PAPER</span><q>'+esc(p.passage)+'</q>'+
     '<span class="tagline">the closest of '+p.q+' matching lines · found by “'+esc(SUBQ[p.sub].s)+'”</span></div>'+
-    '<div class="rowacts"><button class="mini" id="whyAsk">💬 Ask</button>'+
-    '<button class="mini" id="whyKeep">＋ Add to note</button></div>'+
     '<div class="miss"><button class="open" id="missBtn">not what you needed?</button>'+
-    '<div class="goals" id="goals"></div><div class="sug" id="sug"></div></div>';
+    '<div class="goals" id="goals"></div><div class="sug" id="sug"></div></div>'+
+    '<div class="rowacts"><button class="mini" id="whyAsk">💬 Ask</button>'+
+    '<button class="mini" id="whyKeep">＋ Add to note</button></div>';
   $('whyAsk').addEventListener('click',()=>{hideWhy(true);attach(1,[i],P[i].n)});
   $('whyKeep').addEventListener('click',()=>{hideWhy(true);dropSources([i],null)});
   const g=$('goals');
@@ -1054,7 +1057,18 @@ function openTagPop(btn,card){
   const n=document.createElement('div');
   pop.append(i,l,sep,n); pop._i=i; pop._l=l; pop._n=n;
   i.addEventListener('input',draw);
-  i.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Escape')pop.classList.remove('on')});
+  i.addEventListener('keydown',e=>{
+    e.stopPropagation();
+    if(e.key==='Escape'){pop.classList.remove('on');return}
+    if(e.key!=='Enter') return;
+    e.preventDefault();
+    const v=i.value.trim(); if(!v) return;
+    /* Enter finishes the thought — an exact tag toggles, anything else is new */
+    const hit=TAGS.find(t=>t.toLowerCase()===v.toLowerCase());
+    if(hit){if(!card.tags.includes(hit))card.tags.push(hit)}
+    else{TAGS.push(v);card.tags.push(v)}
+    pop.classList.remove('on'); render(); toast('Tagged “'+(hit||v)+'”');
+  });
   draw(); place(pop,btn); setTimeout(()=>i.focus(),10);
 }
 function place(pop,btn){POPS().forEach(p=>p.classList.remove('on'));
@@ -1218,6 +1232,11 @@ function askNotes(){
   QUERIES=[{q:q,title:'',refs:srcs.map((p,k)=>({p,rank:k+1})),paras:[],
     funnel:'from your notes · nothing retrieved'}];
   activeQ=0; showRefs=true; layout(); renderRefs();
+  /* the two compared notes are attached to the question, not being written into —
+     so the panel opens on a fresh note rather than silently picking one of them */
+  const fresh={id:'n'+(NOTES.length+1),thread:$('threadName').textContent,cards:[],coll:''};
+  NOTES.push(fresh); activeNote=fresh.id; CARDS=fresh.cards; savedTo=null;
+  activeTags.clear(); query=''; render();
   toast('Both notes are attached. Ask anything else and it stays inside them.');
 }
 /* one generator, so the comparison reads the same wherever it lands */
