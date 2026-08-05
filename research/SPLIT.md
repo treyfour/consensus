@@ -349,3 +349,65 @@ thread was never divided.
 **Verification:** 26 assertions in `/tmp` drive script — scroll-bound source swapping in both
 directions, break creation from three entry points, non-destructive removal, section naming
 from corpus vocabulary, the composer carry-state, and citation click-through. Console clean.
+
+---
+
+## 8. The fence was a solved problem — rejected, with the reason
+
+Round-by-round this went: option-25 branching → option-28 sections → options 29–33, five
+weights of a retrieval-scope fence. **All of it is rejected.** The reason is not taste.
+
+**Consensus already holds sources inside the chat as you chat, and that already tells you
+what you are searching against.** From the ledger, both verified:
+
+| Claim | Status | Proof |
+|---|---|---|
+| References are per-query, with an "All cited papers" union | **Verified** | `screens/05`, `06`, `07` |
+
+Per-query References *is* the scope display. Every turn already carries the set it drew on,
+sitting beside the answer it produced. The fence was built to answer "am I searching all 24
+references or just the ones I picked?" — and the product answers that continuously, for
+every turn, without being asked.
+
+So the five options were five ways of announcing a fact already on screen. AF's measured
+failure (§7a's successor: it cannot speak until an answer exists) turns out to be the least
+of the problems; the others speak fine, about something the interface was already saying.
+
+### The part that should have caught this earlier
+
+`HANDOFF.md` §4 already lists this territory as rejected:
+
+> | "Add a working set / thread-level paper list" | **Already shipped** as References → All cited papers |
+
+A scope fence is a working set with a boundary drawn round it. Four prototypes and five
+options later, that is the same idea wearing a different word. The rejects list existed
+precisely to stop this and it did not, because "fence" did not look like "working set" until
+someone said the obvious thing about how the product already behaves.
+
+**Lesson worth keeping:** when a direction requires the interface to *tell* the researcher
+something, check first whether the interface is already *showing* it. Announcing is what you
+reach for when you have forgotten to look.
+
+### What survives from this track
+
+| Finding | Still true |
+|---|---|
+| Seam detection does not work at this corpus size — paper overlap 0.50–1.00, word overlap 0.00–0.09, and the real seam scores worse than a false one | Yes. Independent of the fence |
+| A split silently rewrites recurrence denominators, and nobody asked it to | Yes. Still the hard argument against auto-splitting |
+| The recurrence-dot convention breaks past ~5 turns; the fraction has to carry the fact | Yes. A real regression in our own convention |
+| The note becomes the collection that holds both halves (§1) | Yes, and untested by this rejection |
+| A thread can be branched without creating an orphan (`option-25`) | Yes, but now unmotivated — nothing has shown why a researcher wants to |
+
+### The verified gap that is actually still open
+
+One row of the ledger describes something the product does *not* do:
+
+> | The union carries no origin, rank or recurrence per paper | **Verified** | `screens/07` |
+
+Per-query References tells you what each turn searched. **All cited papers** flattens the
+thread into one list and drops where each paper came from, how it ranked, and how often it
+recurred. That is a real absence, verified with a screenshot, and it is the opposite of the
+fence: not a boundary to draw, but provenance to restore in a view that already exists.
+
+Nothing here should be built until that is decided, because every prototype in §7 and §8
+started from an assumed problem rather than a verified one.
