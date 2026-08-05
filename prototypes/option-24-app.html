@@ -40,6 +40,10 @@ body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(
 .tgl:hover{border-color:var(--bd-emph);color:var(--fg)}
 .tgl.on{background:var(--accent-subtle);border-color:var(--accent-bd);color:var(--accent-emph)}
 .tgl.drop{background:var(--accent);border-color:var(--accent);color:#fff}
+.tgl.fresh{border-color:var(--accent-bd);color:var(--accent-emph)}
+.tgl.fresh .badge{font-family:var(--mono);font-size:var(--t-2xs);background:var(--accent);color:#fff;
+  border-radius:625rem;padding:0 var(--s-2xs);margin-left:2px;animation:nudge 2.4s ease-in-out 3}
+@keyframes nudge{0%,100%{transform:none}8%{transform:translateY(-2px)}16%{transform:none}}
 .tgl .n{font-family:var(--mono);font-size:var(--t-2xs)}
 .thread{flex:1;overflow-y:auto;padding:var(--s-xl) var(--s-2xl)}
 .q{background:var(--accent-subtle);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);font-size:var(--t-sm);max-width:26rem;margin-left:auto}
@@ -129,10 +133,10 @@ body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(
 .chip{font-family:var(--mono);font-size:var(--t-2xs);border:1px solid var(--accent-bd);background:var(--accent-subtle);
   color:var(--accent-emph);border-radius:625rem;padding:0 var(--s-xs);cursor:pointer;white-space:nowrap}
 .chips .shown{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-left:auto}
-.composer{margin-top:var(--s-sm);background:#fff;border:1px dashed var(--paper-bd);border-radius:var(--r-md);padding:var(--s-xs) var(--s-sm)}
+.composer{margin-top:var(--s-xs);margin-bottom:var(--s-sm);background:#fff;border:1px dashed var(--paper-bd);border-radius:var(--r-md);padding:var(--s-xs) var(--s-sm)}
 .composer.armed,.composer.over{border-style:solid;border-color:var(--accent-bd);box-shadow:0 0 0 3px var(--accent-subtle)}
 .composer.over{border-color:var(--accent)}
-.composer textarea{width:100%;border:0;outline:0;resize:none;font-family:inherit;font-size:var(--t-xs);line-height:1.5;background:transparent;color:var(--fg);overflow:hidden}
+.composer textarea{width:100%;min-height:1.35rem;border:0;outline:0;resize:none;font-family:inherit;font-size:var(--t-xs);line-height:1.5;background:transparent;color:var(--fg);overflow:hidden}
 .composer textarea::placeholder{color:#b5b0a0}
 .composer .hint{display:none;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs)}
 .composer.armed .hint{display:block}
@@ -150,7 +154,7 @@ body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(
 .card.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 .card.sel .chk{background:var(--accent);border-color:var(--accent);box-shadow:inset 0 0 0 2px #fff}
 .cbody{flex:1;min-width:0}
-.card textarea{width:100%;border:0;outline:0;resize:none;font-family:inherit;font-size:var(--t-xs);line-height:1.5;background:transparent;color:var(--fg);overflow:hidden;padding:1px 0}
+.card textarea{width:100%;min-height:1.35rem;border:0;outline:0;resize:none;font-family:inherit;font-size:var(--t-xs);line-height:1.5;background:transparent;color:var(--fg);overflow:hidden;padding:1px 0}
 .card textarea::placeholder{color:#b5b0a0}
 .pins{display:flex;flex-direction:column;gap:2px;margin-top:var(--s-xs)}
 .pin{display:flex;gap:var(--s-2xs);align-items:baseline;font-size:var(--t-2xs);line-height:1.35;background:var(--faint);border-radius:var(--r-xs);padding:2px var(--s-2xs)}
@@ -278,7 +282,7 @@ body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--acc
     <div class="screen on" id="threadScreen">
       <div class="mid">
         <div class="thread-hd"><span class="t" id="threadName">CRISPR Off Target Effects</span>
-          <button class="tgl on" id="tNotes">🗒 Notes <span class="n" id="tnCount">0</span></button>
+          <button class="tgl fresh" id="tNotes">🗒 Notes <span class="n" id="tnCount">0</span><span class="badge">new</span></button>
           <button class="tgl on" id="tRefs">References <span class="n" id="trCount">6</span></button></div>
         <main class="thread" id="thread"></main>
         <div class="ask" id="ask">
@@ -301,6 +305,11 @@ body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--acc
           <button class="x" id="closeNotes" title="Close Notes">✕</button></div>
         <div class="notetop">
           <div class="prov">from this thread · <b>CRISPR Off Target Effects</b></div>
+          <div class="composer" id="composer">
+            <textarea id="cText" rows="1" placeholder="Write a note, or drag sources in…"></textarea>
+            <div class="pins" id="cPins"></div>
+            <div class="hint">⏎ save to the note · ⇧⏎ new line</div>
+          </div>
           <div class="band">
             <div class="tools">
               <div class="r">
@@ -319,11 +328,6 @@ body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--acc
             </div>
           </div>
           <div class="chips" id="chips"></div>
-          <div class="composer" id="composer">
-            <textarea id="cText" rows="1" placeholder="Type a thought, or drag sources in…"></textarea>
-            <div class="pins" id="cPins"></div>
-            <div class="hint">⏎ save to the note · ⇧⏎ new line</div>
-          </div>
         </div>
         <div class="pane-body" id="notesBody">
           <div id="noteList"></div>
@@ -361,6 +365,7 @@ body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--acc
 
 <div class="peek" id="peek"></div>
 <div class="pop" id="collPop"></div>
+<div class="pop" id="tagPop"></div>
 <div class="pop" id="filterPop">
   <input id="fq" placeholder="Type to filter, or find a tag…">
   <div class="lab">TAGS</div><div id="fTags"></div>
@@ -415,15 +420,23 @@ let QUERIES=[], CARDS=[], seq=1, sel=new Set(), drag=null, anchor=null, staged=[
 const $=id=>document.getElementById(id);
 const noteList=$('noteList'), notesBody=$('notesBody'), tail=$('tail'), composer=$('composer'),
       cText=$('cText'), cPins=$('cPins'), refsBody=$('refsBody'), bar=$('bar'), ask=$('ask'),
-      ghost=$('ghost'), peek=$('peek'), collPop=$('collPop'), filterPop=$('filterPop'),
+      ghost=$('ghost'), peek=$('peek'), collPop=$('collPop'), filterPop=$('filterPop'), tagPop=$('tagPop'),
       notesPane=$('notesPane'), refsPane=$('refsPane'), threadEl=$('thread'), selbar=$('selbar');
 const line=document.createElement('div'); line.className='dropline';
-function fit(t){t.style.height='auto';t.style.height=t.scrollHeight+'px'}
+/* measuring inside a hidden pane yields 0, which would leave the field invisible
+   once the pane opens — so never size below one line */
+function fit(t){t.style.height='auto';t.style.height=Math.max(t.scrollHeight,21)+'px'}
+function refit(){fit(cText);notesPane.querySelectorAll('#noteList textarea').forEach(fit)}
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');
   clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2600)}
 const byId=id=>CARDS.find(c=>c.id===id);
 function allSrcs(ids){const s=new Set();ids.forEach(id=>{const c=byId(id);if(c)c.srcs.forEach(i=>s.add(i))});return [...s]}
 const noteSrcs=()=>allSrcs(CARDS.map(c=>c.id));
+const filtered=()=>!!(activeTags.size||query);
+/* a filter is a way of asking part of a note, so Ask follows the filter */
+const askCards=()=>filtered()?CARDS.filter(visible):CARDS;
+const askSrcs=()=>allSrcs(askCards().map(c=>c.id));
+const filterLabel=()=>[...activeTags].concat(query?['“'+query+'”']:[]).join(' + ');
 
 /* recurrence is not a property of a paper — it is how many of YOUR searches returned it */
 function recurrence(i){return QUERIES.filter(q=>q.refs.some(r=>r.p===i)).length}
@@ -456,9 +469,11 @@ function layout(){
   notesPane.style.display=showNotes?'':'none';
   refsPane.style.display=showRefs?'':'none';
   $('tNotes').classList.toggle('on',showNotes);
+  if(showNotes){seen();requestAnimationFrame(refit)}
   $('tRefs').classList.toggle('on',showRefs);
 }
-$('tNotes').addEventListener('click',()=>{showNotes=!showNotes;layout()});
+$('tNotes').addEventListener('click',()=>{showNotes=!showNotes;seen();layout()});
+function seen(){$('tNotes').classList.remove('fresh');const b=$('tNotes').querySelector('.badge');if(b)b.remove()}
 $('tRefs').addEventListener('click',()=>{showRefs=!showRefs;layout()});
 $('closeNotes').addEventListener('click',()=>{showNotes=false;layout()});
 $('closeRefs').addEventListener('click',()=>{showRefs=false;layout()});
@@ -477,9 +492,11 @@ function runSearch(text){
   const scored=P.map((p,i)=>({i,s:p.k.reduce((a,k)=>a+(q.includes(k)?3:0),0)
     +(p.t.toLowerCase().split(/\W+/).filter(w=>w.length>4&&q.includes(w)).length)}));
   let hits=scored.filter(x=>x.s>0).sort((a,b)=>b.s-a.s);
-  if(hits.length<2){ /* nothing matched strongly: fall back to the whole corpus, ranked by citations */
-    const extra=scored.filter(x=>!hits.some(h=>h.i===x.i)).sort((a,b)=>a.i-b.i);
-    hits=hits.concat(extra).slice(0,4);
+  if(hits.length<3){
+    /* weak match: top up from the rest of the corpus, rotated by the query so two
+       different questions do not come back with the same four papers in the same order */
+    const rest=scored.filter(x=>!hits.some(h=>h.i===x.i));
+    hits=hits.concat(rotate(rest,q.length)).slice(0,4);
   }
   const refs=hits.map((h,k)=>({p:h.i,rank:k+1}));
   const top=refs.slice(0,3).map(r=>r.p);
@@ -543,23 +560,36 @@ function submit(){
   },700);
 }
 function answerScoped(text){
-  const srcs=noteSrcs(), n=srcs.length;
+  const srcs=rotate(askSrcs(),text.length), n=srcs.length;
   const t=document.createElement('div'); t.className='turn';
   const mark=document.createElement('div'); mark.className='scoped-mark';
-  mark.textContent='answered within your note · '+n+(n===1?' source':' sources')+' · no new retrieval'+
+  mark.textContent='answered within your note · '+n+(n===1?' source':' sources')+
+    (filtered()?' · filtered by '+filterLabel():'')+' · no new retrieval'+
     (inclNotes?' · your notes included':'');
   t.appendChild(mark);
   const a=document.createElement('div'); a.className='ans';
-  const names=srcs.map(i=>'[['+i+']]');
-  a.innerHTML='<div class="aTitle">'+esc(titleFor(text))+'</div>'+
-    '<p>Working only from what you kept: '+names.join(' ')+'.</p>'+
-    (n>1?'<p>'+names[0]+' and '+names[1]+' do not agree on scope, which is the tension worth writing down.</p>':'')+
-    '<p>Nothing outside your note was retrieved for this answer.</p>';
+  const N=srcs.map(i=>'[['+i+']]');
+  /* every paragraph reaches for a different paper, so nothing reads duplicated */
+  const body=[];
+  body.push('Working only from what you kept: '+N.join(', ').replace(/, ([^,]*)$/,' and $1')+'.');
+  if(n>=2) body.push(N[0]+' and '+N[1]+' are the closest pair here, and the gap between them is where the '+
+    'interesting question sits.');
+  if(n>=3) body.push(N[2]+' comes at it from a different direction, and neither of the first two engages '+
+    'with that framing.');
+  if(n>=4) body.push(N[3]+' is the outlier: it is in your note, but it does not speak to this question '+
+    'directly. Worth deciding whether it belongs here.');
+  if(n>=5) body.push('The remaining '+(n-4)+(n-4===1?' source adds':' sources add')+' weight rather than a '+
+    'new position: '+N.slice(4).join(', ')+'.');
+  if(n===1) body.push(N[0]+' is the only source attached, so this answer is one paper deep. Add a second '+
+    'before you rely on it.');
+  body.push('Nothing outside your note was retrieved for this answer.');
+  a.innerHTML='<div class="aTitle">'+esc(titleFor(text))+'</div>'+body.map(x=>'<p>'+x+'</p>').join('');
   a.innerHTML=fillCites(a.innerHTML);
   t.appendChild(a); threadEl.appendChild(t); wireCites(t);
   inclNotes=false;
 }
 const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const rotate=(arr,by)=>arr.length?arr.slice(by%arr.length).concat(arr.slice(0,by%arr.length)):arr;
 function fillCites(html){
   return html.replace(/\[\[(\d+)\]\]/g,(_,i)=>'<span class="cite" data-p="'+i+'">'+P[+i].n.toUpperCase()+'</span>');
 }
@@ -736,8 +766,7 @@ function render(){
     c.tags.forEach(t=>{const s=document.createElement('span');s.className='tag on';s.textContent=t;
       s.addEventListener('click',e=>{e.stopPropagation();toggleTag(t)});f.appendChild(s)});
     const add=document.createElement('span'); add.className='tag add'; add.textContent='＋ tag';
-    add.addEventListener('click',e=>{e.stopPropagation();
-      const t=TAGS.find(x=>!c.tags.includes(x)); if(t){c.tags.push(t);render()}else toast('All tags used on this card')});
+    add.addEventListener('click',e=>{e.stopPropagation();openTagPop(add,c)});
     f.appendChild(add);
     if(c.coll){const s=document.createElement('span');s.className='inColl';s.textContent='⊞ '+c.coll;f.appendChild(s)}
     b.appendChild(f);
@@ -749,8 +778,13 @@ function render(){
     ? CARDS.length+(CARDS.length===1?' card · ':' cards · ')+s.length+(s.length===1?' source':' sources')
     : 'empty';
   $('tnCount').textContent=CARDS.length;
-  $('askN').textContent=s.length;
-  $('askNote').disabled=!s.length;
+  const as=askSrcs(), nc=askCards().length;
+  /* filtering is how you ask part of a note, so the count says which part */
+  $('askN').textContent=as.length+(filtered()?' of '+s.length:'');
+  $('askNote').disabled=!as.length;
+  $('askNote').title=!filtered() ? 'Ask everything in this note'
+    : as.length ? 'Ask the '+nc+(nc===1?' card':' cards')+' tagged '+filterLabel()
+                : 'The '+nc+(nc===1?' card':' cards')+' matching '+filterLabel()+' carry no sources';
   $('libBtn').style.visibility=CARDS.length?'visible':'hidden';
   tail.classList.toggle('quiet',CARDS.length>0);
   tail.textContent=CARDS.length?'':'Nothing here yet.\nDrag references in, or type a thought above.';
@@ -785,7 +819,7 @@ $('aColl').addEventListener('click',e=>{e.stopPropagation();openLibPop(e.current
 
 /* ── filter ────────────────────────────────────────────────────── */
 function openPop(pop,btn){
-  [collPop,filterPop].forEach(p=>p.classList.remove('on'));
+  [collPop,filterPop,tagPop].forEach(p=>p.classList.remove('on'));
   const r=btn.getBoundingClientRect();
   pop.style.left=Math.min(r.left,window.innerWidth-260)+'px';
   pop.style.top=(r.bottom+6)+'px';
@@ -825,8 +859,56 @@ $('fq').addEventListener('keydown',e=>{
     filterPop.classList.remove('on')}
   if(e.key==='Escape') filterPop.classList.remove('on');
 });
-[collPop,filterPop].forEach(p=>p.addEventListener('click',e=>e.stopPropagation()));
-document.addEventListener('click',()=>[collPop,filterPop].forEach(p=>p.classList.remove('on')));
+[collPop,filterPop,tagPop].forEach(p=>p.addEventListener('click',e=>e.stopPropagation()));
+document.addEventListener('click',()=>[collPop,filterPop,tagPop].forEach(p=>p.classList.remove('on')));
+
+/* ── tagging: type a new one, or pick one you already use ──────── */
+function openTagPop(btn,card){
+  const draw=()=>{
+    const raw=tagPop._i.value.trim(), q=raw.toLowerCase();
+    tagPop._list.innerHTML='';
+    const hits=TAGS.filter(t=>t.toLowerCase().includes(q));
+    hits.forEach(t=>{
+      const on=card.tags.includes(t);
+      const b=document.createElement('button'); b.className=on?'sel':'';
+      b.innerHTML='<span class="nm"></span><span class="c"></span>';
+      b.querySelector('.nm').textContent=t;
+      b.querySelector('.c').textContent=on?'✓':CARDS.filter(x=>x.tags.includes(t)).length;
+      b.addEventListener('click',ev=>{ev.stopPropagation();
+        card.tags=on?card.tags.filter(x=>x!==t):card.tags.concat(t);
+        render(); draw();});
+      tagPop._list.appendChild(b);
+    });
+    tagPop._new.innerHTML='';
+    if(raw&&!TAGS.some(t=>t.toLowerCase()===q)){
+      const b=document.createElement('button'); b.innerHTML='<span class="nm"></span>';
+      b.querySelector('.nm').textContent='＋ create “'+raw+'”';
+      b.addEventListener('click',ev=>{ev.stopPropagation();createTag(raw,card);});
+      tagPop._new.appendChild(b);
+    } else if(!hits.length) tagPop._new.innerHTML='<div class="none">type to create a tag</div>';
+  };
+  tagPop.innerHTML='';
+  const i=document.createElement('input'); i.placeholder='Type a tag, or pick one…';
+  const lab=document.createElement('div'); lab.className='lab'; lab.textContent='YOUR TAGS';
+  const list=document.createElement('div'), sep=document.createElement('div'); sep.className='sep';
+  const nw=document.createElement('div');
+  tagPop.append(i,lab,list,sep,nw);
+  tagPop._i=i; tagPop._list=list; tagPop._new=nw;
+  i.addEventListener('input',draw);
+  i.addEventListener('keydown',ev=>{ev.stopPropagation();
+    if(ev.key==='Enter'){ev.preventDefault();
+      const v=i.value.trim(); if(!v) return;
+      const hit=TAGS.find(t=>t.toLowerCase()===v.toLowerCase());
+      if(hit){if(!card.tags.includes(hit))card.tags.push(hit);render();tagPop.classList.remove('on')}
+      else createTag(v,card);}
+    if(ev.key==='Escape') tagPop.classList.remove('on');});
+  draw(); openPop(tagPop,btn); setTimeout(()=>i.focus(),10);
+}
+function createTag(name,card){
+  if(!TAGS.includes(name)) TAGS.push(name);
+  if(!card.tags.includes(name)) card.tags.push(name);
+  tagPop.classList.remove('on'); render(); toast('Tagged “'+name+'”');
+}
 
 /* ── ask / attach ──────────────────────────────────────────────── */
 function attach(n,c){
@@ -845,7 +927,8 @@ $('inclNotes').addEventListener('click',()=>{inclNotes=!inclNotes;drawAttach();
   toast(inclNotes?'Your written notes are part of the question now':'Sources only — your notes stay private')});
 $('attX').addEventListener('click',()=>{ask.classList.remove('scoped');inclNotes=false;
   $('sendBtn').textContent='Search ↩'});
-$('askNote').addEventListener('click',()=>attach(noteSrcs().length,CARDS.filter(c=>c.text.trim()).length));
+$('askNote').addEventListener('click',()=>
+  attach(askSrcs().length,askCards().filter(c=>c.text.trim()).length));
 
 /* ── composer ──────────────────────────────────────────────────── */
 function pinRow(i,onRem){
@@ -1079,7 +1162,7 @@ function boot(){
   QUERIES=[JSON.parse(JSON.stringify(Q0))]; CARDS=[]; seq=1; sel.clear(); staged=[];
   savedTo=null; path=[]; tab='notes'; activeQ=0; inclNotes=false;
   activeTags.clear(); query=''; freshSet=new Set();
-  showNotes=true; showRefs=true;
+  showNotes=false; showRefs=true;
   ask.classList.remove('scoped'); $('askInput').value=''; $('sendBtn').textContent='Search ↩';
   cText.value=''; drawStaged(); composer.classList.remove('armed');
   showScreen('thread'); layout(); renderThread(); renderRefs(); render(); fit(cText);
