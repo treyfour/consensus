@@ -272,3 +272,80 @@ Two things Track C found that Track B should not have to rediscover:
 one that is about noticing, and noticing is the part of the problem the researcher cannot do
 for themselves. `option-25`'s branch is a primitive the merged design needs anyway;
 `option-27` is an argument, and arguments belong in the deck rather than in the build.
+
+---
+
+## 7. Sections — the break you scroll through (`option-28-sections.html`)
+
+Added after review. The branch idea (§3, `option-25`) was judged interesting but wrong at the
+gesture: it asks the researcher to decide that a thread should divide, when what they
+actually want is *a visual signal that they are starting something new*. This prototype keeps
+the whole thread in one scroll and draws **breaks** through it. Nothing moves, nothing is
+copied, nothing becomes an orphan — because nothing is separated.
+
+**The mechanic.** References is bound to scroll position. Scroll past a break and the panel
+re-derives for the section you are now reading: different ordering, different weights, its
+own recurrence denominator (`4 of 5 turns here`, not `4 of 11`). A `whole thread` scope is one
+click away. The map along the top is every section at once, sized by turn count.
+
+**Three ways to draw a break, and the reason for each.**
+
+| Gesture | Why a researcher reaches for it |
+|---|---|
+| `⊹ Start a new section` in the composer | The composer states what it is carrying — `carrying §2 · 5 turns · 6 sources` — and switching flips it to `starting clean · nothing carried`. The reason is **scope**, not tidiness |
+| `⊹ start a new section from here` on any answer | The recovery gesture. The answer went somewhere wrong and you want out of that context without losing it |
+| The composer nudge | See below |
+
+### 7a. Automatic seam detection was built, measured, and removed
+
+`option-26` proposes seams in the thread. Measured over this eleven-turn thread, **neither
+available signal can find one**:
+
+| Signal | Scores across all ten boundaries | Verdict |
+|---|---|---|
+| Paper overlap (3-turn windows, Jaccard) | 0.50 – 1.00 | The real subject change scores **0.67**; a false boundary scores **0.50**. It proposes the wrong cut |
+| Question-word overlap | 0.00 – 0.09 | Every boundary looks like a seam, because every question uses different vocabulary |
+
+One signal says the whole thread is one thing. The other says every turn is its own thing.
+Neither finds the seam a reader sees in about two seconds. The cause is corpus size: with six
+papers, nearly every turn touches nearly every paper, so the paper signal has no variance
+left to spend.
+
+So `option-28` **does not propose breaks in the thread at all.** The scores stay computed in
+the source as the evidence for not doing it.
+
+**What survived:** the same overlap signal, moved to the one moment where being wrong is
+cheap. As you type a question, the composer compares it to the section you are in; if it
+shares nothing, a quiet chip offers `nothing in common with §2 — new section?`. You are
+already choosing at that instant, so a wrong hint costs a glance rather than a restructured
+thread. This is the narrow version of `option-26`'s idea, and it is the only version the
+measurement supports.
+
+### 7b. "New source" and "carried forward" are vacuous at this corpus size
+
+The first build marked each source in a section as new or carried. Both were dead labels: all
+six papers appear in every section, so nothing is ever new and everything is always carried.
+
+What genuinely differs is **how hard a section leans on a paper**, and that changes a lot —
+§1 rests on Höijer and Kalter, §2 on Angelini Stewart and Huang, from the same six. So the
+flags became weight (`this section leans on it most`, `touched once here`) and the break
+states the shift directly: *now leans on Angelini Stewart, Huang · was Höijer, Kalter*.
+
+Worth carrying into the merge: a real corpus would make new-vs-carried meaningful again, so
+this is a finding about **the prototype's corpus**, not about the idea. Do not delete the
+concept on this evidence — delete the label until there is a corpus that can support it.
+
+### 7c. Where this leaves Tracks B and C
+
+`option-28` is the reconciliation §6 asked for, built rather than described. A break is Track
+B's section heading and Track C's cut **at the same time**, and the difference between them
+turns out to be nothing but whether the turns stay in one scroll. Keeping them in one scroll
+costs nothing and removes every hard problem the split created: no duplicated root turn, no
+rewritten recurrence denominators, no note to triage, no orphan to prevent.
+
+The note question (§1) does not even arise here. The note stays thread-scoped, because the
+thread was never divided.
+
+**Verification:** 26 assertions in `/tmp` drive script — scroll-bound source swapping in both
+directions, break creation from three entry points, non-destructive removal, section naming
+from corpus vocabulary, the composer carry-state, and citation click-through. Console clean.
