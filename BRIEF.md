@@ -65,3 +65,22 @@ Two or three **clickable** HTML prototypes in `prototypes/`, each answering one 
 each with the trade-off written down. Add them to `prototypes/index.html` newest-first, and
 record what you learned — especially anything that *failed* — because the rejects have been
 more useful than the picks in every round so far.
+
+---
+
+## Running this worktree
+
+Serve the prototypes on **port 4601** so the three explorations do not collide:
+
+```
+cd .claude/worktrees/relevance/prototypes && python3 -m http.server 4601
+```
+
+Screenshot and smoke-test without fighting over the shared MCP browser profile:
+
+```
+node scripts/shot.mjs http://localhost:4601/option-N.html out.png --full
+```
+
+It exits non-zero and prints the message if the page threw or logged a console
+error, so it is worth running after every change, not just for pictures.
