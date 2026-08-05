@@ -73,11 +73,16 @@ instead of clicking. Before any claim goes in the deck, it belongs in one of the
 - **Live: https://consensus-kappa.vercel.app**
 - Five prototypes + index: `prototypes/option-{1..5}-*.html`, `prototypes/index.html`
 - Journey diagram: `prototypes/journey.html` (includes the brief's scope and scoring)
-- Research: `AUDIT.md`, `COMPETITIVE.md`, `BUILD.md`, `PLAN.md`, `LOOP.md`, `RELEVANCE.md`, this file
-- Track A (`explore/relevance`): round 17 `option-25-carry.html`, `option-26-gap.html`;
-  **round 18 `option-27-why.html`, `option-28-recourse.html`** — per-source “why this one”
-  and recourse when it is wrong. Reasoning for all four in `RELEVANCE.md`; round 18 is the
-  one to read
+- Research: `AUDIT.md`, `COMPETITIVE.md`, `BUILD.md`, `PLAN.md`, `LOOP.md`, `RELEVANCE.md`,
+  `TRACK-A-MERGE.md`, this file
+- **Track A (`explore/relevance`) is finished — see `TRACK-A-MERGE.md` for what it concluded
+  and how to merge it.** Rounds 17–20: `option-25-carry.html`, `option-26-gap.html`,
+  `option-27-why.html`, `option-28-recourse.html`, then `prototypes/why/` (five sources for a
+  per-source “why”, priced by compute) and `prototypes/redirect/` (four ways to turn a miss
+  into a better search). The recommendation is
+  `prototypes/redirect/redirect-1-ask-the-goal.html`; reasoning in `RELEVANCE.md`.
+  **All three tracks used `option-25`–`option-28` independently, so the numbers stop meaning
+  anything once merged — `TRACK-A-MERGE.md` §4 lays out the three ways to resolve it.**
 - Design tokens: `research/cdl-tokens.css` (145 `--cdl-*`, both themes, from the live DOM)
 - 20+ screenshots in `research/screens/`
 
