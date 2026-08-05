@@ -236,7 +236,16 @@ body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--acc
 .why .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);letter-spacing:.06em;display:block}
 .why q{display:block;font-size:var(--t-xs);line-height:1.6;margin-top:var(--s-2xs);font-style:normal}
 .why .tagline{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);display:block;margin-top:var(--s-2xs)}
-.miss{margin-top:var(--s-sm);border-top:1px dashed var(--bd);padding-top:var(--s-xs)}
+/* the two things you actually do to a paper you have just been shown */
+.rowacts{display:flex;gap:var(--s-2xs);margin-top:var(--s-sm)}
+.mini{font-family:inherit;font-size:var(--t-2xs);border:1px solid var(--bd);background:#fff;color:var(--fg);
+  border-radius:var(--r-sm);padding:5px var(--s-xs);cursor:pointer;flex:1}
+.mini:hover{border-color:var(--accent-bd);color:var(--accent-emph);background:var(--accent-subtle)}
+.card.merge{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-muted)}
+.dropline{height:0;border-top:2px solid var(--accent);border-radius:2px;margin:calc(var(--s-sm) * -1 + 1px) 0 var(--s-sm);position:relative}
+.dropline::after{content:'here';position:absolute;right:0;top:-.55rem;background:var(--accent);color:#fff;
+  font-family:var(--mono);font-size:var(--t-2xs);border-radius:625rem;padding:0 var(--s-xs)}
+.miss{margin-top:var(--s-xs);border-top:1px dashed var(--bd);padding-top:var(--s-xs)}
 .miss .open{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);background:none;border:0;cursor:pointer;padding:0;text-decoration:underline}
 .miss .open:hover{color:var(--accent-emph)}
 .goals{display:none;flex-direction:column;gap:var(--s-2xs);margin-top:var(--s-xs)}
@@ -514,16 +523,16 @@ const GOALS=[
  {l:"Something else…",q:null}];
 const TAGS=["ch.3","gap?","methods","to ask","read next"];
 /* two collections, one layer deep — a picker you can finish in one click */
-const LIB={name:"My Library",kids:[
- {name:"Chapter 3 · detection",kids:[]},
- {name:"Unsorted",kids:[]}]};
+/* one collection, already holding one note, so filing is a single click and
+   there is immediately something to compare against */
+const LIB={name:"My Library",kids:[{name:"CRISPR off-target effects",kids:[]}]};
 /* one note already exists, from an earlier thread, so there is something to
    compare against and something to switch to */
 let NOTES=[
  {id:'n1',thread:'CRISPR Off Target Effects',cards:[],coll:''},
- {id:'n2',thread:'Post-delivery monitoring in vivo',coll:'Chapter 3 · detection',
-  cards:[{id:101,text:"Vehicle decides the tissue, tissue decides what you can even monitor.",srcs:[5,4],tags:["methods"],coll:'Chapter 3 · detection'},
-         {id:102,text:"The clinical framework assumes the measurement is settled. It is not.",srcs:[4,3],tags:["gap?","to ask"],coll:'Chapter 3 · detection'}]}];
+ {id:'n2',thread:'Post-delivery monitoring in vivo',coll:'CRISPR off-target effects',
+  cards:[{id:101,text:"Vehicle decides the tissue, tissue decides what you can even monitor.",srcs:[5,4],tags:["methods"],coll:'CRISPR off-target effects'},
+         {id:102,text:"The clinical framework assumes the measurement is settled. It is not.",srcs:[4,3],tags:["gap?","to ask"],coll:'CRISPR off-target effects'}]}];
 let activeNote='n1';
 
 const $=id=>document.getElementById(id);
@@ -532,6 +541,7 @@ function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');
   clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2800)}
 
 let dragCard=null;
+const dropline=document.createElement('div'); dropline.className='dropline';
 /* the demo starts on an empty thread so the search itself can be shown */
 const SCRIPT=[
  "What are the open questions in CRISPR off-target effects for in vivo therapies?",
@@ -541,7 +551,7 @@ let scriptAt=0;
 let QUERIES=[], CARDS=[], seq=1, activeQ=0, freshSet=new Set(),
     selRef=new Set(), anchor=null, drag=null, staged=[], savedTo=null,
     showNotes=false, showRefs=true, screen='thread',
-    coll=null, tab='notes', selNotes=new Set(), openNote=null, compare=null, askedQ='';
+    coll=null, tab='notes', selNotes=new Set(), openNote=null, askedQ='';
 
 /* ══ recurrence is counted from the searches you actually ran ══════════ */
 const recurrence=i=>QUERIES.filter(q=>q.refs.some(r=>r.p===i)).length;
@@ -731,8 +741,12 @@ function showWhy(i,el,side){
     /* the explanation is the paper's own words, so it cannot be wrong about itself */
     '<div class="why"><span class="k">WHY THIS PAPER</span><q>'+esc(p.passage)+'</q>'+
     '<span class="tagline">the closest of '+p.q+' matching lines · found by “'+esc(SUBQ[p.sub].s)+'”</span></div>'+
+    '<div class="rowacts"><button class="mini" id="whyAsk">💬 Ask this paper</button>'+
+    '<button class="mini" id="whyKeep">🗒 Keep it</button></div>'+
     '<div class="miss"><button class="open" id="missBtn">not what you needed?</button>'+
     '<div class="goals" id="goals"></div><div class="sug" id="sug"></div></div>';
+  $('whyAsk').addEventListener('click',()=>{hideWhy(true);attach(1,[i],P[i].n)});
+  $('whyKeep').addEventListener('click',()=>{hideWhy(true);dropSources([i],null)});
   const g=$('goals');
   g.innerHTML='<span class="lab">what were you hoping to find?</span>';
   GOALS.forEach(go=>{const b=document.createElement('button');b.className='goal';b.textContent=go.l;
@@ -818,7 +832,7 @@ function syncInNote(){const s=noteSrcs();
 $('barClr').addEventListener('click',clearRefSel);
 $('barAdd').addEventListener('click',()=>{dropSources([...selRef],null);clearRefSel()});
 $('barAsk').addEventListener('click',()=>{attach(selRef.size);clearRefSel()});
-function endDrag(){drag=null;document.body.classList.remove('dragging');
+function endDrag(){drag=null;document.body.classList.remove('dragging');dropline.remove();
   document.querySelectorAll('.ghosting').forEach(x=>x.classList.remove('ghosting'));
   $('composer').classList.remove('over');$('tail').classList.remove('over');$('tNotes').classList.remove('drop')}
 
@@ -843,7 +857,7 @@ $('cText').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.pre
 /* Dropping is a complete act. Two sources dropped are two cards, because they
    are two things — a note about them is optional and offered afterwards, not
    demanded before. Dropping ONTO a card stacks into that card instead. */
-function dropSources(idxs,targetId){
+function dropSources(idxs,targetId,atIndex){
   const made=[];
   if(targetId!=null){
     const c=CARDS.find(x=>x.id===targetId);
@@ -851,15 +865,22 @@ function dropSources(idxs,targetId){
     c.srcs.push(...added); render();
     const el=$('noteList').querySelector('[data-id="'+targetId+'"]');
     if(el){el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1000)}
-    dropPop(added.length?added.length+(added.length===1?' source':' sources')+' stacked onto this card'
-                        :'already on this card',[targetId]);
+    const m=added.length?added.length+(added.length===1?' source':' sources')+' stacked onto this card'
+                        :'already on this card';
+    if(showNotes) toast(m); else dropPop(m,[targetId]);
     return;
   }
-  idxs.forEach(i=>{const c={id:seq++,text:'',srcs:[i],tags:[],coll:savedTo||''};CARDS.unshift(c);made.push(c.id)});
+  /* a drop lands where you dropped it; only a drop with no position — onto the
+     closed Notes button, or from the References bar — goes to the top */
+  const at=(atIndex==null?0:atIndex);
+  idxs.forEach((i,k)=>{const c={id:seq++,text:'',srcs:[i],tags:[],coll:savedTo||''};
+    CARDS.splice(at+k,0,c); made.push(c.id)});
   render();
   made.forEach(id=>{const el=$('noteList').querySelector('[data-id="'+id+'"]');
     if(el){el.classList.add('land');setTimeout(()=>el.classList.remove('land'),420)}});
-  dropPop(made.length+(made.length===1?' card added':' cards added — one per source'),made);
+  /* the confirmation exists only for drops you cannot see land */
+  const msg=made.length+(made.length===1?' card added':' cards added — one per source');
+  if(showNotes) toast(msg); else dropPop(msg,made);
 }
 /* the popup is the whole confirmation: it does not steal focus and it does not
    open the panel, because a drag is not a request to start writing */
@@ -883,8 +904,15 @@ function dropPop(msg,ids){
 function cardUnder(y){
   const els=[...$('noteList').querySelectorAll('.card')];
   for(const el of els){const r=el.getBoundingClientRect();
-    if(y>=r.top&&y<=r.bottom) return +el.dataset.id}
+    /* middle band stacks; the top and bottom thirds insert beside */
+    if(y>=r.top+r.height*0.28&&y<=r.bottom-r.height*0.28) return +el.dataset.id}
   return null;
+}
+function indexAt(y){
+  const els=[...$('noteList').querySelectorAll('.card')];
+  for(let k=0;k<els.length;k++){const r=els[k].getBoundingClientRect();
+    if(y<r.top+r.height/2) return k}
+  return els.length;
 }
 /* the composer still stages, because typing first is a different intention */
 $('composer').addEventListener('dragover',e=>{if(drag){e.preventDefault();e.stopPropagation();$('composer').classList.add('over')}});
@@ -894,13 +922,18 @@ $('composer').addEventListener('drop',e=>{if(!drag)return;e.preventDefault();e.s
 $('notesBody').addEventListener('dragover',e=>{if(!drag)return;e.preventDefault();
   const id=cardUnder(e.clientY);
   $('noteList').querySelectorAll('.card').forEach(el=>el.classList.toggle('merge',+el.dataset.id===id));
-  $('tail').classList.toggle('over',id==null)});
+  $('tail').classList.toggle('over',id==null&&!CARDS.length);
+  dropline.remove();
+  if(id==null&&CARDS.length){const els=[...$('noteList').querySelectorAll('.card')], at=indexAt(e.clientY);
+    at>=els.length?$('noteList').appendChild(dropline):$('noteList').insertBefore(dropline,els[at])}});
 $('notesBody').addEventListener('dragleave',e=>{if(!$('notesBody').contains(e.relatedTarget)){
-  $('tail').classList.remove('over');$('noteList').querySelectorAll('.merge').forEach(e=>e.classList.remove('merge'))}});
+  $('tail').classList.remove('over'); dropline.remove();
+  $('noteList').querySelectorAll('.merge').forEach(e=>e.classList.remove('merge'))}});
 $('notesBody').addEventListener('drop',e=>{if(!drag)return;e.preventDefault();
-  const id=cardUnder(e.clientY);
-  $('tail').classList.remove('over');$('noteList').querySelectorAll('.merge').forEach(e=>e.classList.remove('merge'));
-  dropSources(drag.slice(),id); clearRefSel()});
+  const id=cardUnder(e.clientY), at=indexAt(e.clientY);
+  $('tail').classList.remove('over'); dropline.remove();
+  $('noteList').querySelectorAll('.merge').forEach(e=>e.classList.remove('merge'));
+  dropSources(drag.slice(),id,id==null?at:null); clearRefSel()});
 
 function render(){
   const host=$('noteList'); host.innerHTML='';
@@ -1083,7 +1116,7 @@ function renderLib(){
   walk(LIB,0,[]).forEach(k=>{const b=document.createElement('button');
     b.className='coll'+(k.depth?' sub':'')+(coll===k.name?' on':'');
     b.textContent=(k.depth?'↳ ':'📁 ')+k.name;
-    b.addEventListener('click',()=>{coll=k.name;selNotes.clear();openNote=null;compare=null;renderLib()});
+    b.addEventListener('click',()=>{coll=k.name;selNotes.clear();openNote=null;renderLib()});
     tree.appendChild(b)});
   const body=$('libBody'), tw=$('tabsWrap'); body.innerHTML=''; tw.innerHTML='';
   if(!coll){$('libTitle').textContent='My Library';
@@ -1096,7 +1129,6 @@ function renderLib(){
   $('tallies').textContent=notes.length+(notes.length===1?' thread · ':' threads · ')+
     srcs.length+(srcs.length===1?' source · ':' sources · ')+cards+(cards===1?' note card':' note cards');
   if(openNote){drawNoteView(body,notes);syncNoteBar();return}
-  if(compare){drawCompare(body,notes);syncNoteBar();return}
   const bar=document.createElement('div'); bar.className='tabs';
   [['threads','Threads',notes.length],['sources','Sources',srcs.length],['notes','Notes',cards]]
    .forEach(([k,l,n])=>{const b=document.createElement('button');b.className='tab'+(tab===k?' on':'');
@@ -1165,35 +1197,76 @@ function drawNoteView(body,notes){
     a.appendChild(ft); wrap.appendChild(a)});
   body.appendChild(wrap);
 }
-function drawCompare(body,notes){
-  const picked=notes.filter(n=>compare.includes(n.key));
-  const wrap=document.createElement('div'); wrap.className='cmp';
-  const b=document.createElement('button'); b.className='back'; b.textContent='← '+coll+' · Notes';
-  b.addEventListener('click',()=>{compare=null;askedQ='';renderLib()});
-  wrap.appendChild(b);
-  if(askedQ){const q=document.createElement('div');q.className='askedq';q.textContent=askedQ;wrap.appendChild(q)}
+function syncNoteBar(){
+  const notes=coll?notesInColl():[];
+  const picked=notes.filter(n=>selNotes.has(n.key));
+  const cards=picked.reduce((a,n)=>a+n.cards.length,0);
+  const srcs=[...new Set(picked.flatMap(srcsOfNote))];
+  $('noteCount').textContent='📎 '+picked.length+(picked.length===1?' note · ':' notes · ')+
+    cards+' cards · '+srcs.length+(srcs.length===1?' source':' sources');
+  $('nAsk').placeholder=picked.length>1?'Ask across these '+picked.length+' notes…':'Ask this note…';
+  $('notebar').classList.toggle('on',screen==='lib'&&picked.length>0&&!openNote);
+}
+$('nClr').addEventListener('click',()=>{selNotes.clear();renderLib()});
+/* sending from My Library leaves My Library. Two notes become an attachment and
+   the answer arrives in the thread, which is where asking happens. */
+function askNotes(){
+  const keys=[...selNotes]; if(!keys.length)return;
+  const q=$('nAsk').value.trim()||'Where do these lines of enquiry actually disagree?';
+  $('nAsk').value=''; askedQ=q;
+  const notes=notesInColl().filter(n=>keys.includes(n.key));
+  const srcs=[...new Set(notes.flatMap(srcsOfNote))];
+  const cards=notes.reduce((a,n)=>a+n.cards.length,0);
+  selNotes.clear();
+  showScreen('thread');
+  showNotes=false; layout();
+  $('threadName').textContent=notes.map(n=>n.name).join(' + ');
+  QUERIES=[]; renderThread(); renderRefs();
+  const t=document.createElement('div'); t.className='turn';
+  const qd=document.createElement('div'); qd.className='q';
+  const att=document.createElement('span'); att.className='att';
+  att.textContent='📎 '+notes.length+' notes · '+cards+' cards · '+srcs.length+' sources';
+  qd.appendChild(att); qd.appendChild(document.createTextNode(q));
+  t.appendChild(qd);
+  const m=document.createElement('div'); m.className='scoped-mark';
+  m.textContent='answered across '+notes.length+' notes · your own notes included · nothing retrieved';
+  t.appendChild(m);
+  t.appendChild(compareBlock(notes));
+  $('thread').innerHTML=''; $('thread').appendChild(t);
+  /* the references panel becomes the union of what the two notes kept */
+  QUERIES=[{q:q,title:'',refs:srcs.map((p,k)=>({p,rank:k+1})),paras:[],
+    funnel:'from your notes · nothing retrieved'}];
+  activeQ=0; showRefs=true; layout(); renderRefs();
+  toast('Both notes are attached. Ask anything else and it stays inside them.');
+}
+/* one generator, so the comparison reads the same wherever it lands */
+function compareBlock(picked){
+  const wrap=document.createElement('div'); wrap.className='cmp ans';
   const per=picked.map(n=>({n,s:srcsOfNote(n)}));
   const all=[...new Set(per.flatMap(x=>x.s))];
   const shared=all.filter(i=>per.every(x=>x.s.includes(i)));
-  const cards=per.reduce((a,x)=>a+x.n.cards.length,0);
-  const h=document.createElement('h2');
-  h.textContent=shared.length?'Where these two lines of enquiry meet, and where they do not'
-                             :'These two notes share no sources at all';
+  const h=document.createElement('div'); h.className='aTitle';
+  h.textContent=shared.length?'Where these lines of enquiry meet, and where they do not'
+                             :'These notes share no sources at all';
   wrap.appendChild(h);
-  const f=document.createElement('div'); f.className='fun';
-  f.textContent=cards+' cards · '+all.length+' sources · your own notes included · nothing re-retrieved';
-  wrap.appendChild(f);
   if(shared.length){
     const j=document.createElement('div'); j.className='join';
     j.innerHTML='<span class="k">THE JOIN</span><p></p>';
     j.querySelector('p').innerHTML='Both notes kept <b>'+shared.map(i=>P[i].n).join('</b> and <b>')+
       '</b>, and each leans on it for a different claim — which is why the threads were never as separate as their titles made them look.';
     wrap.appendChild(j)}
-  per.forEach((x,k)=>{const c=x.n.cards.find(c=>c.text)||x.n.cards[0];
+  per.forEach((x,k)=>{
+    const c=x.n.cards.find(c=>c.text&&c.text.trim());
     const d=document.createElement('div'); d.className='blk';
-    d.innerHTML='<div class="hd">'+(k?'And in':'You wrote, in')+' <b></b></div><q></q>';
-    d.querySelector('b').textContent=x.n.name;
-    d.querySelector('q').textContent=c?c.text:'(sources only)';
+    d.innerHTML='<div class="hd"></div><q></q>';
+    /* an empty quote would be a lie about what the note contains */
+    d.querySelector('.hd').innerHTML=(c?(k?'And in ':'You wrote, in '):'Nothing written yet in ')+
+      '<b>'+esc(x.n.name)+'</b>';
+    const q=d.querySelector('q');
+    if(c) q.textContent=c.text;
+    else{q.textContent='this note is '+x.s.length+' sources you kept and no words yet — '+
+      'the comparison below is working from the papers alone';
+      q.style.color='var(--muted)'}
     wrap.appendChild(d)});
   const g=document.createElement('div'); g.className='grid2';
   per.forEach(x=>{const only=x.s.filter(i=>!per.some(y=>y.n.key!==x.n.key&&y.s.includes(i)));
@@ -1206,34 +1279,13 @@ function drawCompare(body,notes){
     if(!only.length)ul.innerHTML='<li>nothing exclusive to this note</li>';
     g.appendChild(c)});
   wrap.appendChild(g);
-  /* absence is worth stating either way — a gap you have, or the absence of one */
   const missed=P.map((_,i)=>i).filter(i=>!all.includes(i));
   const m=document.createElement('div'); m.className='gapline';
   m.textContent=missed.length
-    ? 'In the corpus but in neither note: '+missed.map(i=>P[i].n).join(', ')+
-      '. If that work matters to the question, both arguments are incomplete.'
-    : 'Between them these notes cover all '+P.length+' papers this thread retrieved. '+
-      'There is no gap in the corpus — only in what you have written about it.';
+    ? 'In the corpus but in neither note: '+missed.map(i=>P[i].n).join(', ')+'.'
+    : 'Between them these notes cover all '+P.length+' papers this thread retrieved.';
   wrap.appendChild(m);
-  body.appendChild(wrap);
-}
-function syncNoteBar(){
-  const notes=coll?notesInColl():[];
-  const picked=notes.filter(n=>selNotes.has(n.key));
-  const cards=picked.reduce((a,n)=>a+n.cards.length,0);
-  const srcs=[...new Set(picked.flatMap(srcsOfNote))];
-  $('noteCount').textContent='📎 '+picked.length+(picked.length===1?' note · ':' notes · ')+
-    cards+' cards · '+srcs.length+(srcs.length===1?' source':' sources');
-  $('nAsk').placeholder=picked.length>1?'Ask across these '+picked.length+' notes…':'Ask this note…';
-  $('notebar').classList.toggle('on',screen==='lib'&&picked.length>0&&!openNote&&!compare);
-}
-$('nClr').addEventListener('click',()=>{selNotes.clear();renderLib()});
-function askNotes(){
-  const keys=[...selNotes]; if(!keys.length)return;
-  askedQ=$('nAsk').value.trim()||'Where do these lines of enquiry actually disagree?';
-  $('nAsk').value='';
-  if(keys.length<2){toast('📎 attached — sources only, your notes stay private');return}
-  compare=keys; renderLib();
+  return wrap;
 }
 $('nGo').addEventListener('click',askNotes);
 $('nAsk').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();askNotes()}});

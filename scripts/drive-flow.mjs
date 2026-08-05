@@ -86,14 +86,17 @@ console.log('\n10 · file it, then open My Library from where it went');
 await p.evaluate(()=>{activeTags.clear();query='';render()});
 await p.click('#libBtn'); await p.waitForTimeout(300);
 const picker=await p.evaluate(()=>[...document.querySelectorAll('#collPop button')].map(b=>b.textContent.trim()));
-ok('the picker is two collections, one layer deep', picker.length===2, JSON.stringify(picker));
+/* one collection, flat — filing is a click, not a decision */
+ok('the picker is one collection, flat',
+  picker.length===1 && /CRISPR off-target effects/.test(picker[0]), JSON.stringify(picker));
 await p.click('#collPop button'); await p.waitForTimeout(350);
 ok('the header button becomes where it went',
-  /⊞ Chapter 3 · detection/.test(await p.evaluate(()=>document.getElementById('libBtn').textContent)));
+  /⊞ CRISPR off-target effects/.test(await p.evaluate(()=>document.getElementById('libBtn').textContent)),
+  await p.evaluate(()=>document.getElementById('libBtn').textContent));
 await p.click('#libBtn'); await p.waitForTimeout(400);
 ok('and clicking it opens that collection in My Library',
   await p.evaluate(()=>document.getElementById('libScreen').classList.contains('on')
-    && document.getElementById('libTitle').textContent==='Chapter 3 · detection'));
+    && document.getElementById('libTitle').textContent==='CRISPR off-target effects'));
 await shot('pG-4-library.png');
 
 console.log('\n11 · two notes, into a new chat');
@@ -107,12 +110,28 @@ ok('selecting both raises the composer',
   await p.evaluate(()=>document.getElementById('notebar').classList.contains('on')));
 await p.fill('#nAsk','which of these is load bearing');
 await p.keyboard.press('Enter'); await p.waitForTimeout(450);
-ok('and the comparison answers it',
-  await p.evaluate(()=>!!document.querySelector('.join')&&document.querySelectorAll('.blk q').length===2));
+/* the last beat leaves My Library — asking is something that happens in a thread */
+ok('sending lands in the chat', await p.evaluate(()=>
+  document.getElementById('threadScreen').classList.contains('on')
+  && !document.getElementById('libScreen').classList.contains('on')));
+ok('with both notes attached as scope',
+  /2 notes · .* cards · .* sources/.test(await p.evaluate(()=>document.querySelector('#thread .att').textContent)),
+  await p.evaluate(()=>document.querySelector('#thread .att').textContent));
+ok('the question you typed is the turn',
+  /load bearing/.test(await p.evaluate(()=>document.querySelector('#thread .q').textContent)));
+ok('and the comparison is the answer',
+  await p.evaluate(()=>!!document.querySelector('#thread .join')
+    && document.querySelectorAll('#thread .blk q').length===2));
+ok('References becomes what the two notes kept',
+  await p.evaluate(()=>document.querySelectorAll('#refs .row').length>0
+    && /nothing retrieved/.test(document.querySelector('#thread .scoped-mark').textContent)));
 await shot('pG-5-compare.png');
 
 console.log('\nswitching notes');
-await p.click('#backHome'); await p.waitForTimeout(300);
+/* the last beat deliberately leaves Notes closed — the user is just searching */
+ok('Notes is closed after landing in the chat',
+  await p.evaluate(()=>document.getElementById('notesPane').style.display==='none'));
+await p.click('#tNotes'); await p.waitForTimeout(300);
 await p.click('#noteSwitch'); await p.waitForTimeout(250);
 const sw=await p.evaluate(()=>[...document.querySelectorAll('#cardMenu button')].map(b=>b.textContent));
 ok('the switcher lists both notes and offers a new one',
