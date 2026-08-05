@@ -30,13 +30,16 @@ answers two questions: **what do we have**, and **what do we show**.
 | `option-{25-carry, 26-gap}` | Round 17. Good work, wrong question. Y's finding — rank and use come apart at exactly the papers you would skip — is still true and unused | Shelf |
 | `option-{27-why, 28-recourse}` | Round 18. Overbuilt: four-reason panel, contestable reasons | Shelf |
 
-### `explore/thread-structure` (Track B) — closed, one survivor
+### `explore/thread-structure` (Track B) — **not used, ignore**
 
-| File | Status |
-|---|---|
-| `option-25-spine.html` | **Live direction of that track** — navigation for a long thread | Optional exploration |
-| `option-26-open` (agenda) | Alternative shape | Shelf |
-| `option-{27-ticks, 28-sticky, 29-crumb, 30-fold, 31-scope}` | **Rejected.** Sub-threads. The composer already shows the scope, so a rule across the transcript announces what the input field states more plainly and keeps longer | Shelf, marked rejected |
+User's call, 2026-08-04: *"the threadstructure branch i didn't use the work there we can
+ignore that."* The branch stays on the remote as a record and is **not merged**. Nothing
+from it appears in the demo, including `option-25-spine`.
+
+Its one recorded conclusion is still worth knowing, because it is the same conclusion Track
+C reached by a different road: **sub-threads were rejected because the composer already
+shows the scope**, so a rule drawn across the transcript announces what the input field
+states more plainly and holds for longer.
 
 ### `explore/thread-split` (Track C) — closed, no survivors
 
@@ -80,8 +83,9 @@ does not, the note is just a folder.
 
 ### 3a. The filename collision — needs a call
 
-All three tracks independently used `option-25` … `option-28`, and **all three claim
-ROUND 17**. Git will merge cleanly because the suffixes differ, but afterwards there are
+All three tracks independently used `option-25` … `option-28`, and all three claimed
+ROUND 17. With B dropped that is now **two** colliding sets, not three, but the problem is
+unchanged. Git will merge cleanly because the suffixes differ, but afterwards there are
 three different `option-25`s and `option-29` means two different things.
 
 Track A's merge note gives three resolutions and recommends the cheapest: **leave filenames
@@ -97,8 +101,9 @@ before or during the merge.
 
 ### 3c. Merge order
 
-Track A's note: merge B and C first, then A last — A has the heaviest `index.html` churn
-(+167/−4), so resolving it against an already-merged file means resolving once. Conflicts
+Simpler now that B is out. **Merge C first, then A.** C brings no live prototypes — only
+its research findings and a shelf — so it resolves trivially. A is heaviest
+(`index.html` +167/−4) and is resolved once, last, against an already-merged file. Conflicts
 are only `prototypes/index.html` and `research/HANDOFF.md`, and both are purely additive:
 take both sides.
 
