@@ -1,0 +1,1392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The spine</title>
+<style>
+:root{
+--accent:#068ef1;--accent-emph:#006fce;--accent-muted:#dfeeff;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
+--bg:#fff;--mist:#fafafa;--faint:#f4f4f5;--subtle:#e4e4e7;
+--fg:#18181b;--muted:#71717b;--bd:#e4e4e7;--bd-emph:#d4d4d8;
+--pos:#148d74;--pos-bg:#eefaf6;--warn:#a65f00;--paper:#fffcf0;--paper-bd:#ece0bd;
+--r-xs:.25rem;--r-sm:.5rem;--r-md:.75rem;--r-lg:1rem;
+--s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;--s-3xl:2.5rem;
+--t-2xs:.69rem;--t-xs:.81rem;--t-sm:.94rem;--t-base:1rem;--t-lg:1.13rem;--h-sm:1.38rem;--h-md:1.6rem;
+--sans:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+--mono:"Reddit Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--fg);background:var(--bg);font-size:var(--t-base);-webkit-font-smoothing:antialiased;
+  height:100vh;display:flex;flex-direction:column}
+.proto{background:var(--fg);color:#fff;padding:var(--s-xs) var(--s-md);display:flex;gap:var(--s-md);align-items:baseline;font-size:var(--t-xs)}
+.proto b{font-size:var(--t-sm);white-space:nowrap}.proto span{color:#a1a1aa}
+.proto span b{color:#fff;font-size:inherit;white-space:normal}
+.proto .seed{font-family:var(--mono);font-size:var(--t-2xs);background:#ffffff21;border:0;color:#fff;
+  border-radius:625rem;padding:2px var(--s-xs);cursor:pointer;white-space:nowrap}
+.proto .seed:hover{background:#ffffff3d}
+.proto{flex:none}
+.app{display:grid;grid-template-columns:3.25rem 1fr;flex:1;min-height:0;overflow:hidden}
+.app>*{min-height:0}
+.rail{border-right:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;gap:var(--s-xs);padding:var(--s-sm) 0;background:var(--mist)}
+.rail button{width:2.1rem;height:2.1rem;border-radius:var(--r-sm);border:0;background:transparent;cursor:pointer;font-size:var(--t-base);line-height:1;color:var(--muted)}
+.rail button:hover{background:var(--faint);color:var(--fg)}
+.rail button.lit{color:var(--accent-emph);background:var(--accent-subtle)}
+.rail .sep{width:1.5rem;height:1px;background:var(--bd);margin:var(--s-2xs) 0}
+.stage{position:relative;min-height:0;overflow:hidden}
+.screen{position:absolute;inset:0;display:none}
+.screen.on{display:grid}
+#threadScreen>*{min-height:0}
+
+/* ── the spine ─────────────────────────────────────────────────── */
+.mid{display:grid;grid-template-columns:auto 1fr;min-height:0}
+.mid>*{min-height:0}
+.midcol{display:flex;flex-direction:column;min-height:0}
+.spine{width:14.5rem;border-right:1px solid var(--bd);background:var(--mist);display:flex;flex-direction:column;min-height:0}
+.spine.off{display:none}
+.spine-hd{padding:var(--s-sm) var(--s-sm) var(--s-xs);border-bottom:1px solid var(--bd);flex:none}
+.spine-hd .ti{font-size:var(--t-xs);font-weight:500;display:flex;align-items:baseline;gap:var(--s-2xs)}
+.spine-hd .ti .x{margin-left:auto;background:none;border:0;color:var(--muted);cursor:pointer;font-size:var(--t-xs);line-height:1;padding:0 2px}
+.spine-hd .ti .x:hover{color:var(--fg)}
+.spine-hd .st{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:2px}
+.spine-hd .only{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);background:var(--bg);
+  border:1px solid var(--bd);border-radius:625rem;padding:1px var(--s-xs);cursor:pointer;margin-top:var(--s-xs)}
+.spine-hd .only:hover{border-color:var(--bd-emph);color:var(--fg)}
+.spine-hd .only.on{border-color:var(--accent-bd);background:var(--accent-subtle);color:var(--accent-emph)}
+.spine-list{flex:1;overflow-y:auto;padding:var(--s-2xs) var(--s-2xs) var(--s-2xl)}
+.srow{display:grid;grid-template-columns:1.4rem 1fr auto;gap:var(--s-2xs);align-items:baseline;
+  padding:3px var(--s-2xs);border-radius:var(--r-xs);cursor:pointer;border-left:2px solid transparent}
+.srow:hover{background:var(--bg)}
+.srow .no{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.srow .qq{font-size:var(--t-2xs);line-height:1.35;color:var(--muted);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srow .nw{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);white-space:nowrap}
+.srow .nw.none{color:var(--subtle)}
+.srow.fromnote{background:var(--paper)}
+.srow.fromnote .nw{color:var(--warn)}
+.srow .ttl{display:none;grid-column:2/4;font-size:var(--t-2xs);line-height:1.4;color:var(--fg);
+  font-weight:500;margin:2px 0 1px}
+.srow .mm{display:none;grid-column:2/4;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-bottom:2px}
+/* The fisheye follows the *reading position*, never the pointer. An earlier pass
+   expanded on hover too, and expanding row N pushed rows N+1 down — so the row
+   you were aiming at moved out from under the cursor. Hover only highlights. */
+.srow.here{border-left-color:var(--accent);background:var(--accent-subtle)}
+.srow.here .qq{white-space:normal;color:var(--fg)}
+.srow.here .ttl,.srow.here .mm{display:block}
+.srow.here .no{color:var(--accent-emph)}
+.srow:hover .qq{color:var(--fg)}
+.turn.lit{animation:lit 1.4s ease}
+@keyframes lit{0%{background:var(--accent-subtle)}100%{background:transparent}}
+.turn{scroll-margin-top:var(--s-md);border-radius:var(--r-md);padding:var(--s-2xs) var(--s-xs);margin-left:calc(var(--s-xs) * -1)}
+.tno{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-bottom:var(--s-2xs)}
+
+/* ── thread ────────────────────────────────────────────────────── */
+.thread-hd{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-xs) var(--s-md);border-bottom:1px solid var(--bd);background:var(--bg)}
+.thread-hd .t{font-size:var(--t-sm);font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tgl{font-family:inherit;font-size:var(--t-xs);border:1px solid var(--bd);background:var(--bg);color:var(--muted);
+  border-radius:var(--r-sm);padding:var(--s-2xs) var(--s-sm);display:flex;gap:var(--s-2xs);align-items:center;cursor:pointer}
+.tgl:hover{border-color:var(--bd-emph);color:var(--fg)}
+.tgl.on{background:var(--accent-subtle);border-color:var(--accent-bd);color:var(--accent-emph)}
+.tgl.drop{background:var(--accent);border-color:var(--accent);color:#fff}
+.tgl.fresh{border-color:var(--accent-bd);color:var(--accent-emph)}
+.tgl.fresh .badge{font-family:var(--mono);font-size:var(--t-2xs);background:var(--accent);color:#fff;
+  border-radius:625rem;padding:0 var(--s-2xs);margin-left:2px;animation:nudge 2.4s ease-in-out 3}
+@keyframes nudge{0%,100%{transform:none}8%{transform:translateY(-2px)}16%{transform:none}}
+.tgl .n{font-family:var(--mono);font-size:var(--t-2xs)}
+.thread{flex:1;overflow-y:auto;padding:var(--s-xl) var(--s-2xl)}
+.q{background:var(--accent-subtle);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);font-size:var(--t-sm);max-width:26rem;margin-left:auto}
+.q .att{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);display:block;margin-bottom:var(--s-2xs)}
+.funnel{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin:var(--s-lg) 0 var(--s-sm)}
+.scoped-mark{font-family:var(--mono);font-size:var(--t-2xs);color:var(--accent-emph);background:var(--accent-subtle);
+  border:1px solid var(--accent-bd);border-radius:625rem;padding:1px var(--s-xs);display:inline-block;margin:var(--s-lg) 0 var(--s-sm)}
+.aTitle{font-size:var(--t-lg);margin-bottom:var(--s-sm);letter-spacing:-.01em;font-weight:600}
+.turn{margin-bottom:var(--s-2xl)}
+.turn:last-child{margin-bottom:var(--s-md)}
+.ans p{font-size:var(--t-sm);line-height:1.7;margin-bottom:var(--s-md);max-width:40rem}
+.cite{font-family:var(--mono);font-size:var(--t-2xs);background:var(--faint);border-radius:var(--r-xs);padding:1px 5px;cursor:grab}
+.cite:hover{background:var(--accent-subtle);outline:1px solid var(--accent-bd)}
+.thinking{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);display:flex;gap:var(--s-2xs);align-items:center}
+.thinking i{width:5px;height:5px;border-radius:625rem;background:var(--accent);display:inline-block;animation:pulse 1s infinite}
+.thinking i:nth-child(2){animation-delay:.16s}.thinking i:nth-child(3){animation-delay:.32s}
+@keyframes pulse{0%,100%{opacity:.25}50%{opacity:1}}
+
+.peek{position:fixed;z-index:65;width:23rem;background:#fff;border:1px solid var(--bd);border-radius:var(--r-md);
+  box-shadow:0 14px 34px #0000002e;padding:var(--s-sm) var(--s-md);display:none}
+.peek.on{display:block}
+.peek h4{font-size:var(--t-xs);font-weight:500;line-height:1.4}
+.peek .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs)}
+.peek .pv{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-xs)}
+.peek .ab{font-size:var(--t-2xs);line-height:1.55;margin-top:var(--s-xs);border-top:1px solid var(--bd);padding-top:var(--s-xs)}
+.peek .chipz{display:flex;gap:var(--s-2xs);margin-top:var(--s-xs)}
+.peek .ch{font-family:var(--mono);font-size:var(--t-2xs);border:1px solid var(--bd);border-radius:625rem;padding:0 var(--s-xs);color:var(--muted)}
+.peek .ch.ok{color:var(--pos);border-color:#bfe6da;background:var(--pos-bg)}
+
+.ask{border-top:1px solid var(--bd);padding:var(--s-sm) var(--s-2xl);background:var(--mist);flex:none}
+.ask .box{background:var(--bg);border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-xs) var(--s-sm);max-width:40rem}
+.ask.scoped .box{border-color:var(--accent-bd);box-shadow:0 0 0 3px var(--accent-subtle)}
+.attachrow{display:none;align-items:center;gap:var(--s-xs);flex-wrap:wrap;margin-bottom:var(--s-xs)}
+.ask.scoped .attachrow{display:flex}
+.attach{display:flex;align-items:center;gap:var(--s-2xs);font-family:var(--mono);font-size:var(--t-2xs);
+  color:var(--accent-emph);background:var(--accent-subtle);border:1px solid var(--accent-bd);border-radius:625rem;padding:1px var(--s-xs)}
+.attach .x{cursor:pointer;color:var(--muted)}
+.incl{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);background:#fff;border:1px dashed var(--bd-emph);
+  border-radius:625rem;padding:1px var(--s-xs);cursor:pointer;white-space:nowrap}
+.incl:hover{border-color:var(--accent-bd);color:var(--accent-emph)}
+.incl.on{border-style:solid;border-color:var(--paper-bd);background:var(--paper);color:var(--warn)}
+.ask .line{display:flex;gap:var(--s-xs);align-items:center}
+.ask input{flex:1;border:0;outline:0;font-family:inherit;font-size:var(--t-sm);background:transparent}
+.ask input::placeholder{color:var(--muted)}
+.send{font-family:inherit;font-size:var(--t-2xs);border:0;background:var(--accent);color:#fff;border-radius:var(--r-sm);
+  padding:6px var(--s-sm);cursor:pointer;white-space:nowrap}
+.send:hover{background:var(--accent-emph)}
+.send:disabled{opacity:.4;cursor:default}
+.hintline{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs);max-width:40rem}
+
+.pane{display:flex;flex-direction:column;min-height:0;overflow:hidden;position:relative}
+.pane-hd{display:flex;align-items:center;gap:var(--s-xs);padding:var(--s-sm) var(--s-md);border-bottom:1px solid var(--bd);flex:none}
+.pane-hd b{font-size:var(--t-sm)}
+.pane-hd span{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.pane-hd .x{margin-left:auto;background:none;border:0;color:var(--muted);cursor:pointer;font-size:var(--t-sm);line-height:1;padding:2px var(--s-2xs)}
+.pane-hd .x:hover{color:var(--fg)}
+.pane-body{flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column}
+
+#notesPane{border-left:1px solid var(--paper-bd);background:var(--paper)}
+#notesPane .pane-hd{border-color:var(--paper-bd)}
+#notesBody{padding:var(--s-xs) var(--s-sm) var(--s-sm)}
+.notetop{flex:none;border-bottom:1px solid var(--paper-bd);background:var(--paper);padding:var(--s-xs) var(--s-sm) var(--s-sm)}
+.prov{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);line-height:1.5;display:flex;gap:var(--s-2xs);align-items:baseline}
+.prov b{color:var(--fg);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.band{margin-top:var(--s-xs)}
+.tools{display:flex;flex-direction:column;gap:var(--s-2xs)}
+.tools .r{display:flex;gap:var(--s-2xs);align-items:center}
+.btn{font-family:inherit;font-size:var(--t-xs);border:1px solid var(--paper-bd);background:#fff;color:var(--fg);
+  border-radius:var(--r-sm);padding:5px var(--s-xs);cursor:pointer;white-space:nowrap;display:flex;gap:var(--s-2xs);align-items:center;justify-content:center}
+.btn:hover{border-color:var(--accent-bd);color:var(--accent-emph)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;flex:1}
+.btn.primary:hover{background:var(--accent-emph);border-color:var(--accent-emph);color:#fff}
+.btn.primary:disabled{background:#cfe9fb;border-color:#cfe9fb;cursor:default}
+.btn.wide{flex:1}
+.btn .n{font-family:var(--mono);font-size:var(--t-2xs);opacity:.75}
+.selbar{background:var(--fg);color:#fff;border-radius:var(--r-sm);padding:var(--s-xs);margin-top:var(--s-xs);
+  display:none;flex-direction:column;gap:var(--s-xs)}
+.selbar.on{display:flex}
+.selbar .cnt{font-family:var(--mono);font-size:var(--t-2xs);color:#ffffffb3;display:flex;align-items:center;gap:var(--s-2xs)}
+.selbar .cnt .clr{margin-left:auto;color:#fff;cursor:pointer;text-decoration:underline}
+.selbar .row{display:flex;gap:var(--s-2xs);flex-wrap:wrap;align-items:center}
+.selbar button{font-family:inherit;font-size:var(--t-2xs);background:#ffffff21;border:0;color:#fff;border-radius:var(--r-xs);padding:4px var(--s-xs);cursor:pointer;white-space:nowrap}
+.selbar button:hover{background:#ffffff36}
+.selbar button.go{background:var(--accent)}
+.chips{display:none;gap:var(--s-2xs);align-items:center;flex-wrap:wrap;margin-top:var(--s-xs)}
+.chips.on{display:flex}
+.chip{font-family:var(--mono);font-size:var(--t-2xs);border:1px solid var(--accent-bd);background:var(--accent-subtle);
+  color:var(--accent-emph);border-radius:625rem;padding:0 var(--s-xs);cursor:pointer;white-space:nowrap}
+.chips .shown{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-left:auto}
+.composer{margin-top:var(--s-xs);margin-bottom:var(--s-sm);background:#fff;border:1px dashed var(--paper-bd);border-radius:var(--r-md);padding:var(--s-xs) var(--s-sm)}
+.composer.armed,.composer.over{border-style:solid;border-color:var(--accent-bd);box-shadow:0 0 0 3px var(--accent-subtle)}
+.composer.over{border-color:var(--accent)}
+.composer textarea{width:100%;min-height:1.35rem;border:0;outline:0;resize:none;font-family:inherit;font-size:var(--t-xs);line-height:1.5;background:transparent;color:var(--fg);overflow:hidden}
+.composer textarea::placeholder{color:#b5b0a0}
+.composer .hint{display:none;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs)}
+.composer.armed .hint{display:block}
+
+#noteList{flex:none;padding-top:var(--s-sm)}
+.card{background:#fff;border:1px solid var(--paper-bd);border-radius:var(--r-md);margin-bottom:var(--s-sm);
+  box-shadow:0 1px 2px #0000000a;display:flex;gap:var(--s-xs);padding:var(--s-xs) var(--s-sm) var(--s-xs) var(--s-xs);position:relative}
+.card.hidden{display:none}
+.card.land{animation:land .4s cubic-bezier(.2,.9,.3,1)}
+@keyframes land{0%{opacity:0;transform:translateY(-6px) scale(.98)}100%{opacity:1;transform:none}}
+.card.flash{animation:flash 1s ease}
+@keyframes flash{0%{box-shadow:0 0 0 4px var(--accent-muted)}100%{box-shadow:0 1px 2px #0000000a}}
+.chk{flex:none;width:.85rem;height:.85rem;border:1px solid var(--bd-emph);border-radius:625rem;margin-top:.3rem;cursor:pointer;background:#fff}
+.card:hover .chk{border-color:var(--accent-bd)}
+.card.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.card.sel .chk{background:var(--accent);border-color:var(--accent);box-shadow:inset 0 0 0 2px #fff}
+.cbody{flex:1;min-width:0}
+.card textarea{width:100%;min-height:1.35rem;border:0;outline:0;resize:none;font-family:inherit;font-size:var(--t-xs);line-height:1.5;background:transparent;color:var(--fg);overflow:hidden;padding:1px 0}
+.card textarea::placeholder{color:#b5b0a0}
+.pins{display:flex;flex-direction:column;gap:2px;margin-top:var(--s-xs)}
+.pin{display:flex;gap:var(--s-2xs);align-items:baseline;font-size:var(--t-2xs);line-height:1.35;background:var(--faint);border-radius:var(--r-xs);padding:2px var(--s-2xs)}
+.pin b{font-weight:500;white-space:nowrap;flex:none}
+.pin span{color:var(--muted);font-family:var(--mono);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pin .x{margin-left:auto;color:var(--muted);cursor:pointer;opacity:0;font-family:var(--mono);flex:none}
+.pin:hover .x{opacity:1}
+.foot{display:flex;gap:var(--s-2xs);margin-top:var(--s-xs);flex-wrap:wrap;align-items:center}
+.tag{font-family:var(--mono);font-size:var(--t-2xs);border:1px solid var(--bd);border-radius:625rem;padding:0 var(--s-xs);color:var(--muted);background:#fff;cursor:pointer;white-space:nowrap}
+.tag.on{border-color:var(--accent-bd);background:var(--accent-subtle);color:var(--accent-emph)}
+.tag.add{border-style:dashed}
+.inColl{font-family:var(--mono);font-size:var(--t-2xs);color:var(--pos);white-space:nowrap}
+.card.merge{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-muted)}
+.mergeBadge{display:none;position:absolute;top:-.6rem;right:var(--s-xs);background:var(--accent);color:#fff;font-family:var(--mono);font-size:var(--t-2xs);border-radius:625rem;padding:0 var(--s-xs);white-space:nowrap}
+.card.merge .mergeBadge{display:block}
+.dropline{height:0;border-top:2px solid var(--accent);border-radius:2px;margin:calc(var(--s-sm) * -1 + 1px) 0 var(--s-sm);position:relative}
+.dropline::after{content:attr(data-l);position:absolute;right:0;top:-.55rem;background:var(--accent);color:#fff;font-family:var(--mono);font-size:var(--t-2xs);border-radius:625rem;padding:0 var(--s-xs);white-space:nowrap}
+.tail{flex:1;min-height:6rem;border:1.5px dashed var(--paper-bd);border-radius:var(--r-md);display:flex;
+  align-items:center;justify-content:center;text-align:center;font-family:var(--mono);font-size:var(--t-2xs);
+  color:var(--muted);padding:var(--s-md);line-height:1.8;background:#ffffff80}
+.tail.quiet{border:0;background:none;min-height:2rem}
+body.dragging .tail{border:1.5px dashed var(--accent-bd);background:#ffffff80;min-height:6rem}
+.tail.over{border-color:var(--accent);background:var(--accent-subtle);color:var(--accent-emph);border-style:solid}
+body.dragging #notesPane{background:#fffdf5;box-shadow:inset 0 0 0 2px var(--accent-bd)}
+
+#refsPane{border-left:1px solid var(--bd);background:var(--bg)}
+#refsBody{padding:var(--s-xs) var(--s-xs) 5.5rem;display:block}
+.qbar{display:flex;gap:var(--s-2xs);padding:var(--s-xs) var(--s-xs) 0;flex-wrap:wrap;flex:none}
+.qb{font-family:var(--mono);font-size:var(--t-2xs);border:1px solid var(--bd);background:#fff;color:var(--muted);
+  border-radius:625rem;padding:2px var(--s-xs);cursor:pointer;white-space:nowrap}
+.qb:hover{border-color:var(--bd-emph);color:var(--fg)}
+.qb.on{border-color:var(--accent-bd);background:var(--accent-subtle);color:var(--accent-emph)}
+.src{border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-sm);margin-bottom:var(--s-xs);background:var(--bg);
+  position:relative;display:flex;gap:var(--s-xs);align-items:flex-start;cursor:grab;transition:border-color .12s ease,box-shadow .12s ease}
+.src:hover{border-color:var(--bd-emph)}
+.src.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);background:var(--accent-subtle)}
+.src.ghosting{opacity:.35}
+.src.fresh{border-color:var(--accent-bd)}
+.src .chk{margin-top:.15rem}
+.src.sel .chk{background:var(--accent);border-color:var(--accent);box-shadow:inset 0 0 0 2px #fff}
+.src h3{font-size:var(--t-xs);font-weight:500;line-height:1.35;padding-right:2.2rem}
+.src .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs)}
+.src .p{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-xs);display:flex;gap:var(--s-2xs);align-items:center}
+.src .in{font-family:var(--mono);font-size:var(--t-2xs);color:var(--pos);margin-top:var(--s-xs);display:none}
+.src.inNote .in{display:block}
+.src .newtag{position:absolute;top:var(--s-xs);right:var(--s-xs);font-family:var(--mono);font-size:var(--t-2xs);background:var(--accent);color:#fff;border-radius:625rem;padding:0 var(--s-xs);display:none}
+.src.fresh .newtag{display:block}
+.corpusnote{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);line-height:1.5;
+  padding:var(--s-xs) var(--s-xs) 0;flex:none}
+.dots{letter-spacing:-1px;color:var(--accent)}.dots i{color:var(--subtle);font-style:normal}
+.bar{position:absolute;left:var(--s-xs);right:var(--s-xs);bottom:var(--s-xs);z-index:20;background:var(--fg);color:#fff;
+  border-radius:var(--r-md);padding:var(--s-xs);box-shadow:0 10px 28px #0000003d;display:flex;flex-direction:column;gap:var(--s-xs);
+  opacity:0;transform:translateY(120%);transition:opacity .18s ease,transform .22s cubic-bezier(.2,.9,.3,1);pointer-events:none}
+.bar.on{opacity:1;transform:none;pointer-events:auto}
+.bar .cnt{font-family:var(--mono);font-size:var(--t-2xs);color:#ffffffb3;display:flex;align-items:center;gap:var(--s-2xs)}
+.bar .cnt .clr{margin-left:auto;color:#fff;cursor:pointer;text-decoration:underline}
+.bar .row{display:flex;gap:var(--s-2xs);flex-wrap:wrap}
+.bar button{font-family:inherit;font-size:var(--t-2xs);background:#ffffff21;border:0;color:#fff;border-radius:var(--r-xs);padding:4px var(--s-xs);cursor:pointer;white-space:nowrap}
+.bar button:hover{background:#ffffff36}
+.bar button.go{background:var(--accent)}
+
+/* ── library ───────────────────────────────────────────────────── */
+#libScreen{grid-template-columns:1fr;overflow-y:auto}
+.libinner{width:100%;max-width:54rem;margin:0 auto;padding:var(--s-xl) var(--s-2xl) var(--s-3xl)}
+.crumb{display:flex;flex-wrap:wrap;gap:var(--s-2xs);align-items:baseline;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-bottom:var(--s-sm)}
+.crumb a{color:var(--muted);cursor:pointer;text-decoration:none}
+.crumb a:hover{color:var(--accent-emph);text-decoration:underline}
+.crumb a.here{color:var(--fg);cursor:default}
+.libinner h1{font-size:var(--h-md);letter-spacing:-.015em;margin-bottom:var(--s-2xs)}
+.tallies{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-bottom:var(--s-xl)}
+.subs{display:grid;grid-template-columns:repeat(auto-fill,minmax(13rem,1fr));gap:var(--s-xs);margin-bottom:var(--s-2xl)}
+.sub{border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);cursor:pointer;background:var(--bg)}
+.sub:hover{border-color:var(--accent-bd);background:var(--accent-subtle)}
+.sub .n{font-size:var(--t-sm);font-weight:500}
+.sub .c{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs)}
+.tabs{display:flex;gap:var(--s-lg);border-bottom:1px solid var(--bd);align-items:flex-end;margin-bottom:var(--s-lg);flex-wrap:wrap}
+.tab{font-family:inherit;font-size:var(--t-sm);background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);
+  padding:0 0 var(--s-xs);cursor:pointer;display:flex;gap:var(--s-2xs);align-items:baseline;margin-bottom:-1px}
+.tab:hover{color:var(--fg)}
+.tab.on{color:var(--fg);border-bottom-color:var(--accent);font-weight:500}
+.tab .n{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.prev{border:1px solid var(--bd);border-radius:var(--r-md);padding:var(--s-sm) var(--s-md);margin-bottom:var(--s-xs);background:var(--bg)}
+.prev.note{border-color:var(--paper-bd);background:var(--paper)}
+.prev .k{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);letter-spacing:.06em}
+.prev h3{font-size:var(--t-sm);font-weight:500;line-height:1.4;margin-top:2px}
+.prev .m{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);margin-top:var(--s-2xs)}
+.prev .ex{font-size:var(--t-xs);line-height:1.55;margin-top:var(--s-xs);border-left:2px solid var(--paper-bd);padding-left:var(--s-xs)}
+.prev .acts{display:flex;gap:var(--s-2xs);margin-top:var(--s-sm)}
+.prev .acts button{font-family:inherit;font-size:var(--t-2xs);border:1px solid var(--bd);background:#fff;color:var(--fg);border-radius:var(--r-sm);padding:5px var(--s-sm);cursor:pointer}
+.prev .acts button.go{background:var(--accent);border-color:var(--accent);color:#fff}
+.prev .acts button:hover{border-color:var(--accent-bd);color:var(--accent-emph)}
+.prev .acts button.go:hover{background:var(--accent-emph);color:#fff}
+.back{margin-top:var(--s-sm);border-top:1px dashed var(--bd);padding-top:var(--s-xs);font-family:var(--mono);font-size:var(--t-2xs);line-height:1.7;color:var(--muted)}
+.back .why{color:var(--pos);background:var(--pos-bg);border-radius:625rem;padding:0 var(--s-xs);margin-right:var(--s-2xs)}
+
+.pop{position:fixed;z-index:75;background:#fff;border:1px solid var(--bd);border-radius:var(--r-sm);
+  box-shadow:0 12px 30px #00000024;padding:var(--s-2xs);min-width:15rem;display:none}
+.pop.on{display:block}
+.pop .lab{font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);padding:var(--s-2xs) var(--s-xs);line-height:1.5}
+.pop button{display:flex;width:100%;gap:var(--s-xs);align-items:baseline;text-align:left;font-family:inherit;font-size:var(--t-xs);
+  background:none;border:0;color:var(--fg);padding:var(--s-xs);border-radius:var(--r-xs);cursor:pointer}
+.pop button:hover{background:var(--accent-subtle);color:var(--accent-emph)}
+.pop button .c{margin-left:auto;font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted)}
+.pop button.sel .c::before{content:'✓ ';color:var(--accent-emph)}
+.pop .sep{height:1px;background:var(--bd);margin:var(--s-2xs)}
+.pop input{width:100%;border:1px solid var(--bd);border-radius:var(--r-xs);outline:0;font-family:inherit;font-size:var(--t-xs);padding:5px var(--s-xs);margin-bottom:var(--s-2xs)}
+.pop .none{font-size:var(--t-xs);color:var(--muted);padding:var(--s-2xs) var(--s-xs)}
+
+.dragghost{position:fixed;top:-500px;left:-500px;background:var(--fg);color:#fff;border-radius:625rem;padding:var(--s-2xs) var(--s-sm);font-size:var(--t-xs);white-space:nowrap}
+.toast{position:fixed;left:50%;bottom:1.25rem;transform:translate(-50%,180%);z-index:80;background:var(--fg);color:#fff;
+  border-radius:625rem;padding:var(--s-xs) var(--s-md);font-size:var(--t-xs);box-shadow:0 10px 28px #00000040;
+  transition:transform .22s cubic-bezier(.2,.9,.3,1);white-space:nowrap}
+.toast.on{transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div class="proto"><b>The spine</b><span>A twelve-turn thread with an outline down its left edge. Click a row to jump; the row you are reading opens up. Notes and References still work. <b>Six papers are captured from the real thread; the twelve named “Stand-in” are not</b> — six papers cannot make a twelve-turn thread introduce anything after turn one. <b>Only turn 1 has the real funnel and ranks;</b> turns 2 on are run through the same local search the composer runs.</span>
+<button class="seed" id="to12">12 turns</button><button class="seed" id="to15">stress it · 15 turns</button></div>
+
+<div class="app">
+  <nav class="rail">
+    <button title="New thread" id="railNew">＋</button><button title="Home">⌂</button>
+    <button title="My Library" id="railLib">🔖</button><button title="History">⟲</button>
+    <div class="sep"></div><button title="Paper search">🔍</button><button title="Citation Graph">⁂</button>
+  </nav>
+
+  <div class="stage">
+    <div class="screen on" id="threadScreen">
+      <div class="mid">
+        <aside class="spine" id="spine">
+          <div class="spine-hd">
+            <div class="ti">Thread<button class="x" id="closeSpine" title="Hide the spine">✕</button></div>
+            <div class="st" id="spineSub"></div>
+            <button class="only" id="onlyNew">only turns that added sources</button>
+          </div>
+          <div class="spine-list" id="spineList"></div>
+        </aside>
+      <div class="midcol">
+        <div class="thread-hd"><span class="t" id="threadName">CRISPR Off Target Effects</span>
+          <button class="tgl on" id="tSpine">⋮ Spine</button>
+          <button class="tgl fresh" id="tNotes">🗒 Notes <span class="n" id="tnCount">0</span><span class="badge">new</span></button>
+          <button class="tgl on" id="tRefs">References <span class="n" id="trCount">6</span></button></div>
+        <main class="thread" id="thread"></main>
+        <div class="ask" id="ask">
+          <div class="box">
+            <div class="attachrow">
+              <span class="attach"><span id="attLab"></span><span class="x" id="attX">✕</span></span>
+              <span class="incl" id="inclNotes">＋ include my notes</span>
+            </div>
+            <div class="line">
+              <input placeholder="Search, or ask a follow-up…" id="askInput">
+              <button class="send" id="sendBtn">Search ↩</button>
+            </div>
+          </div>
+          <div class="hintline" id="hintline">Try “long-read detection”, “population diversity”, “clinical monitoring”, or “delivery” — or anything else.</div>
+        </div>
+      </div>
+      </div>
+
+      <aside class="pane" id="notesPane">
+        <div class="pane-hd"><b>🗒 Note</b><span id="nSub">empty</span>
+          <button class="x" id="closeNotes" title="Close Notes">✕</button></div>
+        <div class="notetop">
+          <div class="prov">from this thread · <b>CRISPR Off Target Effects</b></div>
+          <div class="composer" id="composer">
+            <textarea id="cText" rows="1" placeholder="Write a note, or drag sources in…"></textarea>
+            <div class="pins" id="cPins"></div>
+            <div class="hint">⏎ save to the note · ⇧⏎ new line</div>
+          </div>
+          <div class="band">
+            <div class="tools">
+              <div class="r">
+                <button class="btn primary" id="askNote">💬 Ask <span class="n" id="askN">0</span></button>
+                <button class="btn" id="filterBtn">Filter ▾</button>
+              </div>
+              <div class="r"><button class="btn wide" id="libBtn">＋ Add to My Library</button></div>
+            </div>
+            <div class="selbar" id="selbar">
+              <div class="cnt"><span id="selCount">0 selected</span><span class="clr" id="selClr">clear</span></div>
+              <div class="row">
+                <button class="go" id="aAsk">💬 Ask</button>
+                <button id="aColl">＋ Add to My Library</button>
+                <button id="aDel">Remove</button>
+              </div>
+            </div>
+          </div>
+          <div class="chips" id="chips"></div>
+        </div>
+        <div class="pane-body" id="notesBody">
+          <div id="noteList"></div>
+          <div class="tail" id="tail"></div>
+        </div>
+      </aside>
+
+      <aside class="pane" id="refsPane">
+        <div class="pane-hd"><b>References</b><span id="refSub"></span>
+          <button class="x" id="closeRefs" title="Close References">✕</button></div>
+        <div class="qbar" id="qbar"></div>
+        <div class="corpusnote">6 of 18 papers come from the captured thread. The twelve “Stand-in” entries
+          are here so a twelve-turn thread has something left to introduce.</div>
+        <div class="pane-body" id="refsBody"></div>
+        <div class="bar" id="bar">
+          <div class="cnt"><span id="barCount">0 selected</span><span class="clr" id="barClr">clear</span></div>
+          <div class="row">
+            <button class="go" id="barAdd">🗒 Add to note</button>
+            <button id="barAsk">💬 Ask</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="screen" id="libScreen">
+      <div class="libinner">
+        <div class="crumb" id="crumb"></div>
+        <h1 id="libTitle">My Library</h1>
+        <div class="tallies" id="tallies"></div>
+        <div class="subs" id="subs"></div>
+        <div id="tabsWrap"></div>
+        <div id="libBody"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="peek" id="peek"></div>
+<div class="pop" id="collPop"></div>
+<div class="pop" id="tagPop"></div>
+<div class="pop" id="filterPop">
+  <input id="fq" placeholder="Type to filter, or find a tag…">
+  <div class="lab">TAGS</div><div id="fTags"></div>
+  <div class="sep"></div><div id="fText"></div>
+</div>
+<div class="dragghost" id="ghost"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* The first six are captured from the real CRISPR off-target thread. The twelve
+   marked ✱ are stand-ins: a six-paper corpus cannot make a twelve-turn thread
+   introduce anything after turn one, and the whole question here is what a long
+   thread looks like. They are flagged in the reference list and in every peek,
+   and their titles are written to be plainly generic rather than mistakable for
+   real citations. */
+const P=[
+ {n:"Wienert 2022",t:"CRISPR nuclease off-target activity and mitigation strategies",m:"2022 · 46 cites · Frontiers in Genome Editing",
+  a:"Reviews the sources of Cas9 off-target activity and the mitigation strategies available, from guide design through high-fidelity variants.",
+  k:["mitigat","guide","fidelity","off-target","nuclease","strateg","overview","open question"]},
+ {n:"Höijer 2021",t:"CRISPR-Cas9 induces large structural variants at on- and off-target sites",m:"2021 · 149 cites · Nature Communications",
+  a:"Long-read sequencing reveals large deletions and rearrangements that short-read, indel-focused assays systematically miss.",
+  k:["long-read","structural","variant","deletion","large","detect","assay","indel","sequenc"]},
+ {n:"Cancellieri 2022",t:"Human genetic diversity alters off-target outcomes of therapeutic gene editing",m:"2022 · 98 cites · Nature Genetics",
+  a:"Shows that individual genetic variation changes the off-target landscape, so a reference-genome analysis under-reports risk.",
+  k:["diversity","population","genetic","variation","individual","ancestry","reference genome","risk"]},
+ {n:"Kalter 2025",t:"Off-target effects in CRISPR-Cas genome editing for human therapeutics",m:"2025 · 56 cites · Molecular Therapy Nucleic Acids",
+  a:"Surveys detection methods for therapeutic editing and argues current standards do not agree on what counts as detected.",
+  k:["detect","therapeut","standard","method","survey","clinical","human","off-target"]},
+ {n:"Angelini Stewart 2025",t:"Measurement and clinical interpretation of CRISPR off-targets",m:"2025 · 6 cites · Nature Genetics",
+  a:"Proposes a framework for interpreting off-target measurements clinically, including what to monitor after delivery.",
+  k:["clinical","monitor","interpret","measure","patient","follow-up","after","regulat"]},
+ {n:"Huang 2022",t:"In vivo delivery of CRISPR-Cas9 genome editing components",m:"2022 · 39 cites · Biomaterials",
+  a:"Compares viral and lipid nanoparticle delivery for in vivo editing, and the tropism constraints each imposes.",
+  k:["deliver","vivo","lnp","nanoparticle","lipid","viral","aav","tropism","liver","vector"]},
+ {sim:1,n:"Stand-in A",t:"Genome-wide detection of off-target editing by biochemical capture in cells",m:"2023 · 61 cites · stand-in paper",
+  a:"A cell-based genome-wide capture assay, positioned against cell-free screens as the more physiologically faithful of the two.",
+  k:["assay","detect","genome-wide","capture","in cell","empirical","biochemical","screen"]},
+ {sim:1,n:"Stand-in B",t:"Cell-free screens over-report off-target sites relative to in-cell assays",m:"2021 · 74 cites · stand-in paper",
+  a:"Compares cell-free and in-cell genome-wide screens and finds the former reports sites that never edit in a living cell.",
+  k:["in vitro","cell-free","screen","over-report","compare","sensitivity","false positive","specificity"]},
+ {sim:1,n:"Stand-in C",t:"Limits of computational off-target prediction across guide designs",m:"2024 · 33 cites · stand-in paper",
+  a:"Benchmarks in-silico prediction against empirical assays and shows agreement collapses for guides with many mismatches.",
+  k:["computational","predict","in silico","algorithm","model","mismatch","score","guide design"]},
+ {sim:1,n:"Stand-in D",t:"Base editing off-target activity at the DNA and RNA level",m:"2023 · 88 cites · stand-in paper",
+  a:"Base editors avoid double-strand breaks but introduce a deaminase-driven off-target class that nuclease assays do not look for.",
+  k:["base edit","deaminase","rna","bystander","cytosine","adenine","safer","nickase"]},
+ {sim:1,n:"Stand-in E",t:"Specificity of prime editing compared with nuclease editing",m:"2024 · 41 cites · stand-in paper",
+  a:"Reports fewer detectable off-target events for prime editing, with the caveat that the assays were designed for nucleases.",
+  k:["prime edit","pegrna","specificity","reverse transcript","compare","nuclease"]},
+ {sim:1,n:"Stand-in F",t:"High-fidelity Cas9 variants trade on-target activity for specificity",m:"2020 · 120 cites · stand-in paper",
+  a:"Characterises engineered high-fidelity variants and quantifies the on-target activity given up to obtain the specificity gain.",
+  k:["high-fidelity","variant","engineered","specificity","trade","activity","enzyme"]},
+ {sim:1,n:"Stand-in G",t:"Chromothripsis and megabase deletions in edited haematopoietic stem cells",m:"2023 · 57 cites · stand-in paper",
+  a:"Finds megabase-scale loss and chromothripsis in edited stem cells, at frequencies short-read indel calling cannot see.",
+  k:["chromothripsis","megabase","deletion","stem cell","large","loss","structural","how large"]},
+ {sim:1,n:"Stand-in H",t:"Mosaicism confounds off-target calling in edited cell populations",m:"2022 · 45 cites · stand-in paper",
+  a:"Argues that bulk sequencing of a mosaic population averages away the rare clones that carry the consequential edits.",
+  k:["mosaic","population","clonal","allele","confound","calling","bulk","artefact"]},
+ {sim:1,n:"Stand-in I",t:"AAV vector integration at nuclease-induced breaks in vivo",m:"2021 · 66 cites · stand-in paper",
+  a:"Documents vector genome capture at cut sites after in vivo delivery, a failure mode specific to the delivery route.",
+  k:["aav","vector","integration","viral","break","in vivo","capsid","insertion","route"]},
+ {sim:1,n:"Stand-in J",t:"Lipid nanoparticle tropism and redosing for liver-directed editing",m:"2024 · 29 cites · stand-in paper",
+  a:"Maps where lipid nanoparticles actually land and what redosing does to the off-target burden in non-target tissue.",
+  k:["lnp","lipid","nanoparticle","liver","tropism","redos","deliver","hepatocyte","route"]},
+ {sim:1,n:"Stand-in K",t:"Regulatory expectations for off-target assessment in gene-editing submissions",m:"2025 · 12 cites · stand-in paper",
+  a:"Reads the published guidance and finds it specifies that off-targets be assessed without specifying by which assay.",
+  k:["regulat","guidance","standard","submission","assess","requirement","agency","specify"]},
+ {sim:1,n:"Stand-in L",t:"Pre-existing immunity to Cas9 in human populations",m:"2022 · 93 cites · stand-in paper",
+  a:"Reports pre-existing anti-Cas9 antibodies and T cells in a majority of donors, which constrains repeat in vivo dosing.",
+  k:["immun","antibody","pre-existing","t cell","response","immunogenic","dosing"]}
+];
+/* the eleven follow-ups seeded at boot — run through the same local search the
+   composer runs, so their ranks, funnels and recurrence are produced the same way */
+const SEED=[
+ "Which assays detect off-target editing genome-wide?",
+ "How do cell-free in vitro screens compare with in-cell assays?",
+ "Can computational prediction replace an empirical assay?",
+ "What do long-read methods find that short-read sequencing misses?",
+ "How large can structural variants at the cut site get?",
+ "Does human genetic diversity change which sites are cut?",
+ "Are base editors safer than nuclease editing?",
+ "What is known about prime editing specificity?",
+ "Does the delivery route change what you need to measure?",
+ "What should be monitored in patients after dosing?",
+ "Do regulators specify an off-target assessment standard?"
+];
+/* three more, for the fifteen-turn stress test */
+const SEED_MORE=[
+ "How does pre-existing immunity to Cas9 affect repeat dosing?",
+ "Do high-fidelity variants reduce off-targets enough to matter clinically?",
+ "Is mosaicism a measurement artefact or a biological result?"
+];
+const TAGS=["ch.3","gap?","methods","to ask","read next"];
+const LIB={name:"My Library",kids:[
+ {name:"Chapter 3 · detection",kids:[{name:"Assay comparisons",kids:[]},{name:"Structural variants",kids:[]}]},
+ {name:"Methods draft",kids:[{name:"Delivery",kids:[]}]},
+ {name:"Unsorted",kids:[]}
+]};
+/* the real first query, with its real funnel and its real ranks */
+const Q0={q:"What are the open questions in CRISPR off-target effects for in vivo therapies?",
+  title:"Open Questions in CRISPR Off-Target Effects for In Vivo Therapies",
+  funnel:"32.8M retrieved · 100 eligible · 20 included",
+  refs:[{p:0,rank:1},{p:1,rank:2},{p:3,rank:3},{p:2,rank:4},{p:4,rank:9},{p:5,rank:12}],
+  paras:["Several unresolved questions persist across detection, biological variability, structural variants, and clinical monitoring [[0]] [[3]].",
+    "Large-scale aberrations remain far harder to detect than small indels using current workflows [[1]].",
+    "Human genetic diversity is an under-explored confound [[2]].",
+    "There is no consensus on post-delivery monitoring [[4]].",
+    "Delivery remains the rate-limiting step for in vivo work [[5]]."]};
+
+let QUERIES=[], TURNS=[], CARDS=[], seq=1, sel=new Set(), drag=null, anchor=null, staged=[],
+    savedTo=null, path=[], tab='notes', activeQ=0, showNotes=true, showRefs=true,
+    inclNotes=false, activeTags=new Set(), query='', freshSet=new Set();
+
+const $=id=>document.getElementById(id);
+const noteList=$('noteList'), notesBody=$('notesBody'), tail=$('tail'), composer=$('composer'),
+      cText=$('cText'), cPins=$('cPins'), refsBody=$('refsBody'), bar=$('bar'), ask=$('ask'),
+      ghost=$('ghost'), peek=$('peek'), collPop=$('collPop'), filterPop=$('filterPop'), tagPop=$('tagPop'),
+      notesPane=$('notesPane'), refsPane=$('refsPane'), threadEl=$('thread'), selbar=$('selbar');
+const line=document.createElement('div'); line.className='dropline';
+/* measuring inside a hidden pane yields 0, which would leave the field invisible
+   once the pane opens — so never size below one line */
+function fit(t){t.style.height='auto';t.style.height=Math.max(t.scrollHeight,21)+'px'}
+function refit(){fit(cText);notesPane.querySelectorAll('#noteList textarea').forEach(fit)}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');
+  clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2600)}
+const byId=id=>CARDS.find(c=>c.id===id);
+function allSrcs(ids){const s=new Set();ids.forEach(id=>{const c=byId(id);if(c)c.srcs.forEach(i=>s.add(i))});return [...s]}
+const noteSrcs=()=>allSrcs(CARDS.map(c=>c.id));
+const filtered=()=>!!(activeTags.size||query);
+/* a filter is a way of asking part of a note, so Ask follows the filter */
+const askCards=()=>filtered()?CARDS.filter(visible):CARDS;
+const askSrcs=()=>allSrcs(askCards().map(c=>c.id));
+const filterLabel=()=>[...activeTags].concat(query?['“'+query+'”']:[]).join(' + ');
+
+/* recurrence is not a property of a paper — it is how many of YOUR searches returned it */
+function recurrence(i){return QUERIES.filter(q=>q.refs.some(r=>r.p===i)).length}
+function rankIn(qi,i){const r=QUERIES[qi].refs.find(r=>r.p===i);return r?r.rank:null}
+function provText(qi,i){
+  const rec=recurrence(i), tot=QUERIES.length, rank=rankIn(qi,i);
+  const dots='●'.repeat(Math.min(rec,3))+'○'.repeat(Math.max(0,Math.min(3,tot)-rec));
+  const which=tot===1?'this search':rec+' of '+tot+' searches';
+  return {dots,rest:which+(rank?' · ranked #'+rank:'')};
+}
+/* the union genuinely has no single rank — a paper ranked #1 in one search and
+   #9 in another has no combined position, so the union reports recurrence only */
+function unionProv(i){
+  const rec=recurrence(i), tot=QUERIES.length;
+  const dots='●'.repeat(Math.min(rec,3))+'○'.repeat(Math.max(0,Math.min(3,tot)-rec));
+  return {dots,rest:tot===1?'this search':rec+' of '+tot+' searches'};
+}
+function bestProv(i){
+  for(let k=QUERIES.length-1;k>=0;k--) if(rankIn(k,i)) return provText(k,i);
+  return {dots:'○○○',rest:'not in these searches'};
+}
+const provStr=i=>{const p=bestProv(i);return p.dots+' '+p.rest};
+
+/* ── layout: either panel can be closed ────────────────────────── */
+function layout(){
+  const cols=['1fr'];
+  if(showNotes) cols.push('21.5rem');
+  if(showRefs) cols.push('20rem');
+  $('threadScreen').style.gridTemplateColumns=cols.join(' ');
+  notesPane.style.display=showNotes?'':'none';
+  refsPane.style.display=showRefs?'':'none';
+  $('tNotes').classList.toggle('on',showNotes);
+  if(showNotes){seen();requestAnimationFrame(refit)}
+  $('tRefs').classList.toggle('on',showRefs);
+}
+$('tNotes').addEventListener('click',()=>{showNotes=!showNotes;seen();layout()});
+function seen(){$('tNotes').classList.remove('fresh');const b=$('tNotes').querySelector('.badge');if(b)b.remove()}
+$('tRefs').addEventListener('click',()=>{showRefs=!showRefs;layout()});
+$('closeNotes').addEventListener('click',()=>{showNotes=false;layout()});
+$('closeRefs').addEventListener('click',()=>{showRefs=false;layout()});
+/* with Notes closed, the Notes button becomes the drop target */
+$('tNotes').addEventListener('dragover',e=>{if(drag){e.preventDefault();$('tNotes').classList.add('drop')}});
+$('tNotes').addEventListener('dragleave',()=>$('tNotes').classList.remove('drop'));
+$('tNotes').addEventListener('drop',e=>{
+  if(!drag)return; e.preventDefault(); $('tNotes').classList.remove('drop');
+  showNotes=true; layout(); stage(drag.slice());
+  document.querySelectorAll('.src.sel').forEach(c=>c.classList.remove('sel')); refSync();
+});
+
+/* ── search ────────────────────────────────────────────────────── */
+function runSearch(text){
+  const q=text.toLowerCase();
+  const scored=P.map((p,i)=>({i,s:p.k.reduce((a,k)=>a+(q.includes(k)?3:0),0)
+    +(p.t.toLowerCase().split(/\W+/).filter(w=>w.length>4&&q.includes(w)).length)}));
+  /* a real query returns a shortlist, not the whole corpus — keep the top six */
+  let hits=scored.filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,6);
+  if(hits.length<3){
+    /* weak match: top up from the rest of the corpus, rotated by the query so two
+       different questions do not come back with the same four papers in the same order */
+    const rest=scored.filter(x=>!hits.some(h=>h.i===x.i));
+    hits=hits.concat(rotate(rest,q.length)).slice(0,4);
+  }
+  const refs=hits.map((h,k)=>({p:h.i,rank:k+1}));
+  const top=refs.slice(0,3).map(r=>r.p);
+  const v=text.length%3;
+  const tension=[
+    '[['+top[1]+']] treats this as a measurement problem where [['+top[0]+']] treats it as an editing one.',
+    '[['+top[0]+']] and [['+top[1]+']] agree on the finding and disagree on what follows from it.',
+    '[['+top[1]+']] is the stronger method paper; [['+top[0]+']] is the stronger argument.'
+  ][v];
+  const weak=[
+    '[['+top[2]+']] is the weakest link here: relevant, but retrieved by only one of your searches, so treat it as a lead rather than support.',
+    '[['+top[2]+']] sits at the edge of this question. Worth a look before you cite it.',
+    '[['+top[2]+']] came back low. It may be a gap, or it may be that the query was too narrow.'
+  ][v];
+  const paras=[
+    'Across the '+refs.length+' papers that made the cut, the strongest evidence comes from [['+top[0]+']]'+
+      (top[1]!=null?' and [['+top[1]+']]':'')+'.',
+    top[1]!=null?tension:'',
+    top[2]!=null?weak:''
+  ].filter(Boolean);
+  return {q:text, title:titleFor(text), funnel:'32.8M retrieved · '+(40+refs.length*7)+' eligible · '+refs.length+' included',
+    refs, paras};
+}
+/* the real answer's title is the question, title-cased — see screens/03 */
+const SMALL=new Set(['a','an','and','as','at','by','for','from','in','of','on','or','the','to','with','do','does','can','is','are','what','how','which']);
+function titleFor(t){
+  const s=t.trim().replace(/\?+$/,'');
+  return s.split(' ').map((w,i)=>SMALL.has(w.toLowerCase())&&i?w.toLowerCase():
+    w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+}
+function submit(){
+  const text=$('askInput').value.trim(); if(!text) return;
+  const scoped=ask.classList.contains('scoped');
+  $('askInput').value=''; $('sendBtn').disabled=true;
+  const thinking=document.createElement('div'); thinking.className='turn';
+  if(scoped){
+    const n=ask._n||0;
+    const qd=document.createElement('div'); qd.className='q';
+    qd.innerHTML='<span class="att"></span>';
+    qd.querySelector('.att').textContent='📎 Papers · '+n+' attached from your note'+
+      (inclNotes?' · '+(ask._c||0)+' notes':'');
+    qd.appendChild(document.createTextNode(text));
+    thinking.appendChild(qd);
+    ask.classList.remove('scoped');
+  } else {
+    const qd=document.createElement('div'); qd.className='q'; qd.textContent=text;
+    thinking.appendChild(qd);
+  }
+  const dots=document.createElement('div'); dots.className='funnel thinking';
+  dots.innerHTML=(scoped?'reading your '+(ask._n||0)+' sources':'searching 32.8M papers')+' <i></i><i></i><i></i>';
+  thinking.appendChild(dots);
+  threadEl.appendChild(thinking); threadEl.scrollTop=threadEl.scrollHeight;
+
+  setTimeout(()=>{
+    thinking.remove(); $('sendBtn').disabled=false;
+    if(scoped) answerScoped(text); else {
+      const q=runSearch(text);
+      const before=new Set(QUERIES.flatMap(x=>x.refs.map(r=>r.p)));
+      QUERIES.push(q); activeQ=QUERIES.length-1; TURNS.push({s:QUERIES.length-1});
+      freshSet=new Set(q.refs.map(r=>r.p).filter(i=>!before.has(i)));
+      showRefs=true; layout(); renderRefs();
+    }
+    renderThread();
+    threadEl.scrollTop=threadEl.scrollHeight;
+  },700);
+}
+/* A scoped answer is a turn in the transcript but *not* a search: it retrieves
+   nothing, so it must not count towards recurrence or appear in References.
+   TURNS is the transcript; QUERIES stays the list of searches. */
+function answerScoped(text){
+  const srcs=rotate(askSrcs(),text.length), n=srcs.length;
+  const N=srcs.map(i=>'[['+i+']]');
+  /* every paragraph reaches for a different paper, so nothing reads duplicated */
+  const body=[];
+  body.push('Working only from what you kept: '+N.join(', ').replace(/, ([^,]*)$/,' and $1')+'.');
+  if(n>=2) body.push(N[0]+' and '+N[1]+' are the closest pair here, and the gap between them is where the '+
+    'interesting question sits.');
+  if(n>=3) body.push(N[2]+' comes at it from a different direction, and neither of the first two engages '+
+    'with that framing.');
+  if(n>=4) body.push(N[3]+' is the outlier: it is in your note, but it does not speak to this question '+
+    'directly. Worth deciding whether it belongs here.');
+  if(n>=5) body.push('The remaining '+(n-4)+(n-4===1?' source adds':' sources add')+' weight rather than a '+
+    'new position: '+N.slice(4).join(', ')+'.');
+  if(n===1) body.push(N[0]+' is the only source attached, so this answer is one paper deep. Add a second '+
+    'before you rely on it.');
+  body.push('Nothing outside your note was retrieved for this answer.');
+  TURNS.push({scoped:{q:text,title:titleFor(text),srcs,paras:body,
+    mark:'answered within your note · '+n+(n===1?' source':' sources')+
+      (filtered()?' · filtered by '+filterLabel():'')+' · no new retrieval'+
+      (inclNotes?' · your notes included':''),
+    att:'📎 Papers · '+n+' attached from your note'+(inclNotes?' · '+(ask._c||0)+' notes':'')}});
+  inclNotes=false;
+}
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const rotate=(arr,by)=>arr.length?arr.slice(by%arr.length).concat(arr.slice(0,by%arr.length)):arr;
+function fillCites(html){
+  return html.replace(/\[\[(\d+)\]\]/g,(_,i)=>'<span class="cite" data-p="'+i+'">'+P[+i].n.toUpperCase()+'</span>');
+}
+$('sendBtn').addEventListener('click',submit);
+$('askInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();submit()}});
+$('askInput').addEventListener('input',()=>{
+  $('sendBtn').textContent=ask.classList.contains('scoped')?'Ask ↩':
+    (QUERIES.length?'Search ↩':'Search ↩');
+});
+
+function renderThread(keepScroll){
+  const y=threadEl.scrollTop;
+  threadEl.innerHTML='';
+  TURNS.forEach((t,ti)=>{
+    const el=document.createElement('div'); el.className='turn'; el.id='turn'+ti;
+    const no=document.createElement('div'); no.className='tno';
+    no.textContent='TURN '+String(ti+1).padStart(2,'0');
+    const qd=document.createElement('div'); qd.className='q';
+    const a=document.createElement('div'); a.className='ans';
+    el.append(no,qd);
+    if(t.scoped){
+      qd.innerHTML='<span class="att"></span>';
+      qd.querySelector('.att').textContent=t.scoped.att;
+      qd.appendChild(document.createTextNode(t.scoped.q));
+      const m=document.createElement('div'); m.className='scoped-mark'; m.textContent=t.scoped.mark;
+      a.innerHTML='<div class="aTitle">'+esc(t.scoped.title)+'</div>'+
+        t.scoped.paras.map(p=>'<p>'+p+'</p>').join('');
+      a.innerHTML=fillCites(a.innerHTML);
+      el.append(m,a);
+    } else {
+      const q=QUERIES[t.s];
+      qd.textContent=q.q;
+      const f=document.createElement('div'); f.className='funnel'; f.textContent=q.funnel;
+      a.innerHTML='<div class="aTitle">'+esc(q.title)+'</div>'+
+        q.paras.map(p=>'<p>'+fillCites(esc(p))+'</p>').join('');
+      el.append(f,a);
+    }
+    threadEl.appendChild(el);
+  });
+  wireCites(threadEl);
+  threadEl.scrollTop=keepScroll?y:threadEl.scrollHeight;
+  renderSpine(); spyOn();
+}
+
+/* ── the spine ─────────────────────────────────────────────────── */
+/* what a turn *introduced*: references it returned that no earlier search had.
+   A scoped answer introduces nothing by definition — it does not retrieve. */
+function introduced(ti){
+  const t=TURNS[ti]; if(t.scoped) return [];
+  const before=new Set(TURNS.slice(0,ti).filter(x=>!x.scoped)
+    .flatMap(x=>QUERIES[x.s].refs.map(r=>r.p)));
+  return QUERIES[t.s].refs.map(r=>r.p).filter(p=>!before.has(p));
+}
+let onlyNew=false, spy=null;
+function renderSpine(){
+  const list=$('spineList'); list.innerHTML='';
+  const total=[...new Set(QUERIES.flatMap(q=>q.refs.map(r=>r.p)))].length;
+  $('spineSub').textContent=TURNS.length+' turns · '+total+' sources';
+  TURNS.forEach((t,ti)=>{
+    const nw=introduced(ti);
+    if(onlyNew&&!nw.length) return;
+    const q=t.scoped||QUERIES[t.s], nRefs=t.scoped?t.scoped.srcs.length:QUERIES[t.s].refs.length;
+    const r=document.createElement('div'); r.className='srow'+(t.scoped?' fromnote':''); r.dataset.turn=ti;
+    r.innerHTML='<span class="no"></span><span class="qq"></span><span class="nw"></span>'+
+      '<span class="ttl"></span><span class="mm"></span>';
+    r.querySelector('.no').textContent=String(ti+1).padStart(2,'0');
+    r.querySelector('.qq').textContent=q.q;
+    const n=r.querySelector('.nw');
+    n.textContent=t.scoped?'🗒':(nw.length?'+'+nw.length:'·');
+    n.className='nw'+(nw.length?'':' none');
+    n.title=t.scoped?'answered from your note — no retrieval':
+      (nw.length?nw.map(i=>P[i].n).join(', ')+' first appeared here':'nothing new here');
+    r.querySelector('.ttl').textContent=q.title;
+    r.querySelector('.mm').textContent=t.scoped
+      ? nRefs+' from your note · no retrieval'
+      : nRefs+' refs'+(nw.length?' · '+nw.length+' new here':' · nothing new');
+    r.addEventListener('click',()=>jumpTo(ti));
+    list.appendChild(r);
+  });
+  if(onlyNew&&!list.children.length)
+    list.innerHTML='<div class="srow"><span class="no"></span><span class="qq">Every turn after the first is re-reading what you already have.</span></div>';
+  markHere();
+}
+function jumpTo(qi){
+  const el=$('turn'+qi); if(!el) return;
+  el.scrollIntoView({behavior:'smooth',block:'start'});
+  el.classList.remove('lit'); void el.offsetWidth; el.classList.add('lit');
+  here=qi; markHere();
+}
+let here=0;
+function markHere(){
+  $('spineList').querySelectorAll('.srow').forEach(r=>r.classList.toggle('here',+r.dataset.turn===here));
+}
+/* scroll-spy: the spine row for whatever turn is under the top of the viewport */
+function spyOn(){
+  if(spy) spy.disconnect();
+  spy=new IntersectionObserver(es=>{
+    es.forEach(e=>{if(e.isIntersecting){here=+e.target.id.slice(4);markHere()}});
+  },{root:threadEl,rootMargin:'0px 0px -75% 0px',threshold:0});
+  threadEl.querySelectorAll('.turn[id]').forEach(t=>spy.observe(t));
+}
+$('onlyNew').addEventListener('click',()=>{onlyNew=!onlyNew;
+  $('onlyNew').classList.toggle('on',onlyNew);
+  $('onlyNew').textContent=onlyNew?'✓ only turns that added sources':'only turns that added sources';
+  renderSpine()});
+$('tSpine').addEventListener('click',()=>{const on=$('spine').classList.toggle('off');
+  $('tSpine').classList.toggle('on',!on)});
+$('closeSpine').addEventListener('click',()=>{$('spine').classList.add('off');$('tSpine').classList.remove('on')});
+
+/* ── references, per query, plus the union ─────────────────────── */
+function renderRefs(){
+  const qbar=$('qbar'); qbar.innerHTML='';
+  QUERIES.forEach((q,i)=>{
+    const b=document.createElement('button'); b.className='qb'+(activeQ===i?' on':'');
+    b.textContent='Q'+(i+1)+' · '+q.refs.length;
+    b.title=q.q;
+    b.addEventListener('click',()=>{activeQ=i;renderRefs()});
+    qbar.appendChild(b);
+  });
+  const all=document.createElement('button'); all.className='qb'+(activeQ==='all'?' on':'');
+  const union=[...new Set(QUERIES.flatMap(q=>q.refs.map(r=>r.p)))];
+  all.textContent='All cited · '+union.length;
+  all.addEventListener('click',()=>{activeQ='all';renderRefs()});
+  qbar.appendChild(all);
+
+  const list=activeQ==='all'
+    ? union.map(p=>({p,rank:null})).sort((a,b)=>recurrence(b.p)-recurrence(a.p))
+    : QUERIES[activeQ].refs;
+  $('refSub').textContent=activeQ==='all'?'union · no single rank':'query '+(activeQ+1);
+  $('trCount').textContent=union.length;
+
+  refsBody.innerHTML='';
+  list.forEach(({p:i})=>{
+    const d=document.createElement('div'); d.className='src'; d.dataset.p=i; d.draggable=true;
+    if(freshSet.has(i)) d.classList.add('fresh');
+    d.innerHTML='<span class="chk"></span><span class="newtag">new</span><div class="body"><h3></h3><div class="m"></div>'+
+      '<div class="p"><span class="dots"></span><span class="pd"></span></div><div class="in">✓ in your note</div></div>';
+    d.querySelector('h3').textContent=P[i].t;
+    d.querySelector('.m').textContent=P[i].m;
+    const pv=activeQ==='all'?unionProv(i):provText(activeQ,i);
+    d.querySelector('.dots').textContent=pv.dots;
+    d.querySelector('.pd').textContent=pv.rest;
+    refsBody.appendChild(d);
+    wireSrc(d,i);
+  });
+  syncInNote(); refSync();
+}
+function wireSrc(d,i){
+  d.addEventListener('click',e=>{
+    const all=[...refsBody.querySelectorAll('.src')];
+    const k=all.indexOf(d);
+    if(e.shiftKey&&anchor!=null){const a=Math.min(anchor,k),b=Math.max(anchor,k);
+      for(let x=a;x<=b;x++)all[x].classList.add('sel')}
+    else {d.classList.toggle('sel'); anchor=k}
+    refSync();
+  });
+  d.addEventListener('dragstart',e=>{
+    let g=[...refsBody.querySelectorAll('.src.sel')].map(x=>+x.dataset.p);
+    if(!g.includes(i))g=[i];
+    drag=g; document.body.classList.add('dragging'); e.dataTransfer.effectAllowed='copy';
+    ghost.textContent=g.length>1?g.length+' sources':P[i].n;
+    e.dataTransfer.setDragImage(ghost,ghost.offsetWidth/2,ghost.offsetHeight/2);
+    refsBody.querySelectorAll('.src.sel').forEach(x=>x.classList.add('ghosting'));
+  });
+  d.addEventListener('dragend',endDrag);
+  d.addEventListener('mouseenter',()=>showPeek(d,i,'right'));
+  d.addEventListener('mouseleave',hidePeek);
+}
+function refSel(){return [...refsBody.querySelectorAll('.src.sel')]}
+function refSync(){
+  const n=refSel().length;
+  $('barCount').textContent=n+' selected';
+  $('barAdd').textContent='🗒 Add '+n+' to note';
+  $('barAsk').textContent='💬 Ask '+n;
+  bar.classList.toggle('on',n>0);
+}
+function syncInNote(){
+  const s=noteSrcs();
+  refsBody.querySelectorAll('.src').forEach(el=>el.classList.toggle('inNote',s.includes(+el.dataset.p)));
+}
+$('barClr').addEventListener('click',()=>{refSel().forEach(c=>c.classList.remove('sel'));refSync()});
+$('barAdd').addEventListener('click',()=>{showNotes=true;layout();
+  stage(refSel().map(c=>+c.dataset.p));refSel().forEach(c=>c.classList.remove('sel'));refSync()});
+$('barAsk').addEventListener('click',()=>{attach(refSel().length,0);
+  refSel().forEach(c=>c.classList.remove('sel'));refSync()});
+function endDrag(){drag=null;document.body.classList.remove('dragging');
+  refsBody.querySelectorAll('.ghosting').forEach(x=>x.classList.remove('ghosting'));
+  clearViz();composer.classList.remove('over');$('tNotes').classList.remove('drop')}
+
+/* ── hover peek ────────────────────────────────────────────────── */
+function wireCites(root){
+  root.querySelectorAll('.cite').forEach(el=>{
+    if(el._w)return; el._w=1;
+    const i=+el.dataset.p;
+    el.draggable=true;
+    el.addEventListener('dragstart',e=>{drag=[i];document.body.classList.add('dragging');
+      e.dataTransfer.effectAllowed='copy';ghost.textContent=P[i].n;
+      e.dataTransfer.setDragImage(ghost,ghost.offsetWidth/2,ghost.offsetHeight/2);hidePeek()});
+    el.addEventListener('dragend',endDrag);
+    el.addEventListener('mouseenter',()=>showPeek(el,i));
+    el.addEventListener('mouseleave',hidePeek);
+  });
+}
+function showPeek(el,i,side){
+  const p=P[i], inNote=noteSrcs().includes(i), pv=bestProv(i);
+  peek.innerHTML='<h4></h4><div class="m"></div><div class="pv"><span class="dots"></span> <span class="pd"></span></div>'+
+    '<div class="ab"></div><div class="chipz"><span class="ch">INDEXED</span><span class="ch">FULL TEXT</span></div>';
+  peek.querySelector('h4').textContent=p.t;
+  peek.querySelector('.m').textContent=p.n+' · '+p.m;
+  peek.querySelector('.dots').textContent=pv.dots;
+  peek.querySelector('.pd').textContent=pv.rest;
+  peek.querySelector('.ab').textContent=p.a;
+  if(inNote){const s=document.createElement('span');s.className='ch ok';s.textContent='✓ in your note';
+    peek.querySelector('.chipz').appendChild(s)}
+  const r=el.getBoundingClientRect();
+  peek.classList.add('on');
+  const w=peek.offsetWidth, h=peek.offsetHeight;
+  let left=side==='right'?r.left-w-10:r.left;
+  left=Math.max(8,Math.min(left,window.innerWidth-w-8));
+  peek.style.left=left+'px';
+  peek.style.top=(r.top-h-8>60?r.top-h-8:Math.min(r.bottom+8,window.innerHeight-h-8))+'px';
+}
+function hidePeek(){peek.classList.remove('on')}
+
+/* ── the note ──────────────────────────────────────────────────── */
+function visible(c){
+  if(activeTags.size&&!c.tags.some(t=>activeTags.has(t))) return false;
+  if(query){
+    const hay=(c.text+' '+c.tags.join(' ')+' '+c.srcs.map(i=>P[i].n+' '+P[i].t).join(' ')).toLowerCase();
+    if(!hay.includes(query)) return false;
+  }
+  return true;
+}
+function render(){
+  noteList.innerHTML='';
+  CARDS.forEach(c=>{
+    const a=document.createElement('article');
+    a.className='card'+(sel.has(c.id)?' sel':'')+(visible(c)?'':' hidden'); a.dataset.id=c.id;
+    a.innerHTML='<span class="mergeBadge"></span><span class="chk"></span><div class="cbody"></div>';
+    const b=a.querySelector('.cbody');
+    const ta=document.createElement('textarea'); ta.rows=1; ta.value=c.text;
+    ta.placeholder=c.srcs.length?'What matters about these?':'A thought…';
+    ta.addEventListener('input',()=>{c.text=ta.value;fit(ta)});
+    ta.addEventListener('click',e=>e.stopPropagation());
+    b.appendChild(ta);
+    const pins=document.createElement('div'); pins.className='pins';
+    c.srcs.forEach(i=>{
+      const d=document.createElement('div'); d.className='pin';
+      d.innerHTML='<b></b><span></span><span class="x">✕</span>';
+      d.querySelector('b').textContent=P[i].n;
+      d.querySelector('span').textContent=provStr(i);
+      d.querySelector('.x').addEventListener('click',e=>{e.stopPropagation();
+        c.srcs=c.srcs.filter(x=>x!==i);render()});
+      pins.appendChild(d);
+    });
+    b.appendChild(pins);
+    const f=document.createElement('div'); f.className='foot';
+    c.tags.forEach(t=>{const s=document.createElement('span');s.className='tag on';s.textContent=t;
+      s.addEventListener('click',e=>{e.stopPropagation();toggleTag(t)});f.appendChild(s)});
+    const add=document.createElement('span'); add.className='tag add'; add.textContent='＋ tag';
+    add.addEventListener('click',e=>{e.stopPropagation();openTagPop(add,c)});
+    f.appendChild(add);
+    if(c.coll){const s=document.createElement('span');s.className='inColl';s.textContent='⊞ '+c.coll;f.appendChild(s)}
+    b.appendChild(f);
+    a.addEventListener('click',()=>{sel.has(c.id)?sel.delete(c.id):sel.add(c.id);render()});
+    noteList.appendChild(a); fit(ta);
+  });
+  const s=noteSrcs();
+  $('nSub').textContent=CARDS.length
+    ? CARDS.length+(CARDS.length===1?' card · ':' cards · ')+s.length+(s.length===1?' source':' sources')
+    : 'empty';
+  $('tnCount').textContent=CARDS.length;
+  const as=askSrcs(), nc=askCards().length;
+  /* filtering is how you ask part of a note, so the count says which part */
+  $('askN').textContent=as.length+(filtered()?' of '+s.length:'');
+  $('askNote').disabled=!as.length;
+  $('askNote').title=!filtered() ? 'Ask everything in this note'
+    : as.length ? 'Ask the '+nc+(nc===1?' card':' cards')+' tagged '+filterLabel()
+                : 'The '+nc+(nc===1?' card':' cards')+' matching '+filterLabel()+' carry no sources';
+  $('libBtn').style.visibility=CARDS.length?'visible':'hidden';
+  tail.classList.toggle('quiet',CARDS.length>0);
+  tail.textContent=CARDS.length?'':'Nothing here yet.\nDrag references in, or type a thought above.';
+  syncInNote(); renderChips(); syncSel();
+}
+function toggleTag(t){activeTags.has(t)?activeTags.delete(t):activeTags.add(t);render()}
+function renderChips(){
+  const chips=$('chips'); chips.innerHTML='';
+  const on=activeTags.size||query;
+  chips.classList.toggle('on',!!on);
+  if(!on) return;
+  activeTags.forEach(t=>{const s=document.createElement('span');s.className='chip';s.textContent=t+' ✕';
+    s.addEventListener('click',()=>toggleTag(t));chips.appendChild(s)});
+  if(query){const s=document.createElement('span');s.className='chip';s.textContent='“'+query+'” ✕';
+    s.addEventListener('click',()=>{query='';$('fq').value='';render()});chips.appendChild(s)}
+  const n=document.createElement('span'); n.className='shown';
+  n.textContent=CARDS.filter(visible).length+' of '+CARDS.length; chips.appendChild(n);
+}
+function syncSel(){
+  [...sel].forEach(id=>{if(!byId(id))sel.delete(id)});
+  const n=sel.size, s=allSrcs([...sel]).length;
+  $('selCount').textContent=n+(n===1?' card · ':' cards · ')+s+(s===1?' source':' sources');
+  $('aAsk').textContent='💬 Ask '+(s||'');
+  selbar.classList.toggle('on',n>0);
+}
+$('selClr').addEventListener('click',()=>{sel.clear();render()});
+$('aAsk').addEventListener('click',()=>{const ids=[...sel];
+  attach(allSrcs(ids).length,ids.filter(id=>byId(id).text.trim()).length)});
+$('aDel').addEventListener('click',()=>{const n=sel.size;
+  CARDS=CARDS.filter(c=>!sel.has(c.id));sel.clear();render();toast(n+' removed from the note')});
+$('aColl').addEventListener('click',e=>{e.stopPropagation();openLibPop(e.currentTarget,[...sel])});
+
+/* ── filter ────────────────────────────────────────────────────── */
+function openPop(pop,btn){
+  [collPop,filterPop,tagPop].forEach(p=>p.classList.remove('on'));
+  const r=btn.getBoundingClientRect();
+  pop.style.left=Math.min(r.left,window.innerWidth-260)+'px';
+  pop.style.top=(r.bottom+6)+'px';
+  setTimeout(()=>pop.classList.add('on'),0);
+}
+$('filterBtn').addEventListener('click',e=>{e.stopPropagation();
+  if(filterPop.classList.contains('on')){filterPop.classList.remove('on');return}
+  openPop(filterPop,e.currentTarget);$('fq').value=query;drawFilter();setTimeout(()=>$('fq').focus(),10)});
+function drawFilter(){
+  const raw=$('fq').value.trim(), q=raw.toLowerCase();
+  const list=$('fTags'); list.innerHTML='';
+  const hits=TAGS.filter(t=>t.toLowerCase().includes(q));
+  if(!hits.length) list.innerHTML='<div class="none">no tag matches</div>';
+  hits.forEach(t=>{
+    const n=CARDS.filter(c=>c.tags.includes(t)).length;
+    const b=document.createElement('button'); b.className=activeTags.has(t)?'sel':'';
+    b.innerHTML='<span class="nm"></span><span class="c"></span>';
+    b.querySelector('.nm').textContent=t; b.querySelector('.c').textContent=n;
+    b.addEventListener('click',ev=>{ev.stopPropagation();toggleTag(t);drawFilter()});
+    list.appendChild(b);
+  });
+  const ft=$('fText'); ft.innerHTML='';
+  if(raw){
+    const b=document.createElement('button'); b.innerHTML='<span class="nm"></span>';
+    b.querySelector('.nm').textContent='Filter text for “'+raw+'”';
+    b.addEventListener('click',ev=>{ev.stopPropagation();query=q;render();filterPop.classList.remove('on')});
+    ft.appendChild(b);
+  } else ft.innerHTML='<div class="lab">or type any text to search the note</div>';
+}
+$('fq').addEventListener('input',drawFilter);
+$('fq').addEventListener('keydown',e=>{
+  e.stopPropagation();
+  if(e.key==='Enter'){e.preventDefault();
+    const q=$('fq').value.trim().toLowerCase(); if(!q)return;
+    const hit=TAGS.find(t=>t.toLowerCase()===q)||TAGS.filter(t=>t.toLowerCase().includes(q))[0];
+    if(hit) toggleTag(hit); else {query=q;render()}
+    filterPop.classList.remove('on')}
+  if(e.key==='Escape') filterPop.classList.remove('on');
+});
+[collPop,filterPop,tagPop].forEach(p=>p.addEventListener('click',e=>e.stopPropagation()));
+document.addEventListener('click',()=>[collPop,filterPop,tagPop].forEach(p=>p.classList.remove('on')));
+
+/* ── tagging: type a new one, or pick one you already use ──────── */
+function openTagPop(btn,card){
+  const draw=()=>{
+    const raw=tagPop._i.value.trim(), q=raw.toLowerCase();
+    tagPop._list.innerHTML='';
+    const hits=TAGS.filter(t=>t.toLowerCase().includes(q));
+    hits.forEach(t=>{
+      const on=card.tags.includes(t);
+      const b=document.createElement('button'); b.className=on?'sel':'';
+      b.innerHTML='<span class="nm"></span><span class="c"></span>';
+      b.querySelector('.nm').textContent=t;
+      b.querySelector('.c').textContent=on?'✓':CARDS.filter(x=>x.tags.includes(t)).length;
+      b.addEventListener('click',ev=>{ev.stopPropagation();
+        card.tags=on?card.tags.filter(x=>x!==t):card.tags.concat(t);
+        render(); draw();});
+      tagPop._list.appendChild(b);
+    });
+    tagPop._new.innerHTML='';
+    if(raw&&!TAGS.some(t=>t.toLowerCase()===q)){
+      const b=document.createElement('button'); b.innerHTML='<span class="nm"></span>';
+      b.querySelector('.nm').textContent='＋ create “'+raw+'”';
+      b.addEventListener('click',ev=>{ev.stopPropagation();createTag(raw,card);});
+      tagPop._new.appendChild(b);
+    } else if(!hits.length) tagPop._new.innerHTML='<div class="none">type to create a tag</div>';
+  };
+  tagPop.innerHTML='';
+  const i=document.createElement('input'); i.placeholder='Type a tag, or pick one…';
+  const lab=document.createElement('div'); lab.className='lab'; lab.textContent='YOUR TAGS';
+  const list=document.createElement('div'), sep=document.createElement('div'); sep.className='sep';
+  const nw=document.createElement('div');
+  tagPop.append(i,lab,list,sep,nw);
+  tagPop._i=i; tagPop._list=list; tagPop._new=nw;
+  i.addEventListener('input',draw);
+  i.addEventListener('keydown',ev=>{ev.stopPropagation();
+    if(ev.key==='Enter'){ev.preventDefault();
+      const v=i.value.trim(); if(!v) return;
+      const hit=TAGS.find(t=>t.toLowerCase()===v.toLowerCase());
+      if(hit){if(!card.tags.includes(hit))card.tags.push(hit);render();tagPop.classList.remove('on')}
+      else createTag(v,card);}
+    if(ev.key==='Escape') tagPop.classList.remove('on');});
+  draw(); openPop(tagPop,btn); setTimeout(()=>i.focus(),10);
+}
+function createTag(name,card){
+  if(!TAGS.includes(name)) TAGS.push(name);
+  if(!card.tags.includes(name)) card.tags.push(name);
+  tagPop.classList.remove('on'); render(); toast('Tagged “'+name+'”');
+}
+
+/* ── ask / attach ──────────────────────────────────────────────── */
+function attach(n,c){
+  if(!n){toast('Nothing to attach');return}
+  ask.classList.add('scoped'); ask._n=n; ask._c=c; drawAttach();
+  $('sendBtn').textContent='Ask ↩'; $('askInput').focus();
+}
+function drawAttach(){
+  const n=ask._n||0, c=ask._c||0;
+  $('attLab').textContent='📎 Papers · '+n+' attached'+(inclNotes&&c?' · '+c+' notes':'');
+  $('inclNotes').textContent=inclNotes?'✓ my notes included':'＋ include my notes';
+  $('inclNotes').classList.toggle('on',inclNotes);
+  $('inclNotes').style.display=c?'':'none';
+}
+$('inclNotes').addEventListener('click',()=>{inclNotes=!inclNotes;drawAttach();
+  toast(inclNotes?'Your written notes are part of the question now':'Sources only — your notes stay private')});
+$('attX').addEventListener('click',()=>{ask.classList.remove('scoped');inclNotes=false;
+  $('sendBtn').textContent='Search ↩'});
+$('askNote').addEventListener('click',()=>
+  attach(askSrcs().length,askCards().filter(c=>c.text.trim()).length));
+
+/* ── composer ──────────────────────────────────────────────────── */
+function pinRow(i,onRem){
+  const d=document.createElement('div'); d.className='pin';
+  d.innerHTML='<b></b><span></span><span class="x">✕</span>';
+  d.querySelector('b').textContent=P[i].n; d.querySelector('span').textContent=provStr(i);
+  d.querySelector('.x').addEventListener('click',e=>{e.stopPropagation();onRem()});
+  return d;
+}
+function drawStaged(){
+  cPins.innerHTML='';
+  staged.forEach(i=>cPins.appendChild(pinRow(i,()=>{staged=staged.filter(x=>x!==i);drawStaged();armed()})));
+}
+function armed(){composer.classList.toggle('armed',!!cText.value.trim()||!!staged.length)}
+function stage(idxs){
+  const fresh=idxs.filter(i=>!staged.includes(i));
+  staged.push(...fresh); drawStaged(); armed(); cText.focus();
+  if(fresh.length) toast(fresh.length+(fresh.length===1?' source':' sources')+' staged · ⏎ to save');
+}
+function commit(){
+  const text=cText.value.trim();
+  if(!text&&!staged.length) return;
+  const c={id:seq++,text,srcs:staged.slice(),tags:[],coll:savedTo||''};
+  CARDS.unshift(c); staged=[]; cText.value=''; drawStaged();
+  composer.classList.remove('armed'); fit(cText); activeTags.clear(); query=''; render();
+  const el=noteList.querySelector('[data-id="'+c.id+'"]');
+  if(el){el.classList.add('land');setTimeout(()=>el.classList.remove('land'),420)}
+  notesBody.scrollTop=0;
+}
+cText.addEventListener('input',()=>{fit(cText);armed()});
+cText.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();commit()}});
+composer.addEventListener('dragover',e=>{if(drag){e.preventDefault();e.stopPropagation();
+  composer.classList.add('over');clearViz()}});
+composer.addEventListener('dragleave',()=>composer.classList.remove('over'));
+composer.addEventListener('drop',e=>{if(!drag)return;e.preventDefault();e.stopPropagation();
+  composer.classList.remove('over');stage(drag.slice());
+  refSel().forEach(c=>c.classList.remove('sel'));refSync()});
+
+/* ── drop targeting ────────────────────────────────────────────── */
+function clearViz(){line.remove();tail.classList.remove('over');
+  noteList.querySelectorAll('.card.merge').forEach(c=>c.classList.remove('merge'))}
+function targetAt(y){
+  const els=[...noteList.querySelectorAll('.card:not(.hidden)')];
+  for(const el of els){
+    const r=el.getBoundingClientRect();
+    if(y<r.top+r.height*0.30) return {mode:'insert',el,pos:'before'};
+    if(y<r.bottom-r.height*0.30) return {mode:'merge',el};
+    if(y<=r.bottom) return {mode:'insert',el,pos:'after'};
+  }
+  return {mode:'insert',el:null};
+}
+function showViz(t,n){
+  clearViz();
+  if(t.mode==='merge'){t.el.classList.add('merge');
+    t.el.querySelector('.mergeBadge').textContent='＋'+n+(n===1?' source':' sources')+' here'}
+  else{line.dataset.l='new card · '+n;
+    if(t.el)noteList.insertBefore(line,t.pos==='before'?t.el:t.el.nextSibling);
+    else{noteList.appendChild(line);tail.classList.add('over')}}
+}
+notesBody.addEventListener('dragover',e=>{if(!drag)return;e.preventDefault();
+  e.dataTransfer.dropEffect='copy';showViz(targetAt(e.clientY),drag.length)});
+notesBody.addEventListener('dragleave',e=>{if(!notesBody.contains(e.relatedTarget))clearViz()});
+notesBody.addEventListener('drop',e=>{
+  if(!drag)return; e.preventDefault();
+  const g=drag.slice(), t=targetAt(e.clientY); clearViz();
+  if(t.mode==='merge'){
+    const c=byId(+t.el.dataset.id), added=g.filter(i=>!c.srcs.includes(i));
+    c.srcs.push(...added); render(); flash(c.id);
+    toast(added.length?added.length+(added.length===1?' source':' sources')+' added to this card':'Already on this card');
+  } else {
+    let idx=CARDS.length;
+    if(t.el){const p=CARDS.findIndex(c=>c.id===+t.el.dataset.id); idx=t.pos==='before'?p:p+1}
+    newCard(g,idx);
+  }
+  refSel().forEach(c=>c.classList.remove('sel')); refSync();
+});
+function newCard(srcs,idx){
+  const c={id:seq++,text:'',srcs:srcs.slice(),tags:[],coll:savedTo||''};
+  CARDS.splice(idx,0,c); activeTags.clear(); query=''; render();
+  const el=noteList.querySelector('[data-id="'+c.id+'"]');
+  if(el){el.classList.add('land');el.scrollIntoView({block:'nearest'});
+    setTimeout(()=>el.classList.remove('land'),420);el.querySelector('textarea').focus()}
+}
+function flash(id){
+  const el=noteList.querySelector('[data-id="'+id+'"]');
+  if(!el)return; el.classList.add('flash'); el.scrollIntoView({block:'nearest'});
+  setTimeout(()=>el.classList.remove('flash'),1000);
+}
+tail.addEventListener('click',()=>cText.focus());
+
+/* ── add to My Library ─────────────────────────────────────────── */
+function walk(node,depth,out,prefix){
+  node.kids.forEach(k=>{out.push({name:k.name,depth,label:prefix+k.name});walk(k,depth+1,out,prefix+'   ')});
+  return out;
+}
+function openLibPop(btn,ids){
+  collPop.innerHTML='<div class="lab">MY LIBRARY /<br>choose a collection — nothing lands on its own</div>';
+  walk(LIB,0,[],'').forEach(k=>{
+    const b=document.createElement('button');
+    b.innerHTML='<span class="nm"></span><span class="c"></span>';
+    b.querySelector('.nm').textContent=(k.depth?'  ↳ ':'⊞ ')+k.name;
+    b.querySelector('.c').textContent=savedTo===k.name?'✓':'';
+    b.addEventListener('click',ev=>{ev.stopPropagation();saveTo(k.name,ids)});
+    collPop.appendChild(b);
+  });
+  collPop.insertAdjacentHTML('beforeend','<div class="sep"></div>');
+  const inp=document.createElement('input'); inp.placeholder='New collection…';
+  inp.addEventListener('keydown',ev=>{ev.stopPropagation();
+    if(ev.key==='Enter'&&ev.target.value.trim()){
+      LIB.kids.push({name:ev.target.value.trim(),kids:[]}); saveTo(ev.target.value.trim(),ids)}});
+  collPop.appendChild(inp);
+  openPop(collPop,btn);
+}
+function saveTo(name,ids){
+  collPop.classList.remove('on');
+  const targets=ids&&ids.length?ids:CARDS.map(c=>c.id);
+  targets.forEach(id=>{const c=byId(id);if(c)c.coll=name});
+  if(!ids||!ids.length) savedTo=name;
+  sel.clear(); render();
+  toast(targets.length+(targets.length===1?' card':' cards')+' saved to My Library / '+name);
+}
+$('libBtn').addEventListener('click',e=>{e.stopPropagation();
+  if(collPop.classList.contains('on')){collPop.classList.remove('on');return}
+  openLibPop(e.currentTarget,null)});
+
+/* ── My Library ────────────────────────────────────────────────── */
+function showScreen(w){
+  $('threadScreen').classList.toggle('on',w==='thread');
+  $('libScreen').classList.toggle('on',w==='lib');
+  $('railLib').classList.toggle('lit',w==='lib');
+  if(w==='lib') renderLib(); else layout();
+}
+$('railLib').addEventListener('click',()=>showScreen('lib'));
+$('railNew').addEventListener('click',()=>{
+  if(!confirm('Start over? The note and anything filed will be cleared.')) return;
+  boot();
+});
+function nodeAt(p){let n=LIB;p.forEach(i=>n=n.kids[i]);return n}
+const collHere=()=>path.length?nodeAt(path).name:null;
+const cardsIn=name=>CARDS.filter(c=>c.coll===name);
+function renderLib(){
+  const crumb=$('crumb'); crumb.innerHTML='';
+  const mk=(l,idx,isHere)=>{const a=document.createElement('a');a.textContent=l;a.className=isHere?'here':'';
+    if(!isHere)a.addEventListener('click',()=>{path=path.slice(0,idx);renderLib()});return a};
+  crumb.appendChild(mk('My Library',0,!path.length));
+  path.forEach((k,d)=>{crumb.appendChild(document.createTextNode('/'));
+    crumb.appendChild(mk(nodeAt(path.slice(0,d+1)).name,d+1,d===path.length-1))});
+  $('libTitle').textContent=collHere()||'My Library';
+
+  const kids=nodeAt(path).kids, mine=collHere()?cardsIn(collHere()):[];
+  const srcs=[...new Set(mine.flatMap(c=>c.srcs))];
+  const nThr=mine.length?1:0;
+  $('tallies').textContent=path.length
+    ? kids.length+' sub-collections · '+nThr+(nThr===1?' thread · ':' threads · ')+
+      srcs.length+(srcs.length===1?' source · ':' sources · ')+mine.length+(mine.length===1?' note card':' note cards')
+    : LIB.kids.length+' collections · '+CARDS.filter(c=>c.coll).length+' note cards filed';
+
+  const subs=$('subs'); subs.innerHTML='';
+  kids.forEach((k,i)=>{
+    const d=document.createElement('div'); d.className='sub';
+    const n=document.createElement('div'); n.className='n'; n.textContent='⊞ '+k.name;
+    const c=document.createElement('div'); c.className='c';
+    const kc=cardsIn(k.name).length;
+    c.textContent=(k.kids.length?k.kids.length+' inside · ':'')+(kc?kc+(kc===1?' note card':' note cards'):'empty');
+    d.append(n,c);
+    d.addEventListener('click',()=>{path=path.concat(i);renderLib()});
+    subs.appendChild(d);
+  });
+
+  const tw=$('tabsWrap'), body=$('libBody'); tw.innerHTML=''; body.innerHTML='';
+  if(!path.length){
+    body.innerHTML='<div class="prev"><div class="k">MY LIBRARY</div><h3>Open a collection to see its threads, sources and notes.</h3></div>';
+    return;
+  }
+  const barEl=document.createElement('div'); barEl.className='tabs';
+  [['threads','Threads',nThr],['sources','Sources',srcs.length],['notes','Notes',mine.length]].forEach(([k,l,n])=>{
+    const b=document.createElement('button'); b.className='tab'+(tab===k?' on':'');
+    b.innerHTML='<span class="l"></span><span class="n"></span>';
+    b.querySelector('.l').textContent=l; b.querySelector('.n').textContent=n;
+    b.addEventListener('click',()=>{tab=k;renderLib()});
+    barEl.appendChild(b);
+  });
+  tw.appendChild(barEl);
+  if(!mine.length){body.innerHTML='<div class="prev"><h3>Nothing filed here yet.</h3>'+
+    '<div class="m">Add cards from a thread with ＋ Add to My Library.</div></div>';return}
+
+  if(tab==='threads'){
+    const d=document.createElement('div'); d.className='prev';
+    d.innerHTML='<div class="k">THREAD</div><h3></h3><div class="m"></div>'+
+      '<div class="back"><span class="why">why it is here</span><span class="bl"></span></div>';
+    d.querySelector('h3').textContent=$('threadName').textContent;
+    d.querySelector('.m').textContent=QUERIES.length+(QUERIES.length===1?' query · ':' queries · ')+
+      [...new Set(QUERIES.flatMap(q=>q.refs.map(r=>r.p)))].length+' references';
+    d.querySelector('.bl').textContent=mine.length+(mine.length===1?' note card':' note cards')+' came from this thread';
+    body.appendChild(d);
+  }
+  if(tab==='sources'){
+    srcs.forEach(i=>{
+      const pv=bestProv(i), n=mine.filter(c=>c.srcs.includes(i)).length;
+      const d=document.createElement('div'); d.className='prev';
+      d.innerHTML='<div class="k">SOURCE</div><h3></h3><div class="m"></div>'+
+        '<div class="back"><span class="why">why it is here</span><span class="bl"></span>'+
+        '<div>from '+esc($('threadName').textContent)+' · <span class="dots"></span> <span class="pd"></span></div></div>';
+      d.querySelector('h3').textContent=P[i].t;
+      d.querySelector('.m').textContent=P[i].n+' · '+P[i].m;
+      d.querySelector('.bl').textContent=n+(n===1?' card cites it':' cards cite it');
+      d.querySelector('.dots').textContent=pv.dots;
+      d.querySelector('.pd').textContent=pv.rest;
+      body.appendChild(d);
+    });
+  }
+  if(tab==='notes'){
+    const d=document.createElement('div'); d.className='prev note';
+    d.innerHTML='<div class="k">NOTE · FROM A THREAD</div><h3></h3><div class="m"></div><div class="ex"></div>'+
+      '<div class="acts"><button class="go" id="openNote">Open the note ›</button>'+
+      '<button id="askFromLib">💬 Ask '+srcs.length+'</button></div>';
+    d.querySelector('h3').textContent='From '+$('threadName').textContent;
+    d.querySelector('.m').textContent=mine.length+(mine.length===1?' card · ':' cards · ')+
+      srcs.length+(srcs.length===1?' source':' sources');
+    d.querySelector('.ex').textContent=(mine.find(c=>c.text)||{text:'(sources only, no thought written)'}).text;
+    body.appendChild(d);
+    $('openNote').addEventListener('click',()=>{showNotes=true;showScreen('thread');
+      toast('Back in the thread this note came from')});
+    $('askFromLib').addEventListener('click',()=>{showNotes=true;showScreen('thread');
+      attach(srcs.length,mine.filter(c=>c.text.trim()).length)});
+  }
+}
+
+/* ── boot ──────────────────────────────────────────────────────── */
+function boot(n){
+  QUERIES=[JSON.parse(JSON.stringify(Q0))];
+  SEED.concat((n||12)>12?SEED_MORE:[]).forEach(q=>QUERIES.push(runSearch(q)));
+  TURNS=QUERIES.map((_,i)=>({s:i}));
+  CARDS=[]; seq=1; sel.clear(); staged=[];
+  savedTo=null; path=[]; tab='notes'; activeQ=QUERIES.length-1; inclNotes=false;
+  activeTags.clear(); query=''; freshSet=new Set(); here=0; onlyNew=false;
+  $('onlyNew').classList.remove('on'); $('onlyNew').textContent='only turns that added sources';
+  showNotes=false; showRefs=true;
+  ask.classList.remove('scoped'); $('askInput').value=''; $('sendBtn').textContent='Search ↩';
+  cText.value=''; drawStaged(); composer.classList.remove('armed');
+  showScreen('thread'); layout(); renderThread(); renderRefs(); render(); fit(cText);
+  jumpTo(0); threadEl.scrollTop=0;
+}
+$('to15').addEventListener('click',()=>boot(15));
+$('to12').addEventListener('click',()=>boot(12));
+boot(12);
+</script>
+</body>
+</html>

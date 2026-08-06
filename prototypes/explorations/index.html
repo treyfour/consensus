@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Two explorations that did not ship</title>
+<style>
+:root{
+--accent:#068ef1;--accent-emph:#006fce;--accent-subtle:#eff7ff;--accent-bd:#b8dfff;
+--bg:#fff;--mist:#fafafa;--faint:#f4f4f5;--subtle:#e4e4e7;
+--fg:#18181b;--muted:#71717b;--bd:#e4e4e7;--bd-emph:#d4d4d8;
+--warn:#a65f00;--warn-fill:#fdf0c9;--warn-bd:#e9c46a;--pos:#148d74;
+--s-2xs:.25rem;--s-xs:.5rem;--s-sm:.75rem;--s-md:1rem;--s-lg:1.25rem;--s-xl:1.5rem;--s-2xl:2rem;
+--t-2xs:.69rem;--t-xs:.81rem;--t-sm:.94rem;--t-base:1rem;--t-lg:1.13rem;
+--sans:Figtree,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+--mono:"Reddit Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--fg);background:var(--mist);
+  padding:var(--s-lg) var(--s-lg) var(--s-xl);-webkit-font-smoothing:antialiased}
+.wrap{max-width:68rem;margin:0 auto}
+.eyebrow{font-family:var(--mono);font-size:var(--t-2xs);text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+h1{font-size:1.6rem;letter-spacing:-.015em;margin:var(--s-2xs) 0 var(--s-xs)}
+.claim{font-size:var(--t-base);color:var(--fg);max-width:62rem;line-height:1.55}
+.claim b{color:var(--accent-emph)}
+
+/* side by side, because the point is that they ran in parallel rather than in sequence */
+.grid{margin-top:var(--s-md);display:grid;grid-template-columns:repeat(2,1fr);gap:var(--s-md)}
+@media (max-width:52rem){.grid{grid-template-columns:1fr}}
+.card{display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--bd);
+  border-radius:.75rem;overflow:hidden;text-decoration:none;color:inherit;
+  transition:border-color .12s,box-shadow .12s}
+.card:hover{border-color:var(--accent-bd);box-shadow:0 4px 18px #068ef11f}
+.shot{display:block;width:100%;aspect-ratio:1440/500;object-fit:cover;object-position:top center;
+  border-bottom:1px solid var(--bd);background:var(--faint)}
+.card:hover .shot{opacity:.94}
+.body{padding:var(--s-md);display:flex;flex-direction:column;flex:1}
+.tophead{display:flex;align-items:baseline;gap:var(--s-xs);margin-bottom:var(--s-2xs)}
+.k{font-family:var(--mono);font-size:var(--t-2xs);letter-spacing:.08em;color:var(--muted)}
+.sp{flex:1}
+.chip{font-family:var(--mono);font-size:var(--t-2xs);border-radius:625rem;padding:1px .5rem;flex:none}
+.chip.dead{background:var(--faint);color:var(--muted);border:1px solid var(--bd)}
+.chip.grew{background:var(--accent-subtle);color:var(--accent-emph);border:1px solid var(--accent-bd)}
+.card h2{font-size:var(--t-lg);line-height:1.25;margin-bottom:var(--s-2xs)}
+.q{font-size:var(--t-xs);color:var(--accent-emph);line-height:1.5;margin-bottom:var(--s-sm)}
+.gc{font-size:var(--t-xs);line-height:1.55;color:var(--muted)}
+.gc+.gc{margin-top:var(--s-xs)}
+.gc b{color:var(--fg);font-weight:600}
+/* the verdict is the reason the exploration was worth running, so it is not a footnote */
+.verdict{margin-top:var(--s-sm);padding-top:var(--s-sm);border-top:1px solid var(--bd);
+  font-size:var(--t-xs);line-height:1.55;color:var(--fg)}
+.verdict .vk{font-family:var(--mono);font-size:var(--t-2xs);letter-spacing:.08em;color:var(--warn);display:block;margin-bottom:2px}
+.go{margin-top:auto;padding-top:var(--s-sm);font-size:var(--t-xs);font-weight:500;color:var(--accent-emph)}
+
+.sofar{margin-top:var(--s-md);background:var(--bg);border:1px solid var(--bd);border-radius:.75rem;
+  padding:var(--s-md) var(--s-lg)}
+.sofar p{font-size:var(--t-sm);line-height:1.6;max-width:70rem}
+.sofar p+p{margin-top:var(--s-xs)}
+.sofar em{font-style:normal;color:var(--accent-emph);font-weight:500}
+.foot{margin-top:var(--s-md);font-family:var(--mono);font-size:var(--t-2xs);color:var(--muted);line-height:1.7}
+.foot a{color:var(--accent-emph);text-decoration:none}
+.foot a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Process · explorations that did not ship</p>
+  <h1>Two shapes I built and drove before the concept landed</h1>
+  <p class="claim">Both are clickable and run on the same real CRISPR thread as the concept. One
+  was rejected outright, the other was rebuilt somewhere else. <b>Each is here because what it
+  ruled out is what the finished design now rests on.</b> The side index came from a parallel
+  worktree that was never merged.</p>
+
+  <div class="grid">
+
+    <a class="card" href="spine.html">
+      <img class="shot" src="shots/spine.png" alt="A twelve-turn thread with an outline index down its left edge, each row a turn with a count of the sources it introduced.">
+      <div class="body">
+        <div class="tophead"><span class="k">EXPLORATION 1 · SIDE INDEX</span><span class="sp"></span>
+          <span class="chip dead">rejected</span></div>
+        <h2>A side index down the thread</h2>
+        <p class="q">What shape does a long thread have?</p>
+        <p class="gc"><b>Gives</b> a Notion-style outline of every turn, each row carrying the count
+          of sources that turn <em>introduced</em>, so you can see where the thread stopped learning
+          and jump instead of scroll. Twelve turns, and a stress mode that pushes it to fifteen.</p>
+        <p class="gc"><b>Costs</b> it says nothing about your own activity. It maps what the machine
+          did, not what you decided. Past about twenty turns the map needs its own scrollbar.</p>
+        <p class="verdict"><span class="vk">WHY IT DIED</span>
+          It indexes the transcript, and the transcript is not what gets lost. Navigation was never
+          the pain: a researcher who can jump to turn 7 still cannot say why the paper in it
+          mattered. This is what pushed the work off structure and onto the note.</p>
+        <p class="go">Open the prototype →</p>
+      </div>
+    </a>
+
+    <a class="card" href="../option-9-blend.html">
+      <img class="shot" src="shots/notes-below.png" alt="One right-hand column with References on top and a yellow Notebook docked below it, holding two note cards and an empty note that invites typing.">
+      <div class="body">
+        <div class="tophead"><span class="k">EXPLORATION 2 · ONE COLUMN</span><span class="sp"></span>
+          <span class="chip grew">grew into the concept</span></div>
+        <h2>Notes docked under References</h2>
+        <p class="q">Can one column hold both the machine’s list and yours?</p>
+        <p class="gc"><b>Gives</b> the shortest possible capture gesture: drag a reference straight
+          down into the Notebook, or press <b>＋</b> and it lands with the cursor already in the
+          note. Drop onto an existing note to pin it there, or just type in the empty one.</p>
+        <p class="gc"><b>Costs</b> the two halves compete for the same height. The moment References
+          is long enough to be worth reading, the Notebook is a sliver.</p>
+        <p class="verdict"><span class="vk">WHAT IT CHANGED</span>
+          The gesture survived and the layout did not. Two rounds later Notes moved
+          <em>beside</em> References instead of beneath it, which is the arrangement in the final
+          concept, because the move the whole thing turns on is dragging a reference into a note,
+          and that cannot happen if opening one collapses the other.</p>
+        <p class="go">Open the prototype →</p>
+      </div>
+    </a>
+
+  </div>
+
+  <div class="sofar">
+    <p>Twenty-eight numbered prototypes across three parallel worktrees, and the rejects were
+    worth more than the picks in every round. The pattern in both of these is the same: each added
+    <em>structure</em> to a thread, an index or a second pane, and each found that structure was
+    not the missing thing. <em>What was missing was somewhere to put a reason</em>, which is why
+    the concept adds exactly one noun and no new navigation.</p>
+  </div>
+
+  <p class="foot">
+    Both prototypes are live and drivable, on the same six captured papers and the same real
+    32.8M → 100 → 20 funnel as the concept. The side index is from the unmerged
+    <code>explore/thread-structure</code> branch; notes-below-references is round 3 of the main
+    line.<br>
+    <a href="../index.html">← all prototypes, newest first</a> &nbsp;·&nbsp;
+    <a href="../journey.html">the journey and the pains</a> &nbsp;·&nbsp;
+    <a href="../hifi.html">the concept →</a>
+  </p>
+</div>
+</body>
+</html>
