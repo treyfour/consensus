@@ -67,9 +67,10 @@ instead of clicking. Before any claim goes in the deck, it belongs in one of the
 | Asking from the graph creates a top-level orphan thread, no backlink | **Verified** | `screens/13`, `14` |
 | No note/tag/highlight anywhere, thread or library | **Verified** | `screens/09`, `15` |
 | Saved paper keeps metadata, loses the Evidence tab | **Verified** | `screens/15` vs `03` |
-| Grad-student journey stages 0–7 | **ASSUMED** — label as such on the slide | — |
-| Stage 7 "Defend", and P1 returning there | **ASSUMED** — load-bearing for the P1 return leg | — |
-| "Nobody owns stage 7" | **Inferred from the sweep** — boldest claim on the page, expect challenge | `COMPETITIVE.md` |
+| **The journey is two phases with a handoff between them: explore here, then "save and organize them in a reference manager and go on from there"** | **SOURCED** — reframed 2026-08-05. This is Consensus's own description of its users, quoted verbatim on the slide. It replaced the assumed eight-stage journey as the spine of `journey.html`, because their sentence is stronger than our inference and puts the handoff in their mouth rather than ours | the brief |
+| **All seven user-feedback responses land at or before that handoff; none asks for a better reference manager** | **SOURCED and checkable** — added 2026-08-05. Five sit inside exploration, two straddle the crossing, zero after it. The quotes are printed verbatim on the slide so the count can be audited from the page itself | the brief's feedback sample |
+| The six finer stages (Orientation → Write & cite) | **ASSUMED** — label as such on the slide, as the diagram now does in its own left gutter | — |
+| P1 returning at the writing desk | **ASSUMED** — load-bearing for the P1 return leg. Weaker than the old "Defend" stage claim but cheaper to defend | — |
 | Zotero is the grad student's ground truth | **ASSUMED**, supported by the Zotero Import button | `screens/09` |
 
 ---
