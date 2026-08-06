@@ -232,6 +232,32 @@ ok('and WHY THIS PAPER heads it', await txt('#pBody .why .k')==='WHY THIS PAPER'
 ok('rank is explained as per-search', /Rank is per search/.test(await txt('#pBody .hint')));
 await shot('h-10-evidence.png');
 
+/* the product gives a paper no way back to the list that produced it — leaving
+   costs you References and you reopen it from the header. This is the one
+   control the build adds that the shipped app does not have. */
+ok('the paper carries a back control, and References does not',
+  await p.evaluate(()=>document.getElementById('dBack').classList.contains('on')));
+ok('back is reachable, not decorative', await p.evaluate(()=>{
+  const r=document.getElementById('dBack').getBoundingClientRect();
+  return r.width>0&&r.height>0}));
+ok('it says where it goes',
+  await p.evaluate(()=>document.getElementById('dBack').title)==='Back to References');
+await p.click('#dBack'); await p.waitForTimeout(250);
+ok('pressing it returns to References', await p.evaluate(()=>dmode==='refs'));
+ok('and the drawer never closed on the way',
+  await p.evaluate(()=>document.getElementById('drawer').classList.contains('on')));
+ok('the query tab it came from is still the one selected',
+  await p.evaluate(()=>document.querySelectorAll('#qtabs .on').length===1));
+ok('back is gone again once you are on the list',
+  await p.evaluate(()=>!document.getElementById('dBack').classList.contains('on')));
+/* Escape is the same move from the keyboard, and it peels one layer at a time */
+await p.click('#refs .ref[data-p="0"] h3'); await p.waitForTimeout(300);
+await p.keyboard.press('Escape'); await p.waitForTimeout(250);
+ok('Escape steps the paper back too', await p.evaluate(()=>dmode==='refs'));
+await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+ok('and Escape on the list leaves the drawer alone',
+  await p.evaluate(()=>document.getElementById('drawer').classList.contains('on')));
+
 console.log('\n10 · file the note into a collection');
 await openNotes();
 await p.click('#libBtn'); await p.waitForTimeout(250);

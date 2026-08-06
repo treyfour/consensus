@@ -154,6 +154,14 @@ Declared so nobody mistakes it for observed behaviour.
 
 **Interaction**
 - The Notes panel in its entirety. Nothing like it ships.
+- **A back control on the paper.** `screens/03` shows the paper view headed by
+  `Paper` and an `✕`, and nothing else — so the only way out of a paper is to
+  close the whole drawer and reopen References from the thread header. Opening a
+  reference costs you the list that produced it. This build adds a `‹` in the
+  header's left slot, which returns to References with its query tab intact, and
+  binds `Escape` to the same move once nothing is floating. It is the one control
+  here that the shipped app does not have; every other addition is a panel or a
+  verb rather than a way back.
 - The spring-loaded `Notes` button (650ms hover during a drag opens the panel).
   This is a real pattern (macOS spring-loaded folders) but not one Consensus uses.
 - `RAISED BY THE ANSWER · NOT IN YOUR NOTE` and `✓ IN YOUR NOTE` badges.

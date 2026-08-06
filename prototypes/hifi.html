@@ -256,6 +256,12 @@ svg{display:block;flex:none}
 .dswitch:hover{background:var(--faint)}
 .dswitch .grow{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dswitch svg{color:var(--muted)}
+/* back sits in the header's left slot and pulls into the panel's padding, so the
+   `Paper` title stays on the same line References' title sits on */
+.backbtn{width:1.75rem;height:1.75rem;display:none;place-items:center;border:0;background:none;
+  border-radius:var(--r-sm);color:var(--muted);cursor:pointer;flex:none;margin-left:calc(var(--s-sm) * -1)}
+.backbtn.on{display:grid}
+.backbtn:hover{background:var(--faint);color:var(--fg)}
 .xbtn{width:2.25rem;height:2.25rem;border-radius:var(--r-circle);border:1px solid var(--bd);background:var(--bg);
   display:grid;place-items:center;cursor:pointer;flex:none}
 .xbtn:hover{border-color:var(--bd-emph)}
@@ -622,6 +628,11 @@ body.dragging .ref,body.dragging .card{cursor:grabbing}
       <!-- ── the drawer: References, or the Paper ───────────────────────── -->
       <aside class="drawer" id="drawer">
         <header class="dhd">
+          <!-- the product's paper view has no way back to the list it came from:
+               screens/03 shows `Paper` and an ✕, so leaving a paper costs you the
+               References panel and you reopen it from the header. This is the one
+               place the build adds a control the product does not have (§4). -->
+          <button class="backbtn" id="dBack" title="Back to References"></button>
           <span class="t" id="dTitle">References</span>
           <span class="slash" id="dSlash">/</span>
           <button class="dswitch" id="dSwitch"><span id="dSwitchIco"></span><span class="grow" id="dSwitchLab"></span><span id="dSwitchChev"></span></button>
@@ -705,7 +716,7 @@ const IC={
  chat:'M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5z', search:'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3',
  graph:'M6 3v7a4 4 0 0 0 4 4h4M6 3a2 2 0 1 1 0-.001M18 10a2 2 0 1 1 0-.001M18 18a2 2 0 1 1 0-.001M6 3v14a4 4 0 0 0 4 4h4',
  play:'M5 3l14 9-14 9z', mail:'M3 6h18v12H3zM3 6l9 6 9-6',
- chev:'M6 9l6 6 6-6', chevR:'M9 6l6 6-6 6', chevUD:'M8 9l4-4 4 4M8 15l4 4 4-4',
+ chev:'M6 9l6 6 6-6', chevR:'M9 6l6 6-6 6', chevL:'M15 6l-6 6 6 6', chevUD:'M8 9l4-4 4 4M8 15l4 4 4-4',
  panel:'M3 4h18v16H3zM9 4v16', folder:'M3 7a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z',
  doc:'M14 3H7a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V7zM14 3v4h4',
  sliders:'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h10M18 18h2M14 4v4M8 10v4M14 16v4',
@@ -871,6 +882,7 @@ function paintChrome(){
   $('seedBtn').nextElementSibling.innerHTML=svg('mic',18);
   $('sendBtn').innerHTML=svg('up',18);
   $('dClose').innerHTML=svg('x',16);
+  $('dBack').innerHTML=svg('chevL',18);
   $('nClose').innerHTML=svg('x',16);
   $('nSwitchIco').innerHTML=svg('note',16); $('nSwitchChev').innerHTML=svg('chev',14);
   const ds=$('mRefs').querySelectorAll('.dsub .ghostbtn');
@@ -940,6 +952,7 @@ function setMode(m,toggle){
   $('mRefs').style.display=m==='refs'?'flex':'none';
   $('mPaper').style.display=m==='paper'?'flex':'none';
   $('btnRefs').classList.toggle('on',m==='refs');
+  $('dBack').classList.toggle('on',m==='paper');
   if(m==='refs'){$('dTitle').textContent='References';$('dSlash').style.display='';
     $('dSwitch').style.display='';$('dSwitchIco').innerHTML=svg('chat',16);
     $('dSwitchChev').innerHTML=svg('chev',14);
@@ -968,6 +981,9 @@ window.addEventListener('resize',fitHeader);
 $('btnRefs').addEventListener('click',()=>setMode('refs',true));
 $('btnNotes').addEventListener('click',()=>showNotesPane(!showNotes));
 $('dClose').addEventListener('click',()=>setMode(null));
+/* back returns to the list with its query tab intact — the paper was opened from
+   References, so closing the paper should cost you the paper and nothing else */
+$('dBack').addEventListener('click',()=>setMode('refs'));
 $('nClose').addEventListener('click',()=>showNotesPane(false));
 
 /* References and Notes are both on screen, so the ordinary move is to drag one
@@ -1159,7 +1175,12 @@ function hideWhy(force){const c=$('whyCard');if(c._sticky&&!force)return;
   document.querySelectorAll('.cite.lit').forEach(e=>e.classList.remove('lit'))}
 $('whyCard').addEventListener('mouseenter',()=>clearTimeout(hideT));
 $('whyCard').addEventListener('mouseleave',scheduleHide);
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){hideWhy(true);closePops()}});
+/* Escape peels one layer at a time: whatever is floating first, and only once
+   nothing is floating does it step the paper back to the list it came from */
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;
+  const floating=$('whyCard').classList.contains('on')||POPS().some(p=>p.classList.contains('on'));
+  hideWhy(true);closePops();
+  if(!floating&&dmode==='paper')setMode('refs')});
 
 /* the explanation is the paper's own words, so it cannot be wrong about itself */
 function whyBlock(i){
